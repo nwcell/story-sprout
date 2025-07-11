@@ -1,4 +1,4 @@
-# Hyperion : Django + HTMX SaaS Boilerplate
+# Story Sprout : Django + HTMX SaaS Boilerplate
 
 <div align="center">
   <img src="https://img.shields.io/badge/Django-5.0-092E20?style=for-the-badge&logo=django&logoColor=white" alt="Django 5.0"/>

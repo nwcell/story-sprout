@@ -18,12 +18,24 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
+
+@require_http_methods(['GET'])
+def healthcheck(request):
+    """Simple healthcheck endpoint to verify server is running"""
+    return JsonResponse({
+        'status': 'healthy',
+        'message': 'Django server is running'
+    })
 
 urlpatterns = [
+    path('healthcheck/', healthcheck, name='healthcheck'),
     path('admin/', admin.site.urls),
     path('accounts/', include('allauth.urls')),
     path('', include('apps.landing.urls')),
     path('dashboard/', include('apps.dashboard.urls')),
+    path('stories/', include('apps.stories.urls')),
     path('subscriptions/', include('apps.subscriptions.urls')),
 ]
 

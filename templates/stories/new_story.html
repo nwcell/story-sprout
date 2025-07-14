@@ -1,0 +1,54 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}New Story - Story Sprout{% endblock %}
+
+{% block dashboard_content %}
+<div class="max-w-7xl mx-auto">
+    <div class="flex items-center justify-between">
+        <h1 class="text-2xl font-medium text-black uppercase tracking-wide">New Story</h1>
+        <a href="{% url 'stories:stories' %}" class="inline-flex items-center px-4 py-2 text-sm font-medium text-black bg-white hover:bg-gray-50 border border-light-gray uppercase tracking-wider rounded">
+            <i class="fa-solid fa-arrow-left mr-2"></i>
+            Back to Stories
+        </a>
+    </div>
+
+    <div class="mt-8 bg-white shadow overflow-hidden sm:rounded-md border border-light-gray">
+        <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg leading-6 font-medium text-black">Story Details</h3>
+            <p class="mt-1 max-w-2xl text-sm text-gray">
+                Create your new story by filling out the details below.
+            </p>
+
+            <form method="POST" class="mt-6 space-y-6">
+                {% csrf_token %}
+                <div>
+                    <label for="title" class="block text-sm font-medium text-black">Title</label>
+                    <div class="mt-1">
+                        <input type="text" name="title" id="title" required
+                               class="shadow-sm focus:ring-black focus:border-black block w-full sm:text-sm border-light-gray rounded-md"
+                               placeholder="Enter a title for your story">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="description" class="block text-sm font-medium text-black">Description</label>
+                    <div class="mt-1">
+                        <textarea name="description" id="description" rows="4" required
+                                  class="shadow-sm focus:ring-black focus:border-black block w-full sm:text-sm border-light-gray rounded-md"
+                                  placeholder="Enter a description for your story"></textarea>
+                    </div>
+                </div>
+
+                <div class="flex justify-end">
+                    <a href="{% url 'stories:stories' %}" class="inline-flex items-center px-4 py-2 text-sm font-medium text-black border border-light-gray bg-white hover:bg-gray-50 rounded mr-3">
+                        Cancel
+                    </a>
+                    <button type="submit" class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-black hover:bg-dark-gray uppercase tracking-wider rounded">
+                        Create Story
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

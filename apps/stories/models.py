@@ -1,0 +1,42 @@
+from django.db import models
+from django.contrib.auth import get_user_model
+from ordered_model.models import OrderedModel
+import uuid
+
+User = get_user_model()
+
+class Story(models.Model):
+    title = models.CharField(max_length=255)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    description = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return self.title
+
+    class Meta:
+        verbose_name = "Story"
+        verbose_name_plural = "Stories"
+        ordering = ["user", "-created_at"]
+
+class Page(OrderedModel):
+    story = models.ForeignKey(Story, on_delete=models.CASCADE, related_name='pages')
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    content = models.TextField()
+    image_text = models.TextField(blank=True, null=True)
+    image = models.ImageField(upload_to='page_images', blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    # OrderedModel configuration
+    order_with_respect_to = 'story'
+    
+    def __str__(self):
+        return f"Page {self.order + 1} of {self.story.title}"
+    
+    class Meta(OrderedModel.Meta):
+        verbose_name = "Page"
+        verbose_name_plural = "Pages"
+        ordering = ['story__user', 'story', 'order']

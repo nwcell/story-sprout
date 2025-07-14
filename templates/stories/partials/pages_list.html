@@ -1,0 +1,21 @@
+{% load static %}
+
+<div id="story-pages" class="mt-4 space-y-6">
+    {% for page in pages %}
+        {% include 'stories/partials/page_item.html' %}
+    {% endfor %}
+</div>
+{% if not pages %}
+    <div class="mt-4 bg-white shadow overflow-hidden sm:rounded-md border border-light-gray p-6 text-center">
+        <p class="text-gray">This story doesn't have any pages yet.</p>
+        <div class="mt-4">
+            <button hx-post="{% url 'stories:add_page' story.uuid %}"
+                    hx-target="#story-pages"
+                    hx-swap="beforeend"
+                    class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-black hover:bg-dark-gray uppercase tracking-wider rounded transition-colors">
+                <i class="fa-solid fa-plus mr-2"></i>
+                Add First Page
+            </button>
+        </div>
+    </div>
+{% endif %}

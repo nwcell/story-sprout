@@ -9,6 +9,55 @@ from .models import Story, Page
 # Create your views here.
 
 @login_required
+@require_http_methods(['POST'])
+def move_page_up(request, page_id):
+    page = get_object_or_404(Page, id=page_id)
+    story = page.story
+    
+    # Security check - ensure the user owns the story
+    if story.user != request.user:
+        raise Http404("Page not found")
+    
+    # Use django-ordered-model's built-in up() method
+    page.up()
+    
+    # Return all pages for the story in the new order
+    pages = story.pages.all()
+    
+    # Add first/last flags for each page
+    for i, p in enumerate(pages):
+        p.is_first = i == 0
+        p.is_last = i == len(pages) - 1
+    
+    context = {'story': story, 'pages': pages}
+    return render(request, 'stories/partials/pages_list.html', context)
+
+@login_required
+@require_http_methods(['POST'])
+def move_page_down(request, page_id):
+    page = get_object_or_404(Page, id=page_id)
+    story = page.story
+    
+    # Security check - ensure the user owns the story
+    if story.user != request.user:
+        raise Http404("Page not found")
+    
+    # Use django-ordered-model's built-in down() method
+    page.down()
+    
+    # Return all pages for the story in the new order
+    pages = story.pages.all()
+    
+    # Add first/last flags for each page
+    for i, p in enumerate(pages):
+        p.is_first = i == 0
+        p.is_last = i == len(pages) - 1
+    
+    context = {'story': story, 'pages': pages}
+    return render(request, 'stories/partials/pages_list.html', context)
+
+
+@login_required
 @require_http_methods(['GET'])
 def stories(request):
     # Get stories for the logged-in user, ordered by most recently updated
@@ -32,6 +81,11 @@ def story_detail(request, story_uuid):
     
     # Get the pages ordered by the OrderedModel's order field
     pages = story.pages.all()
+    
+    # Add first/last flags for each page
+    for i, page in enumerate(pages):
+        page.is_first = i == 0
+        page.is_last = i == len(pages) - 1
     
     context = {
         'story': story,

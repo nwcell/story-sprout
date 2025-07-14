@@ -3,12 +3,25 @@
     <div class="px-6 py-4 border-b border-light-gray flex justify-between items-center">
         <h3 class="text-lg font-medium text-black">Page {{ page.order|add:"1" }}</h3>
         <div class="flex space-x-2">
-            <button type="button" class="p-1 rounded-full text-gray-400 hover:text-gray-500">
+            {% if not page.is_first %}
+            <button type="button" 
+                    hx-post="{% url 'stories:move_page_up' page.id %}"
+                    hx-target="#story-pages"
+                    hx-swap="innerHTML"
+                    class="p-1 rounded-full text-gray-400 hover:text-blue-500 transition-colors">
                 <i class="fa-solid fa-arrow-up"></i>
             </button>
-            <button type="button" class="p-1 rounded-full text-gray-400 hover:text-gray-500">
+            {% endif %}
+            
+            {% if not page.is_last %}
+            <button type="button" 
+                    hx-post="{% url 'stories:move_page_down' page.id %}"
+                    hx-target="#story-pages"
+                    hx-swap="innerHTML"
+                    class="p-1 rounded-full text-gray-400 hover:text-blue-500 transition-colors">
                 <i class="fa-solid fa-arrow-down"></i>
             </button>
+            {% endif %}
             <button type="button" 
                     hx-delete="{% url 'stories:delete_page' page.id %}"
                     hx-target="#page-{{ page.id }}"

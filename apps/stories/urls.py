@@ -24,4 +24,6 @@ urlpatterns = [
     # Image upload and deletion endpoints
     path('pages/<int:page_id>/image/upload/', views.upload_page_image, name='upload_page_image'),
     path('pages/<int:page_id>/image/delete/', views.delete_page_image, name='delete_page_image'),
+    path('pages/<int:page_id>/move-up/', views.move_page_up, name='move_page_up'),
+    path('pages/<int:page_id>/move-down/', views.move_page_down, name='move_page_down'),
 ] 

@@ -1,0 +1,12 @@
+<!-- Story title display -->
+<div id="story-title" 
+     hx-get="{% url 'stories:edit_story_title' story.uuid %}"
+     hx-trigger="click"
+     hx-target="this"
+     hx-swap="outerHTML"
+     class="cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors">
+    <h1 class="text-2xl font-medium text-black uppercase tracking-wide">
+        {{ story.title }}
+        <i class="fa-solid fa-pen-to-square text-sm text-gray-400 ml-2 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+    </h1>
+</div>

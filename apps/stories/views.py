@@ -1,9 +1,9 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
-from django.http import Http404
+from django.http import Http404, HttpResponseBadRequest, HttpResponse
 from django.urls import reverse
-from .models import Story
+from .models import Story, Page
 
 # Create your views here.
 
@@ -59,3 +59,119 @@ def new_story(request):
     
     # Display new story form
     return render(request, 'stories/new_story.html')
+
+# HTMX Views for In-Place Editing
+
+@login_required
+def get_story_title(request, story_uuid):
+    """HTMX endpoint to get the display version of a story's title."""
+    story = get_object_or_404(Story, uuid=story_uuid, user=request.user)
+    return render(request, 'stories/partials/story_title.html', {'story': story})
+
+
+@login_required
+def get_story_description(request, story_uuid):
+    """HTMX endpoint to get the display version of a story's description."""
+    story = get_object_or_404(Story, uuid=story_uuid, user=request.user)
+    return render(request, 'stories/partials/story_description.html', {'story': story})
+
+
+@login_required
+def edit_story_title(request, story_uuid):
+    """HTMX endpoint for editing story title"""
+    if not request.htmx:
+        return HttpResponseBadRequest()
+    
+    story = get_object_or_404(Story, uuid=story_uuid, user=request.user)
+    
+    if request.method == 'POST':
+        # Update title
+        title = request.POST.get('title', '').strip()
+        if title:
+            story.title = title
+            story.save()
+        return render(request, 'stories/partials/story_title.html', {
+            'story': story, 'editing': False
+        })
+    
+    # Show edit form
+    return render(request, 'stories/partials/story_title_form.html', {
+        'story': story
+    })
+
+@login_required
+def edit_story_description(request, story_uuid):
+    """HTMX endpoint for editing story description"""
+    if not request.htmx:
+        return HttpResponseBadRequest()
+    
+    story = get_object_or_404(Story, uuid=story_uuid, user=request.user)
+    
+    if request.method == 'POST':
+        # Update description
+        description = request.POST.get('description', '').strip()
+        story.description = description
+        story.save()
+        return render(request, 'stories/partials/story_description.html', {
+            'story': story, 'editing': False
+        })
+    
+    # Show edit form
+    return render(request, 'stories/partials/story_description_form.html', {
+        'story': story
+    })
+
+@login_required
+def get_page_content(request, page_id):
+    """HTMX endpoint to get the display version of a page's content."""
+    page = get_object_or_404(Page, id=page_id, story__user=request.user)
+    return render(request, 'stories/partials/page_content.html', {'page': page})
+
+
+@login_required
+def edit_page_content(request, page_id):
+    """HTMX endpoint for editing page content"""
+    page = get_object_or_404(Page, id=page_id, story__user=request.user)
+    if request.method == 'POST':
+        # Update content
+        content = request.POST.get('content', '').strip()
+        page.content = content
+        page.save()
+        return render(request, 'stories/partials/page_content.html', {
+            'page': page, 'editing': False
+        })
+    
+    # Show edit form
+    return render(request, 'stories/partials/page_content_form.html', {
+        'page': page
+    })
+
+@login_required
+def add_page(request, story_uuid):
+    """HTMX endpoint for adding a new page"""
+    if not request.htmx or request.method != 'POST':
+        return HttpResponseBadRequest()
+    
+    story = get_object_or_404(Story, uuid=story_uuid, user=request.user)
+    
+    # Create new page
+    page = Page.objects.create(
+        story=story,
+        content="Click to edit content..."
+    )
+    
+    return render(request, 'stories/partials/page_item.html', {
+        'page': page
+    })
+
+@login_required
+def delete_page(request, page_id):
+    """HTMX endpoint for deleting a page"""
+    if not request.htmx or request.method != 'DELETE':
+        return HttpResponseBadRequest()
+    
+    page = get_object_or_404(Page, id=page_id, story__user=request.user)
+    page.delete()
+    
+    # Return empty response for removal
+    return HttpResponse("")

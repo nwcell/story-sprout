@@ -1,0 +1,13 @@
+<!-- Story description display -->
+<div id="story-description"
+     hx-get="{% url 'stories:edit_story_description' story.uuid %}"
+     hx-trigger="click"
+     hx-target="this"
+     hx-swap="outerHTML"
+     class="cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors group">
+    <h3 class="text-lg font-medium text-black">
+        Description
+        <i class="fa-solid fa-pen-to-square text-sm text-gray-400 ml-2 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+    </h3>
+    <p class="mt-2 text-gray">{{ story.description|default:"Click to add description..." }}</p>
+</div>

@@ -5,7 +5,7 @@
 {% block dashboard_content %}
 <div class="max-w-7xl mx-auto">
     <div class="flex items-center justify-between">
-        <h1 class="text-2xl font-medium text-black uppercase tracking-wide">{{ story.title }}</h1>
+        {% include 'stories/partials/story_title.html' %}
         <a href="{% url 'stories:stories' %}" class="inline-flex items-center px-4 py-2 text-sm font-medium text-black bg-white hover:bg-gray-50 border border-light-gray uppercase tracking-wider rounded">
             <i class="fa-solid fa-arrow-left mr-2"></i>
             Back to Stories
@@ -15,11 +15,10 @@
     <!-- Story Description -->
     <div class="mt-4 bg-white shadow overflow-hidden sm:rounded-md border border-light-gray p-6">
         <div class="flex items-center justify-between">
-            <div>
-                <h3 class="text-lg font-medium text-black">Description</h3>
-                <p class="mt-2 text-gray">{{ story.description }}</p>
+            <div class="flex-1">
+                {% include 'stories/partials/story_description.html' %}
             </div>
-            <div class="text-right">
+            <div class="text-right ml-6">
                 <p class="text-sm text-gray">Created: <time datetime="{{ story.created_at|date:'c' }}">{{ story.created_at|date:"M d, Y" }}</time></p>
                 <p class="text-sm text-gray">Updated: <time datetime="{{ story.updated_at|date:'c' }}">{{ story.updated_at|date:"M d, Y" }}</time></p>
                 <p class="text-sm text-gray mt-1">{{ pages.count }} Pages</p>
@@ -31,62 +30,31 @@
     <div class="mt-8">
         <div class="flex items-center justify-between">
             <h2 class="text-xl font-medium text-black uppercase tracking-wide">Pages</h2>
-            <a href="#" class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-black hover:bg-dark-gray uppercase tracking-wider rounded">
+            <button hx-post="{% url 'stories:add_page' story.uuid %}"
+                    hx-target="#pages-container"
+                    hx-swap="beforeend"
+                    class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-black hover:bg-dark-gray uppercase tracking-wider rounded transition-colors">
                 <i class="fa-solid fa-plus mr-2"></i>
                 Add New Page
-            </a>
+            </button>
         </div>
 
-        {% if pages %}
-            <div class="mt-4 space-y-6">
-                {% for page in pages %}
-                <div class="bg-white shadow overflow-hidden sm:rounded-md border border-light-gray">
-                    <div class="px-6 py-4 border-b border-light-gray flex justify-between items-center">
-                        <h3 class="text-lg font-medium text-black">Page {{ page.order|add:"1" }}</h3>
-                        <div class="flex space-x-2">
-                            <button type="button" class="p-1 rounded-full text-gray-400 hover:text-gray-500">
-                                <i class="fa-solid fa-arrow-up"></i>
-                            </button>
-                            <button type="button" class="p-1 rounded-full text-gray-400 hover:text-gray-500">
-                                <i class="fa-solid fa-arrow-down"></i>
-                            </button>
-                            <button type="button" class="p-1 rounded-full text-gray-400 hover:text-gray-500">
-                                <i class="fa-solid fa-pen-to-square"></i>
-                            </button>
-                            <button type="button" class="p-1 rounded-full text-gray-400 hover:text-gray-500">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="px-6 py-4">
-                        <div class="prose max-w-none">
-                            <p>{{ page.content|linebreaksbr }}</p>
-                        </div>
-
-                        {% if page.image %}
-                        <div class="mt-4">
-                            <img src="{{ page.image.url }}" alt="Image for page {{ page.order|add:'1' }}" class="max-w-full h-auto rounded">
-                            {% if page.image_text %}
-                            <p class="mt-2 text-sm text-gray italic">{{ page.image_text }}</p>
-                            {% endif %}
-                        </div>
-                        {% endif %}
-
-                        <div class="mt-4 text-right text-sm text-gray">
-                            Last updated: <time datetime="{{ page.updated_at|date:'c' }}">{{ page.updated_at|date:"M d, Y" }}</time>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-        {% else %}
+        <div id="pages-container" class="mt-4 space-y-6">
+            {% for page in pages %}
+                {% include 'stories/partials/page_item.html' %}
+            {% endfor %}
+        </div>
+        {% if not pages %}
             <div class="mt-4 bg-white shadow overflow-hidden sm:rounded-md border border-light-gray p-6 text-center">
                 <p class="text-gray">This story doesn't have any pages yet.</p>
                 <div class="mt-4">
-                    <a href="#" class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-black hover:bg-dark-gray uppercase tracking-wider rounded">
+                    <button hx-post="{% url 'stories:add_page' story.uuid %}"
+                            hx-target="#pages-container"
+                            hx-swap="beforeend"
+                            class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-black hover:bg-dark-gray uppercase tracking-wider rounded transition-colors">
                         <i class="fa-solid fa-plus mr-2"></i>
                         Add First Page
-                    </a>
+                    </button>
                 </div>
             </div>
         {% endif %}

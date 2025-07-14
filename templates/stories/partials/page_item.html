@@ -1,0 +1,38 @@
+<!-- Individual page item -->
+<div class="bg-white shadow overflow-hidden sm:rounded-md border border-light-gray" id="page-{{ page.id }}">
+    <div class="px-6 py-4 border-b border-light-gray flex justify-between items-center">
+        <h3 class="text-lg font-medium text-black">Page {{ page.order|add:"1" }}</h3>
+        <div class="flex space-x-2">
+            <button type="button" class="p-1 rounded-full text-gray-400 hover:text-gray-500">
+                <i class="fa-solid fa-arrow-up"></i>
+            </button>
+            <button type="button" class="p-1 rounded-full text-gray-400 hover:text-gray-500">
+                <i class="fa-solid fa-arrow-down"></i>
+            </button>
+            <button type="button" 
+                    hx-delete="{% url 'stories:delete_page' page.id %}"
+                    hx-target="#page-{{ page.id }}"
+                    hx-swap="outerHTML"
+                    hx-confirm="Are you sure you want to delete this page?"
+                    class="p-1 rounded-full text-gray-400 hover:text-red-500 transition-colors">
+                <i class="fa-solid fa-trash"></i>
+            </button>
+        </div>
+    </div>
+    <div class="px-6 py-4 relative">
+        {% include 'stories/partials/page_content.html' %}
+
+        {% if page.image %}
+        <div class="mt-4">
+            <img src="{{ page.image.url }}" alt="Image for page {{ page.order|add:'1' }}" class="max-w-full h-auto rounded">
+            {% if page.image_text %}
+            <p class="mt-2 text-sm text-gray italic">{{ page.image_text }}</p>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <div class="mt-4 text-right text-sm text-gray">
+            Last updated: <time datetime="{{ page.updated_at|date:'c' }}">{{ page.updated_at|date:"M d, Y" }}</time>
+        </div>
+    </div>
+</div>

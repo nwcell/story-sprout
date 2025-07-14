@@ -4,13 +4,14 @@
      hx-trigger="click"
      hx-target="this"
      hx-swap="outerHTML"
-     class="cursor-pointer hover:bg-gray-50 p-3 rounded transition-colors group">
+     class="cursor-pointer hover:bg-gray-50 p-3 rounded transition-colors group mb-3 relative">
+    <h4 class="text-sm font-medium text-black mb-1">Content</h4>
     <div class="prose max-w-none">
         {% if page.content %}
             <p>{{ page.content|linebreaksbr }}</p>
         {% else %}
             <p class="text-gray-400 italic">Click to add content...</p>
         {% endif %}
-        <i class="fa-solid fa-pen-to-square text-sm text-gray-400 absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"></i>
     </div>
+    <i class="fa-solid fa-pen-to-square text-sm text-gray-400 absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"></i>
 </div>

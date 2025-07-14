@@ -1,8 +1,9 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
-from django.http import Http404, HttpResponseBadRequest, HttpResponse
+from django.http import Http404, HttpResponseBadRequest, HttpResponse, JsonResponse
 from django.urls import reverse
+from django.template.loader import render_to_string
 from .models import Story, Page
 
 # Create your views here.
@@ -175,3 +176,84 @@ def delete_page(request, page_id):
     
     # Return empty response for removal
     return HttpResponse("")
+
+@login_required
+def get_page_image_text(request, page_id):
+    """HTMX endpoint to get the display version of a page's image text."""
+    page = get_object_or_404(Page, id=page_id, story__user=request.user)
+    return render(request, 'stories/partials/page_image_text.html', {'page': page})
+
+@login_required
+def edit_page_image_text(request, page_id):
+    """HTMX endpoint for showing the edit form for page image text"""
+    if not request.htmx:
+        return HttpResponseBadRequest()
+    
+    page = get_object_or_404(Page, id=page_id, story__user=request.user)
+    
+    # Show edit form
+    return render(request, 'stories/partials/page_image_text_form.html', {
+        'page': page
+    })
+
+@login_required
+def update_page_image_text(request, page_id):
+    """HTMX endpoint for saving updated page image text"""
+    if not request.htmx or request.method != 'POST':
+        return HttpResponseBadRequest()
+    
+    page = get_object_or_404(Page, id=page_id, story__user=request.user)
+    
+    # Update image text
+    image_text = request.POST.get('image_text', '').strip()
+    page.image_text = image_text
+    page.save()
+    
+    return render(request, 'stories/partials/page_image_text.html', {
+        'page': page
+    })
+
+@login_required
+def upload_page_image(request, page_id):
+    """AJAX/HTMX endpoint for uploading a page image"""
+    if request.method != 'POST' or not request.FILES.get('image'):
+        return JsonResponse({'success': False, 'error': 'No image provided'}, status=400)
+    
+    page = get_object_or_404(Page, id=page_id, story__user=request.user)
+    
+    # Delete old image if it exists
+    if page.image:
+        page.image.delete(save=False)
+    
+    # Save new image
+    page.image = request.FILES['image']
+    page.save()
+    
+    # Render the updated image container
+    html = render_to_string('stories/partials/page_image_container.html', {
+        'page': page
+    }, request=request)
+    
+    # Return JSON response with success status and the HTML for the container
+    return JsonResponse({
+        'success': True,
+        'html': html
+    })
+
+@login_required
+@require_http_methods(['DELETE'])
+def delete_page_image(request, page_id):
+    """HTMX endpoint for deleting a page image"""
+    if not request.htmx:
+        return HttpResponseBadRequest()
+    
+    page = get_object_or_404(Page, id=page_id, story__user=request.user)
+    
+    # Delete the image
+    if page.image:
+        page.image.delete()
+    
+    # Return the empty image container
+    return render(request, 'stories/partials/page_image_container.html', {
+        'page': page
+    })

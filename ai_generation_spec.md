@@ -2,157 +2,251 @@
 
 ## 1. Feature Overview
 
-This feature allows users to generate content for a story's page directly from the editing interface. When a user is editing a page's content, they can click a "Generate" button. This action will trigger an asynchronous AI task to generate relevant text based on the story's context. The UI will provide real-time feedback (e.g., a loading spinner) and insert the generated text into the editor upon completion.
+This feature allows users to generate AI-powered content for story pages directly from the editing interface. When editing a page, users can click a "Generate with AI" button that triggers an asynchronous AI task. The system provides real-time UI feedback and inserts generated text upon completion.
 
 ## 2. User Experience (UX) Flow
 
-1.  **User enters edit mode:** The user clicks to edit the content of a `Page`.
-2.  **"Generate" button appears:** Alongside the standard save/cancel buttons, a new "Generate with AI" button is visible.
-3.  **User clicks "Generate":** The user clicks the button to initiate AI content generation.
-4.  **Loading state:** The "Generate" button becomes disabled, and a loading indicator (spinner) appears next to it. The text area might become read-only to prevent concurrent edits.
-5.  **AI generates content:** A background task is executed.
-6.  **Content appears:** Once the task is complete, the generated text is inserted into the text area, replacing any existing content. The loading indicator disappears, and the button is re-enabled.
+1. **User enters edit mode:** User clicks to edit a `Page`'s content in the in-place editor
+2. **Generate button appears:** Below the save/cancel button group, a "Generate with AI" button with magic wand icon is visible
+3. **User clicks Generate:** Initiates AI content generation
+4. **Loading state:** 
+   - Generate button becomes disabled
+   - Textarea becomes read-only to prevent concurrent edits
+   - Spinner/loading indicator appears to show generation in progress
+5. **AI generates content:** Background task executes using full story context
+6. **Content appears:** Generated text replaces existing content in textarea, loading state clears
+7. **Error handling:** If generation fails, show notification modal/bar and restore original content
 
 ## 3. Technical Architecture
 
-We will follow a clean, decoupled architecture that separates the domain logic (`stories`) from the infrastructure logic (`ai`).
+### 3.1. Goals
 
-### 3.1. Directory Structure
+Build an async AI layer for Story-Sprout that:
+1. Queues AI work via DB-backed jobs (fault-tolerant, auditable)
+2. Keeps domain ↔ ai dependencies one-way (stories ➜ ai)
+3. Provides comprehensive context (all pages in story) for generation
+
+### 3.2. Directory Structure
 
 ```
 apps/
 ├─ stories/                     # Domain App
 │  ├─ models.py                 # Story, Page models
-│  ├─ tasks.py                  # New: attach_page_text Celery task
-│  ├─ views.py                  # New: view to queue the AI task
-│  └─ urls.py                   # New: URL for the queueing view
+│  ├─ services.py               # request_page_text(page, user) → AiJob
+│  ├─ tasks.py                  # attach_result(job_id)
+│  └─ views/admin               # call services.request_*()
 │
-└─ ai/                          # Infrastructure App (No Django Models)
+└─ ai/                          # Infrastructure App
+   ├─ models.py                 # AiJob model
    ├─ adapters/                 # SDK Shims
-   │  └─ litellm.py             # New: LiteLLM adapter
+   │  └─ litellm.py             # LiteLLM adapter
    ├─ prompts/                  # Prompt Templates
-   │  └─ page_content.jinja     # New: Prompt for generating page content
+   │  └─ page_content.jinja     # Page generation prompts
    ├─ workflows/                # Pure Python Orchestration
-   │  └─ text.py                # New: generate() workflow
-   ├─ tasks/                    # Celery Task Definitions
-   │  └─ text.py                # New: generate_page_text Celery task
-   └─ __init__.py               # Public API for the AI app
+   │  └─ text.py                # generate(ctx) workflow
+   ├─ tasks.py                  # run_ai_job(job_id) Celery task
+   └─ queue.py                  # queue_ai_job(job_id)
 ```
 
-### 3.2. Core Principles
+### 3.3. Core Principles
 
--   **Dependency Inversion:** The `stories` app will depend on the `ai` app, but the `ai` app will have no knowledge of `stories`. This is crucial for modularity.
--   **Pure Workflows:** `ai/workflows` and `ai/adapters` will contain pure Python code with **no Django imports**. This makes them portable, independently testable, and framework-agnostic.
--   **Filesystem-based Prompts:** Prompts will be managed as `.jinja` files under version control, allowing for easy iteration and review.
+- **One-way Dependencies:** Domain apps import `ai.queue` / `ai.models`, never the reverse
+- **Pure Workflows:** `ai/workflows` and `ai/adapters` contain **no Django imports**
+- **DB-backed Jobs:** All AI work tracked via `AiJob` model for fault tolerance and auditing
+- **Filesystem Prompts:** Prompts managed as `.jinja` files under version control
+- **Default Queue:** Use default Celery queue for CPU tasks (GPU queue reserved for future image work)
 
-### 3.3. Design Rationale: Why Jinja2 for Prompts?
+### 3.4. Design Rationale: Why Jinja2?
 
-While Django's templating engine is already in use, Jinja2 was chosen for the `ai` app for a critical reason: **decoupling**. 
+Jinja2 was chosen over Django templates for critical architectural reasons:
 
-- **Framework Independence:** The core architectural goal is to keep the `ai` app's workflows and adapters free of Django-specific code. Jinja2 is a standalone library, allowing us to render prompts in a pure Python environment without importing any Django components.
-- **Handles Complexity:** Use cases like iterating over previous pages to build context are handled cleanly with Jinja2's loops and conditionals. This is difficult to manage with simple f-strings.
-- **Maintainability:** Storing prompts in dedicated `.jinja` files keeps them organized and easy to edit, separating the prompt's structure from the Python orchestration code.
+- **Framework Independence:** Keeps `ai/workflows` and `ai/adapters` free of Django dependencies
+- **Context Complexity:** Cleanly handles iterating over all story pages and conditional logic
+- **Maintainability:** Separates prompt structure from Python orchestration code
 
-This choice enforces the desired architectural separation, ensuring the AI module remains portable and independently testable.
+## 4. AiJob Model
 
-## 4. Data & Task Flow
+The `AiJob` model serves as the central tracking mechanism for all AI operations:
 
-The end-to-end process is orchestrated via a Celery chain.
+```python
+class AiJob(models.Model):
+    # Core identification
+    id = models.AutoField(primary_key=True)
+    job_type = models.CharField(max_length=50)  # 'page_text_generation'
+    status = models.CharField(max_length=20)    # 'pending', 'running', 'succeeded', 'failed'
+    
+    # Target object (generic foreign key)
+    target_content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    target_object_id = models.PositiveIntegerField()
+    target_object = GenericForeignKey('target_content_type', 'target_object_id')
+    
+    # AI configuration
+    template_key = models.CharField(max_length=100)  # 'page_content'
+    template_version = models.CharField(max_length=20, default='1.0')
+    model_name = models.CharField(max_length=100, default='gpt-4o')
+    
+    # Job data
+    prompt_payload = models.JSONField()  # Context data for prompt rendering
+    output_text = models.TextField(blank=True)
+    
+    # Usage tracking
+    usage_tokens = models.IntegerField(null=True, blank=True)
+    cost_usd = models.DecimalField(max_digits=10, decimal_places=4, null=True, blank=True)
+    attempts = models.IntegerField(default=0)
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    started_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+```
 
-1.  **UI (HTMX Request):** The user clicks the "Generate" button, which sends an `hx-post` request to a new Django view in the `stories` app (e.g., `/stories/page/42/generate-text/`).
+## 5. Data & Task Flow
 
-2.  **`stories.views.queue_page_text_view`:**
-    -   Receives the `page_id`.
-    -   Calls the public API function: `ai.queue_page_text(page_id=42, user_id=1)`.
-    -   Returns an HTTP 202 Accepted response to the client to indicate the task has started.
+### 5.1. Complete Flow
 
-3.  **`ai.queue_page_text` (`ai/__init__.py`):**
-    -   This function constructs and launches the Celery chain.
-    -   **Chain:** `ai.tasks.text.generate_page_text` | `stories.tasks.attach_page_text`
+1. **UI → Service:**
+   ```python
+   # User clicks generate button
+   stories.services.request_page_text(page, user)
+   ```
 
-4.  **Task 1: `ai.tasks.text.generate_page_text`:**
-    -   **Input:** `page_id`, `user_id`.
-    -   **Action:**
-        -   Fetches the `Page` and `Story` objects to build context (this is the one exception where the `ai` task needs to know about a domain model ID).
-        -   The context might include story title, summary, previous page content, etc.
-        -   Calls the pure workflow: `ai.workflows.text.generate(context)`.
-    -   **Output:** A dictionary containing the generated text: `{'generated_text': '...'}`. This task **does not** write to the database.
+2. **Service Creates Job:**
+   - Builds prompt context (all story pages, story title/description)
+   - Creates `AiJob` with `status='pending'`
+   - Uses `on_commit()` to queue job: `ai.queue.queue_ai_job(job.id)`
 
-5.  **Task 2: `stories.tasks.attach_page_text`:**
-    -   **Input:** The dictionary from the previous task.
-    -   **Action:**
-        -   Retrieves the `Page` object using its ID.
-        -   Updates the `Page.content` field with `generated_text`.
-        -   Saves the `Page` object.
-    -   **Output:** None.
+3. **Celery Task Execution:**
+   ```python
+   ai.tasks.run_ai_job(job_id)
+   ```
+   - Marks job as `running`
+   - Calls workflow via adapter
+   - Saves output/cost, sets status to `succeeded`/`failed`
+   - Chains to `stories.tasks.attach_result(job_id)`
 
-## 5. Component Breakdown
+4. **Result Attachment:**
+   ```python
+   stories.tasks.attach_result(job_id)
+   ```
+   - Fetches Page via GenericFK
+   - Updates `page.content = job.output_text`
+   - Saves page
 
-### 5.1. Frontend (HTMX & Alpine.js)
+### 5.2. Context Building
 
--   **`page_edit_form.html` (Partial Template):**
-    -   The form will include a button:
-        ```html
-        <button hx-post="{% url 'stories:generate_page_text' page.id %}"
-                hx-target="#page-content-editor" hx-swap="outerHTML"
-                class="htmx-indicator:hidden">
-            Generate with AI
-        </button>
-        <img src="/static/spinner.gif" class="htmx-indicator" />
-        ```
-    -   `hx-target` will point to the text area or its container.
-    -   The `htmx-indicator` class will be used to show/hide the button and spinner during the request.
+**For Blank Pages (New Content):**
+- Story title: `story.title`
+- Story summary: `story.description`
+- All existing pages: `story.pages.all().order_by('order')`
+- Prompt focuses on creating new content
 
-### 5.2. `stories` App
+**For Existing Content (Revision):**
+- Same context as above
+- Current page content included
+- Prompt instructs to "revise & redo this page"
 
--   **`views.py`:**
-    -   `generate_page_text_view(request, page_id)`: A new view that calls `ai.queue_page_text`.
--   **`urls.py`:**
-    -   A new path: `path('page/<int:page_id>/generate-text/', views.generate_page_text_view, name='generate_page_text')`.
--   **`tasks.py`:**
-    -   `attach_page_text(result_dict, page_id)`: New Celery task to update the database.
+### 5.3. Model Field Mapping
 
-### 5.3. `ai` App
+- **Story title:** `Story.title`
+- **Story summary:** `Story.description`
+- **Page content:** `Page.content`
+- **Page ordering:** `Page.order` (from OrderedModel)
 
--   **`__init__.py`:**
-    -   `queue_page_text(page_id, user_id)`: Creates and dispatches the Celery chain.
--   **`tasks/text.py`:**
-    -   `generate_page_text(page_id, user_id)`: Celery task to orchestrate context building and call the workflow.
--   **`workflows/text.py`:**
-    -   `generate(context: dict) -> str`: Pure Python function that loads the Jinja prompt, populates it with context, and calls the LiteLLM adapter.
--   **`adapters/litellm.py`:**
-    -   A simple wrapper around `litellm.completion` for standardized calls.
--   **`prompts/page_content.jinja`:**
-    -   A new prompt template, e.g.:
-        ```jinja
-        You are a creative assistant helping write a story titled "{{ story_title }}".
-        The story summary is: {{ story_summary }}
-        The previous page was: {{ previous_page_content }}
+## 6. Component Implementation
 
-        Please write the next section of the story.
-        ```
+### 6.1. Frontend (HTMX & Alpine.js)
 
-## 6. Celery Configuration
+**Generate Button Placement:**
+- Location: Below save/cancel button group in in-place editor
+- Icon: Magic wand or similar AI generation icon
+- States: Normal, Loading (disabled + spinner), Error
 
--   **Queues:** We will define a new queue named `cpu_tasks` for text generation.
-    ```python
-    # core/settings.py
-    CELERY_TASK_QUEUES = {
-        'default': {'exchange': 'default', 'routing_key': 'default'},
-        'cpu_tasks': {'exchange': 'cpu_tasks', 'routing_key': 'cpu_tasks'},
-    }
-    CELERY_DEFAULT_QUEUE = 'default'
-    ```
--   **Task Routing:** The `generate_page_text` task will be routed to the `cpu_tasks` queue.
-    ```python
-    # ai/tasks/text.py
-    @shared_task(queue='cpu_tasks')
-    def generate_page_text(...):
-        # ...
-    ```
--   **Worker Command:** A dedicated worker will be started to consume from this queue:
-    ```bash
-    uv run celery -A core worker -l info -Q cpu_tasks -n cpu_worker@%h
-    ```
+**Loading State:**
+- Textarea becomes read-only
+- Generate button disabled with spinner
+- Visual indication that generation is in progress
 
-This specification provides a comprehensive plan for implementing the feature while adhering to best practices for building a scalable and maintainable AI-powered application.
+**Error Handling:**
+- Show notification modal or banner on failure
+- Restore original textarea content
+- Re-enable editing capabilities
+
+### 6.2. Backend Services
+
+**stories/services.py:**
+```python
+def request_page_text(page: Page, user: User) -> AiJob:
+    # Build context from all story pages
+    # Create AiJob with context payload
+    # Queue job for processing
+    # Return job instance
+```
+
+**ai/queue.py:**
+```python
+def queue_ai_job(job_id: int):
+    # Dispatch to Celery
+    run_ai_job.delay(job_id)
+```
+
+**ai/tasks.py:**
+```python
+@shared_task
+def run_ai_job(job_id: int):
+    # Load job, mark running
+    # Call workflow with context
+    # Save results, update status
+    # Chain to attach_result
+```
+
+### 6.3. Prompt Templates
+
+**page_content.jinja:**
+```jinja
+You are a creative storyteller writing "{{ story_title }}".
+
+{% if story_description %}
+Story Summary: {{ story_description }}
+{% endif %}
+
+{% if existing_pages %}
+Existing Pages:
+{% for page in existing_pages %}
+Page {{ page.order + 1 }}: {{ page.content }}
+{% endfor %}
+{% endif %}
+
+{% if current_content %}
+Current page content to revise:
+{{ current_content }}
+
+Please revise and improve this page content.
+{% else %}
+Please write the next page of this story.
+{% endif %}
+```
+
+## 7. Testing
+
+**Manual Testing:**
+```python
+# Django shell
+from stories.services import request_page_text
+from stories.models import Page
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+page = Page.objects.get(pk=42)
+user = User.objects.first()
+
+job = request_page_text(page, user)
+# Check Celery logs for job processing
+# Verify page.content updated after completion
+```
+
+**Celery Worker:**
+```bash
+uv run celery -A core worker -Q default -l info
+```
+
+This specification provides a comprehensive plan for implementing DB-backed, fault-tolerant AI content generation with proper architectural separation and full story context.

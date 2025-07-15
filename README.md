@@ -98,6 +98,66 @@ Visit http://localhost:8000 to see your application!
 - **Database:** PostgreSQL (recommended)
 - **Authentication:** django-allauth
 - **Payments:** Stripe
+- **Task Queue:** Celery with Redis
+
+## 🔄 Celery Setup
+
+Story Sprout uses Celery for handling asynchronous tasks like AI processing, email sending, and other background jobs.
+
+### Prerequisites
+
+- Redis server (used as message broker)
+
+### Running Celery in Development
+
+1. **Start Redis server** (if not already running):
+   ```bash
+   # Install Redis if needed
+   # macOS: brew install redis
+   # Ubuntu: sudo apt install redis-server
+   
+   # Start Redis server
+   redis-server
+   ```
+
+2. **Start Celery worker** (from project root):
+   ```bash
+   # Start a worker with the 'story_sprout' app
+   uv run -m celery -A core worker -l INFO
+   ```
+
+3. **Optional: Start Celery beat for scheduled tasks**:
+   ```bash
+   uv run -m celery -A core beat -l INFO
+   ```
+
+### Using Celery in Your Code
+
+Create tasks in your app's `tasks.py` file:
+
+```python
+from celery import shared_task
+
+@shared_task
+def my_background_task(param1, param2):
+    # Task logic here
+    return result
+```
+
+Call tasks asynchronously from your views:
+
+```python
+from myapp.tasks import my_background_task
+
+# Call task asynchronously
+result = my_background_task.delay(param1, param2)
+
+# Or with more options
+result = my_background_task.apply_async(
+    args=[param1, param2],
+    countdown=10  # Execute after 10 seconds
+)
+```
 - **Email:** SendGrid (recommended)
 
 

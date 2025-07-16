@@ -25,6 +25,8 @@ class Page(OrderedModel):
     story = models.ForeignKey(Story, on_delete=models.CASCADE, related_name='pages')
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     content = models.TextField()
+    content_generating = models.BooleanField(default=False, help_text="Whether content is being generated for this page")
+    content_draft = models.TextField(blank=True, null=True, help_text="Draft content stored while generating")
     image_text = models.TextField(blank=True, null=True)
     image = models.ImageField(upload_to='page_images', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)

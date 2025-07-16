@@ -1,8 +1,8 @@
-<!-- Page content display -->
+<!-- Page content display with click-to-edit -->
 <div id="page-content-{{ page.id }}"
-     hx-get="{% url 'stories:edit_page_content' page.id %}"
+     hx-get="{% url 'stories:get_page_content' page.id %}?editing=true"
      hx-trigger="click"
-     hx-target="this"
+     hx-target="#page-content-{{ page.id }}"
      hx-swap="outerHTML"
      class="cursor-pointer hover:bg-gray-50 p-3 rounded transition-colors group mb-3 relative">
     <h4 class="text-sm font-medium text-black mb-1">Content</h4>

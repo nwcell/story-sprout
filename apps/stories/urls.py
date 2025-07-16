@@ -16,6 +16,7 @@ urlpatterns = [
     path('<uuid:story_uuid>/add-page/', views.add_page, name='add_page'),
     path('pages/<int:page_id>/', views.get_page_content, name='get_page_content'),
     path('pages/<int:page_id>/edit/', views.edit_page_content, name='edit_page_content'),
+    path('pages/<int:page_id>/content/toggle-generating/', views.toggle_content_generating, name='toggle_content_generating'),
     path('pages/<int:page_id>/delete/', views.delete_page, name='delete_page'),
     # Image text editing endpoints
     path('pages/<int:page_id>/image-text/', views.get_page_image_text, name='get_page_image_text'),

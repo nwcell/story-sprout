@@ -37,7 +37,11 @@
         <div class="flex flex-col md:flex-row md:space-x-6">
             <!-- Content column - takes more space on larger screens -->
             <div class="flex-1">
-                {% include 'stories/partials/page_content.html' %}
+                {% if page.content_generating %}
+                    {% include 'stories/partials/page_content_form.html' %}
+                {% else %}
+                    {% include 'stories/partials/page_content.html' %}
+                {% endif %}
             </div>
             
             <!-- Image and description column - right side -->

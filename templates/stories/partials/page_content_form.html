@@ -1,11 +1,19 @@
 <!-- Editable content form -->
-<form id="page-content-{{ page.id }}"
+<form id="page-content-{{ page.id }}" 
       hx-post="{% url 'stories:edit_page_content' page.id %}"
       hx-target="#page-content-{{ page.id }}"
       hx-swap="outerHTML"
       hx-trigger="submit, blur from:textarea:not(.disabled), keydown[metaKey&&key=='Enter'] from:textarea"
       class="w-full"
       x-data x-init="$nextTick(() => $el.querySelector('textarea:not([disabled])') && $el.querySelector('textarea:not([disabled])').focus())">
+      
+      {% if page.content_generating %}
+      <div hx-get="{% url 'stories:check_content_generating_status' page.id %}" 
+           hx-trigger="every 2s"
+           hx-target="#page-content-{{ page.id }}"
+           hx-swap="outerHTML">
+      </div>
+      {% endif %}
     {% csrf_token %}
     <input type="hidden" name="content_generating" id="id_content_generating" value="{% if page.content_generating %}true{% else %}false{% endif %}">
     

@@ -245,6 +245,8 @@ def toggle_content_generating(request, page_id):
     page = get_object_or_404(Page, id=page_id, story__user=request.user)
     current_content = request.POST.get('content', '').strip()
     
+    was_generating = page.content_generating
+    
     if not page.content_generating:
         # Switching from normal mode to magic mode - save current as draft
         page.content_draft = current_content
@@ -261,9 +263,30 @@ def toggle_content_generating(request, page_id):
     # Set display_content for the template if in magic mode
     if page.content_generating and page.content_draft is not None:
         page.display_content = page.content_draft
-        
-    # Return the form - it will handle showing disabled controls in magic mode
-    return render(request, 'stories/partials/page_content_form.html', {'page': page})
+    
+    # Return the appropriate template based on the current state
+    # This ensures the right content is shown after toggling
+    if was_generating and not page.content_generating:
+        # We're switching out of generating mode - return the display view
+        return render(request, 'stories/partials/page_content.html', {'page': page})
+    else:
+        # Either we're switching to generating mode or staying in it - return the form
+        return render(request, 'stories/partials/page_content_form.html', {'page': page})
+
+
+@login_required
+def check_content_generating_status(request, page_id):
+    """Check if a page is still in content_generating mode.
+    Used for HTMX polling to update UI when content generation completes."""
+    page = get_object_or_404(Page, id=page_id, story__user=request.user)
+    
+    # If no longer generating, we need to switch to the display view
+    if not page.content_generating:
+        # Return the non-editable display view to replace the form
+        return render(request, 'stories/partials/page_content.html', {'page': page})
+    
+    # Otherwise continue polling - no response body needed
+    return HttpResponse(status=204)
 
 @login_required
 def add_page(request, story_uuid):

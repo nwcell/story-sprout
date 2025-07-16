@@ -1,3 +1,40 @@
+{% csrf_token %}
+
+<!-- Helper function for image uploads - simply extracts duplicate fetch code -->
+<script>
+  function uploadImage(pageId, files, that) {
+    if (!files.length) return;
+    that.uploading = true;
+    
+    const formData = new FormData();
+    formData.append('image', files[0]);
+    
+    fetch(`{% url 'stories:upload_page_image' 0 %}`.replace('0', pageId), {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        document.getElementById(`page-image-container-${pageId}`).outerHTML = data.html;
+        htmx.process(document.getElementById(`page-image-container-${pageId}`));
+      }
+    })
+    .catch(error => {
+      console.error('Upload error:', error);
+      alert('Failed to upload image. Please try again.');
+    })
+    .finally(() => {
+      that.uploading = false;
+      that.dragover = false;
+    });
+  }
+</script>
+
 <div id="page-image-container-{{ page.id }}">
     {% if page.image %}
     <!-- Use inline Alpine.js for both display and editing capabilities -->
@@ -6,35 +43,7 @@
             dragover: false, 
             uploading: false,
             handleFile(files) {
-                if (!files.length) return;
-                this.uploading = true;
-                
-                const formData = new FormData();
-                formData.append('image', files[0]);
-                
-                fetch('{% url 'stories:upload_page_image' page.id %}', {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Replace the image container with the new image
-                        document.getElementById('page-image-container-{{ page.id }}').outerHTML = data.html;
-                    }
-                })
-                .catch(error => {
-                    console.error('Upload error:', error);
-                    alert('Failed to upload image. Please try again.');
-                })
-                .finally(() => {
-                    this.uploading = false;
-                    this.dragover = false;
-                });
+                uploadImage('{{ page.id }}', files, this);
             }
          }"
          @dragover.prevent="dragover = true"
@@ -84,35 +93,7 @@
             dragover: false, 
             uploading: false,
             handleFile(files) {
-                if (!files.length) return;
-                this.uploading = true;
-                
-                const formData = new FormData();
-                formData.append('image', files[0]);
-                
-                fetch('{% url 'stories:upload_page_image' page.id %}', {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Replace the upload area with the new image
-                        document.getElementById('page-image-container-{{ page.id }}').outerHTML = data.html;
-                    }
-                })
-                .catch(error => {
-                    console.error('Upload error:', error);
-                    alert('Failed to upload image. Please try again.');
-                })
-                .finally(() => {
-                    this.uploading = false;
-                    this.dragover = false;
-                });
+                uploadImage('{{ page.id }}', files, this);
             }
          }"
          @dragover.prevent="dragover = true"

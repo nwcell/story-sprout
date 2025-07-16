@@ -43,11 +43,10 @@
             <!-- Image and description column - right side -->
             <div class="md:w-1/3 mt-4 md:mt-0">
                 <!-- Image Text (clickable/editable) -->
-                {% include 'stories/partials/page_image_text.html' %}
+                <div hx-get="{% url 'stories:get_page_image_text' page.id %}" hx-trigger="load"></div>
                 
-                <!-- Image container with CSRF token for AJAX uploads -->
-                {% csrf_token %}
-                {% include 'stories/partials/page_image_container.html' %}
+                <!-- Image container loaded via HTMX with CSRF for uploads -->
+                <div hx-get="{% url 'stories:upload_page_image' page.id %}" hx-trigger="load"></div>
             </div>
         </div>
 

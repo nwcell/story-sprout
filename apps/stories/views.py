@@ -319,30 +319,36 @@ def update_page_image_text(request, page_id):
 
 @login_required
 def upload_page_image(request, page_id):
-    """AJAX/HTMX endpoint for uploading a page image"""
-    if request.method != 'POST' or not request.FILES.get('image'):
-        return JsonResponse({'success': False, 'error': 'No image provided'}, status=400)
-    
+    """HTMX endpoint for rendering and uploading a page image"""
     page = get_object_or_404(Page, id=page_id, story__user=request.user)
     
-    # Delete old image if it exists
-    if page.image:
-        page.image.delete(save=False)
+    # Handle GET request - just render the component
+    if request.method == 'GET' and request.htmx:
+        return render(request, 'stories/partials/page_image_container.html', {'page': page})
     
-    # Save new image
-    page.image = request.FILES['image']
-    page.save()
+    # Handle POST request - process image upload
+    if request.method == 'POST' and request.FILES.get('image'):
+        # Delete old image if it exists
+        if page.image:
+            page.image.delete(save=False)
+        
+        # Save new image
+        page.image = request.FILES['image']
+        page.save()
+        
+        # Render the updated image container
+        html = render_to_string('stories/partials/page_image_container.html', {
+            'page': page
+        }, request=request)
+        
+        # Return JSON response with success status and the HTML for the container
+        return JsonResponse({
+            'success': True,
+            'html': html
+        })
     
-    # Render the updated image container
-    html = render_to_string('stories/partials/page_image_container.html', {
-        'page': page
-    }, request=request)
-    
-    # Return JSON response with success status and the HTML for the container
-    return JsonResponse({
-        'success': True,
-        'html': html
-    })
+    # Handle invalid requests
+    return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)
 
 @login_required
 @require_http_methods(['DELETE'])

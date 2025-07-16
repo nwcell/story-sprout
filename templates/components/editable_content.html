@@ -1,4 +1,4 @@
-<!-- Page content display with click-to-edit -->
+<!-- Editable content display with click-to-edit -->
 <div id="page-content-{{ page.id }}"
      hx-get="{% url 'stories:get_page_content' page.id %}?editing=true"
      hx-trigger="click"

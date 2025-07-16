@@ -199,10 +199,10 @@ def get_page_content(request, page_id):
             # Set display_content for the template
             page.display_content = page.content_draft
         
-        return render(request, 'stories/partials/page_content_form.html', context)
+        return render(request, 'components/editable_content_form.html', context)
     
     # Otherwise show the display view
-    return render(request, 'stories/partials/page_content.html', {
+    return render(request, 'components/editable_content.html', {
         'page': page
     })
 
@@ -229,15 +229,15 @@ def edit_page_content(request, page_id):
             # Set display_content for the template
             if page.content_draft is not None:
                 page.display_content = page.content_draft
-            return render(request, 'stories/partials/page_content_form.html', {'page': page})
+            return render(request, 'components/editable_content_form.html', {'page': page})
         
         # Otherwise return the display view
-        return render(request, 'stories/partials/page_content.html', {'page': page})
+        return render(request, 'components/editable_content.html', {'page': page})
     
     # If not POST, just get the content (same as get_page_content with editing=true)
     if page.content_generating and page.content_draft is not None:
         page.display_content = page.content_draft
-    return render(request, 'stories/partials/page_content_form.html', {'page': page})
+    return render(request, 'components/editable_content_form.html', {'page': page})
 
 @login_required
 def toggle_content_generating(request, page_id):
@@ -263,7 +263,7 @@ def toggle_content_generating(request, page_id):
         page.display_content = page.content_draft
         
     # Return the form - it will handle showing disabled controls in magic mode
-    return render(request, 'stories/partials/page_content_form.html', {'page': page})
+    return render(request, 'components/editable_content_form.html', {'page': page})
 
 @login_required
 def add_page(request, story_uuid):

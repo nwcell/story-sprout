@@ -1,4 +1,4 @@
-<!-- Page content edit form -->
+<!-- Editable content form -->
 <form id="page-content-{{ page.id }}"
       hx-post="{% url 'stories:edit_page_content' page.id %}"
       hx-target="#page-content-{{ page.id }}"
@@ -18,7 +18,7 @@
                   hx-get="{% url 'stories:get_page_content' page.id %}"
                   hx-target="#page-content-{{ page.id }}"
                   hx-swap="outerHTML"
-           =I)?{_Ki}       hx-trigger="keydown[key=='Escape']">{{ page.display_content|default:page.content }}</textarea>
+                  hx-trigger="keydown[key=='Escape']">{{ page.display_content|default:page.content }}</textarea>
         <!-- Button Group -->
         <span class="isolate inline-flex flex-col rounded-md shadow-sm">
             <!-- Save Button -->

@@ -2,17 +2,38 @@
 <form hx-post="{% url 'stories:edit_page_content' page.id %}"
       hx-target="this"
       hx-swap="outerHTML"
-      hx-trigger="submit, keydown[metaKey&&key=='Enter'] from:body, keydown[ctrlKey&&key=='Enter'] from:body, blur from:textarea"
-      class="w-full">
+      hx-trigger="submit-form-via-keyboard"
+      class="w-full"
+      x-data="{ 
+        magicActive: false,
+        blurHandler(event) { 
+          if (!this.magicActive) {
+            this.$dispatch('submit-form');
+          }
+        },
+        keyHandler(event) {
+          if (this.magicActive) return; // Ignore keyboard shortcuts in magic mode
+          
+          if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
+            this.$dispatch('submit-form-via-keyboard');
+          } else if (event.key === 'Escape') {
+            this.$dispatch('cancel-form');
+          }
+        }
+      }"
+      @keydown="keyHandler">
     {% csrf_token %}
-    <div class="flex items-start space-x-2" x-data="{}">
+    <div class="flex items-start space-x-2">
         <textarea name="content"
                   rows="6"
-                  class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray resize-none flex-grow"
+                  class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray resize-none flex-grow transition-all duration-200"
+                  :class="{ 'disabled-blur': magicActive }"
                   placeholder="Enter page content..."
                   x-init="$el.focus()"
+                  x-bind:disabled="magicActive"
+                  @blur="blurHandler"
                   hx-get="{% url 'stories:get_page_content' page.id %}"
-                  hx-trigger="keyup[key=='Escape'] from:body"
+                  hx-trigger="cancel-form from:form, submit-form from:form"
                   hx-target="closest form"
                   hx-swap="outerHTML">{{ page.content }}</textarea>
         <!-- Button Group -->
@@ -20,7 +41,9 @@
             <!-- Save Button -->
             <button type="submit"
                     @mousedown.prevent
-                    class="relative inline-flex items-center justify-center rounded-t-md bg-white p-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-green-50 hover:text-green-600 focus:z-10"
+                    x-bind:disabled="magicActive"
+                    class="relative inline-flex items-center justify-center rounded-t-md bg-white p-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-green-50 hover:text-green-600 focus:z-10 transition-all duration-200"
+                    :class="{ 'disabled-blur': magicActive }"
                     title="Save (Ctrl+Enter)">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                   <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
@@ -29,7 +52,9 @@
             <!-- Cancel Button -->
             <button type="button"
                     @mousedown.prevent
-                    class="relative -mt-px inline-flex items-center justify-center rounded-b-md bg-white p-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-red-50 hover:text-red-600 focus:z-10"
+                    x-bind:disabled="magicActive"
+                    class="relative -mt-px inline-flex items-center justify-center bg-white p-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-red-50 hover:text-red-600 focus:z-10 transition-all duration-200"
+                    :class="{ 'disabled-blur': magicActive }"
                     title="Cancel (Esc)"
                     hx-get="{% url 'stories:get_page_content' page.id %}"
                     hx-target="closest form"
@@ -38,7 +63,27 @@
                   <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
                 </svg>
             </button>
+            <!-- Magic Button -->
+            <button type="button"
+                    @mousedown.prevent
+                    @click.stop="magicActive = !magicActive"
+                    class="relative -mt-px inline-flex items-center justify-center rounded-b-md bg-white p-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-blue-50 hover:text-blue-600 focus:z-10"
+                    :class="{ 'animate-twinkle': magicActive }"
+                    title="Add Magic">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" 
+                     class="h-5 w-5">
+                  <path fill-rule="evenodd" d="M9 4.5a.75.75 0 0 1 .721.544l.813 2.846a3.75 3.75 0 0 0 2.576 2.576l2.846.813a.75.75 0 0 1 0 1.442l-2.846.813a3.75 3.75 0 0 0-2.576 2.576l-.813 2.846a.75.75 0 0 1-1.442 0l-.813-2.846a3.75 3.75 0 0 0-2.576-2.576l-2.846-.813a.75.75 0 0 1 0-1.442l2.846-.813A3.75 3.75 0 0 0 7.466 7.89l.813-2.846A.75.75 0 0 1 9 4.5ZM18 1.5a.75.75 0 0 1 .728.568l.258 1.036c.236.94.97 1.674 1.91 1.91l1.036.258a.75.75 0 0 1 0 1.456l-1.036.258c-.94.236-1.674.97-1.91 1.91l-.258 1.036a.75.75 0 0 1-1.456 0l-.258-1.036a2.625 2.625 0 0 0-1.91-1.91l-1.036-.258a.75.75 0 0 1 0-1.456l1.036-.258a2.625 2.625 0 0 0 1.91-1.91l.258-1.036A.75.75 0 0 1 18 1.5ZM16.5 15a.75.75 0 0 1 .712.513l.394 1.183c.15.447.5.799.948.948l1.183.395a.75.75 0 0 1 0 1.422l-1.183.395c-.447.15-.799.5-.948.948l-.395 1.183a.75.75 0 0 1-1.422 0l-.395-1.183a1.5 1.5 0 0 0-.948-.948l-1.183-.395a.75.75 0 0 1 0-1.422l1.183-.395c.447-.15.799-.5.948-.948l.395-1.183A.75.75 0 0 1 16.5 15Z" clip-rule="evenodd" />
+                </svg>
+            </button>
         </span>
     </div>
-    <div class="text-xs text-gray-500 mt-1">Ctrl+Enter to save, Escape to cancel, or use the buttons.</div>
+    <div class="text-xs mt-1" :class="magicActive ? 'text-blue-500 animate-twinkle font-medium' : 'text-gray-500'">
+        <span x-show="!magicActive">Ctrl+Enter to save, Escape to cancel, or use the buttons.</span>
+        <span x-show="magicActive" class="flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4 mr-1 inline-block">
+                <path fill-rule="evenodd" d="M10.362 1.093a.75.75 0 00-.724 0L2.523 5.018 10 9.143l7.477-4.125-7.115-3.925zM18 6.443l-7.25 4v8.25l6.862-3.786A.75.75 0 0018 14.25V6.443zm-8.75 12.25v-8.25l-7.25-4v7.807a.75.75 0 00.388.657l6.862 3.786z" clip-rule="evenodd" />
+            </svg>
+            Magic is happening...
+        </span>
+    </div>
 </form>

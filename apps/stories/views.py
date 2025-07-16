@@ -170,18 +170,11 @@ def edit_story_description(request, story_uuid):
     story = get_object_or_404(Story, uuid=story_uuid, user=request.user)
     
     if request.method == 'POST':
-        # Update description
-        description = request.POST.get('description', '').strip()
-        story.description = description
+        story.description = request.POST.get('description', '').strip()
         story.save()
-        return render(request, 'stories/partials/story_description.html', {
-            'story': story, 'editing': False
-        })
+        return render(request, 'stories/partials/story_description.html', {'story': story, 'editing': False})
     
-    # Show edit form
-    return render(request, 'stories/partials/story_description_form.html', {
-        'story': story
-    })
+    return render(request, 'stories/partials/story_description_form.html', {'story': story})
 
 @login_required
 def get_page_content(request, page_id):
@@ -189,22 +182,12 @@ def get_page_content(request, page_id):
     page = get_object_or_404(Page, id=page_id, story__user=request.user)
     editing = request.GET.get('editing') == 'true'
     
-    # If explicitly requesting editing form or content is generating
     if editing or page.content_generating:
-        # Prepare context for template
-        context = {'page': page}
-        
-        # Show draft content in the textarea if magic mode is active
         if page.content_generating and page.content_draft is not None:
-            # Set display_content for the template
             page.display_content = page.content_draft
-        
-        return render(request, 'stories/partials/page_content_form.html', context)
+        return render(request, 'stories/partials/page_content_form.html', {'page': page})
     
-    # Otherwise show the display view
-    return render(request, 'stories/partials/page_content.html', {
-        'page': page
-    })
+    return render(request, 'stories/partials/page_content.html', {'page': page})
 
 @login_required
 def edit_page_content(request, page_id):
@@ -224,17 +207,12 @@ def edit_page_content(request, page_id):
         page.content_generating = content_generating
         page.save(update_fields=['content', 'content_draft', 'content_generating'])
         
-        # If magic mode is active, return the form with draft content
-        if content_generating:
-            # Set display_content for the template
-            if page.content_draft is not None:
-                page.display_content = page.content_draft
+        if content_generating and page.content_draft:
+            page.display_content = page.content_draft
             return render(request, 'stories/partials/page_content_form.html', {'page': page})
-        
-        # Otherwise return the display view
         return render(request, 'stories/partials/page_content.html', {'page': page})
     
-    # If not POST, just get the content (same as get_page_content with editing=true)
+    # GET request
     if page.content_generating and page.content_draft is not None:
         page.display_content = page.content_draft
     return render(request, 'stories/partials/page_content_form.html', {'page': page})
@@ -243,16 +221,13 @@ def edit_page_content(request, page_id):
 def toggle_content_generating(request, page_id):
     """Toggle the content generating flag and handle draft content."""
     page = get_object_or_404(Page, id=page_id, story__user=request.user)
+    was_generating = page.content_generating
     current_content = request.POST.get('content', '').strip()
     
-    was_generating = page.content_generating
-    
     if not page.content_generating:
-        # Switching from normal mode to magic mode - save current as draft
         page.content_draft = current_content
         page.content_generating = True
     else:
-        # Switching from magic mode to normal mode - commit draft to content
         if page.content_draft:
             page.content = page.content_draft
         page.content_draft = None
@@ -260,32 +235,20 @@ def toggle_content_generating(request, page_id):
         
     page.save(update_fields=['content', 'content_draft', 'content_generating'])
     
-    # Set display_content for the template if in magic mode
-    if page.content_generating and page.content_draft is not None:
+    if page.content_generating and page.content_draft:
         page.display_content = page.content_draft
     
-    # Return the appropriate template based on the current state
-    # This ensures the right content is shown after toggling
-    if was_generating and not page.content_generating:
-        # We're switching out of generating mode - return the display view
-        return render(request, 'stories/partials/page_content.html', {'page': page})
-    else:
-        # Either we're switching to generating mode or staying in it - return the form
-        return render(request, 'stories/partials/page_content_form.html', {'page': page})
+    template = 'stories/partials/page_content.html' if was_generating else 'stories/partials/page_content_form.html'
+    return render(request, template, {'page': page})
 
 
 @login_required
 def check_content_generating_status(request, page_id):
-    """Check if a page is still in content_generating mode.
-    Used for HTMX polling to update UI when content generation completes."""
+    """Check if a page is still in content_generating mode for HTMX polling."""
     page = get_object_or_404(Page, id=page_id, story__user=request.user)
     
-    # If no longer generating, we need to switch to the display view
     if not page.content_generating:
-        # Return the non-editable display view to replace the form
         return render(request, 'stories/partials/page_content.html', {'page': page})
-    
-    # Otherwise continue polling - no response body needed
     return HttpResponse(status=204)
 
 @login_required

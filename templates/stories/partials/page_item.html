@@ -38,9 +38,9 @@
             <!-- Content column - takes more space on larger screens -->
             <div class="flex-1">
                 {% if page.content_generating %}
-                    {% include 'components/editable_content_form.html' %}
+                    {% include 'stories/partials/page_content_form.html' %}
                 {% else %}
-                    {% include 'components/editable_content.html' %}
+                    {% include 'stories/partials/page_content.html' %}
                 {% endif %}
             </div>
             

@@ -35,6 +35,16 @@ class Page(OrderedModel):
     # OrderedModel configuration
     order_with_respect_to = 'story'
     
+    @property
+    def is_first(self):
+        """Return True if this is the first page in the story."""
+        return self.order == 0
+    
+    @property
+    def is_last(self):
+        """Return True if this is the last page in the story."""
+        return self.order == self.story.pages.count() - 1
+    
     def __str__(self):
         return f"Page {self.order + 1} of {self.story.title}"
     

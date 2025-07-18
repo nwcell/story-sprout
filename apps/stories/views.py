@@ -10,7 +10,7 @@ from .models import Story, Page
 
 @login_required
 @require_http_methods(['POST'])
-def move_page_up(request, page_id):
+def move_page(request, page_id, direction):
     page = get_object_or_404(Page, id=page_id)
     story = page.story
     
@@ -18,40 +18,14 @@ def move_page_up(request, page_id):
     if story.user != request.user:
         raise Http404("Page not found")
     
-    # Use django-ordered-model's built-in up() method
-    page.up()
+    # Use django-ordered-model's built-in up() or down() method
+    if direction == 'up':
+        page.up()
+    else:
+        page.down()
     
     # Return all pages for the story in the new order
     pages = story.pages.all()
-    
-    # Add first/last flags for each page
-    for i, p in enumerate(pages):
-        p.is_first = i == 0
-        p.is_last = i == len(pages) - 1
-    
-    context = {'story': story, 'pages': pages}
-    return render(request, 'stories/partials/pages_list.html', context)
-
-@login_required
-@require_http_methods(['POST'])
-def move_page_down(request, page_id):
-    page = get_object_or_404(Page, id=page_id)
-    story = page.story
-    
-    # Security check - ensure the user owns the story
-    if story.user != request.user:
-        raise Http404("Page not found")
-    
-    # Use django-ordered-model's built-in down() method
-    page.down()
-    
-    # Return all pages for the story in the new order
-    pages = story.pages.all()
-    
-    # Add first/last flags for each page
-    for i, p in enumerate(pages):
-        p.is_first = i == 0
-        p.is_last = i == len(pages) - 1
     
     context = {'story': story, 'pages': pages}
     return render(request, 'stories/partials/pages_list.html', context)
@@ -83,10 +57,7 @@ def story_detail(request, story_uuid):
     pages = story.pages.all()
     
     # Process pages: add first/last flags and prepare content_draft for display
-    for i, page in enumerate(pages):
-        page.is_first = i == 0
-        page.is_last = i == len(pages) - 1
-        
+    for page in pages:
         # If magic mode is active, prepare draft content for display
         if page.content_generating and page.content_draft is not None:
             # Create a temporary copy for template display

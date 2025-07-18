@@ -13,7 +13,7 @@ class AIWorkflowAdmin(admin.ModelAdmin):
     list_filter = ['workflow_func']
     search_fields = ['id', 'uuid', 'workflow_func']
     date_hierarchy = 'created_at'
-    readonly_fields = ['uuid', 'created_at']
+    readonly_fields = ['uuid', 'created_at', 'updated_at']
     
     # Field organization
     fieldsets = [
@@ -25,9 +25,8 @@ class AIWorkflowAdmin(admin.ModelAdmin):
         ('Target', {
             'fields': ['target_ct', 'target_id'],
         }),
-        ('Data', {
-            'fields': ['workflow_payload'],
-            'classes': ['collapse'],
+        ('Timestamps', {
+            'fields': ['created_at', 'updated_at'],
         }),
     ]
     

@@ -47,5 +47,6 @@ def handle_boolean_field_changes(sender, instance, **kwargs):
             target_ct=ContentType.objects.get_for_model(sender),
             target_id=instance.pk,
             workflow_func=trigger.workflow_func,
+            user=instance.story.user,
         )
 

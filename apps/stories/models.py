@@ -48,9 +48,13 @@ class Page(OrderedModel):
     def is_last(self):
         """Return True if this is the last page in the story."""
         return self.order == self.story.pages.count() - 1
+
+    @property
+    def page_number(self):
+        return self.order + 1
     
     def __str__(self):
-        return f"Page {self.order + 1} of {self.story.title}"
+        return f"Page {self.page_number} of {self.story.title}"
     
     class Meta(OrderedModel.Meta):
         verbose_name = "Page"

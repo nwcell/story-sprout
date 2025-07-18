@@ -6,7 +6,7 @@ You are an expert children's book author with deep experience in picture books. 
 - Title: {{page.story.title}}
 - Target Age Range: 2-3 years
 - Page Count: {{page.story.page_count}}
-- Current Page: {{page.order}} of {{page.story.page_count}}
+- Current Page: {{page.page_number}} of {{page.story.page_count}}
 - Generation Type: text (text content or image description)
 
 ## Book Summary
@@ -14,16 +14,15 @@ You are an expert children's book author with deep experience in picture books. 
 
 ## Pages
 
-{% for page in pages %}
-### Page {{page.order + 1}}{% if page == page.order %} (CURRENT){% endif %}
-{{page.content}}
-{{page.image_description}}
-{{page.image.url}}
+{% for p in page.story.pages.all %}
+### Page {{p.page_number}}{% if p.page_number == page.page_number %} (CURRENT){% endif %}
+{{p.content}}
+{{p.image_description}}
 {% endfor %}
 
 ## Instructions
 
-Based on the book context and surrounding pages, generate text for the current page {{current_page}}. Your task is to:
+Based on the book context and surrounding pages, generate text for the current page {{page.page_number}}. Your task is to:
 
 {% if generation_type == "content" %}
 1. **Create Page Content** that:

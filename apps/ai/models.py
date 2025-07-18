@@ -17,7 +17,6 @@ class AIWorkflow(models.Model):
     target_id = models.PositiveIntegerField()
     target = GenericForeignKey("target_ct", "target_id")
     workflow_func = models.CharField(max_length=50)
-    workflow_payload = models.JSONField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     

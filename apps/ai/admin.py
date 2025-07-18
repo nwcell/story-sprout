@@ -1,43 +1,33 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from .models import AiJob
+from .models import AiJob, AIWorkflow
 
 
-@admin.register(AiJob)
-class AiJobAdmin(admin.ModelAdmin):
-    """Admin interface for AI generation jobs."""
+@admin.register(AIWorkflow)
+class AIWorkflowAdmin(admin.ModelAdmin):
+    """Admin interface for AI Workflows."""
     
     # Basic display configuration
-    list_display = ['id', 'job_type', 'status', 'target_display', 'created_at', 'completed_at']
-    list_filter = ['status', 'job_type', 'created_at']
-    search_fields = ['id', 'template_key', 'model_name', 'last_error']
+    list_display = ['id', 'uuid', 'workflow_func', 'target_display']
+    list_filter = ['workflow_func']
+    search_fields = ['id', 'uuid', 'workflow_func']
     date_hierarchy = 'created_at'
-    readonly_fields = ['created_at', 'started_at', 'completed_at', 'attempts']
+    readonly_fields = ['uuid', 'created_at']
     
     # Field organization
     fieldsets = [
-        ('Job Information', {
+        ('Workflow Information', {
             'fields': [
-                'job_type', 'status', 'template_key', 'template_ver', 'model_name',
-                'user', 'attempts'
+                'uuid', 'workflow_func', 'user'
             ],
         }),
         ('Target', {
             'fields': ['target_ct', 'target_id'],
         }),
         ('Data', {
-            'fields': ['prompt_payload', 'last_error'],
+            'fields': ['workflow_payload'],
             'classes': ['collapse'],
-        }),
-        ('Output', {
-            'fields': ['output_text', 'output_ref'],
-        }),
-        ('Usage & Cost', {
-            'fields': ['usage_tokens', 'cost_usd'],
-        }),
-        ('Timestamps', {
-            'fields': ['created_at', 'started_at', 'completed_at'],
         }),
     ]
     
@@ -60,3 +50,51 @@ class AiJobAdmin(admin.ModelAdmin):
             return target_name
     
     target_display.short_description = 'Target'
+
+
+@admin.register(AiJob)
+class AiJobAdmin(admin.ModelAdmin):
+    """Admin interface for AI generation jobs."""
+    
+    # Basic display configuration
+    list_display = ['id', 'workflow_display', 'status', 'created_at', 'completed_at']
+    list_filter = ['status', 'created_at']
+    search_fields = ['id', 'last_error', 'prompt_result']
+    date_hierarchy = 'created_at'
+    readonly_fields = ['created_at', 'started_at', 'completed_at', 'attempts']
+    
+    # Field organization
+    fieldsets = [
+        ('Job Information', {
+            'fields': [
+                'workflow', 'status', 'attempts'
+            ],
+        }),
+        ('Data', {
+            'fields': ['prompt_payload', 'last_error'],
+            'classes': ['collapse'],
+        }),
+        ('Output', {
+            'fields': ['prompt_result'],
+        }),
+        ('Usage & Cost', {
+            'fields': ['usage_tokens', 'cost_usd'],
+        }),
+        ('Timestamps', {
+            'fields': ['created_at', 'started_at', 'completed_at'],
+        }),
+    ]
+    
+    def workflow_display(self, obj):
+        """Display workflow with link to admin."""
+        if not obj.workflow:
+            return "—"
+            
+        # Get the name of the workflow
+        workflow_name = str(obj.workflow)
+        
+        # Create admin link for the workflow
+        url = f'/admin/ai/aiworkflow/{obj.workflow.id}/change/'
+        return format_html('<a href="{}">{}</a>', url, workflow_name)
+    
+    workflow_display.short_description = 'Workflow'

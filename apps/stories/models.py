@@ -15,6 +15,10 @@ class Story(models.Model):
     
     def __str__(self):
         return self.title
+    
+    @property
+    def page_count(self):
+        return self.pages.count()
 
     class Meta:
         verbose_name = "Story"

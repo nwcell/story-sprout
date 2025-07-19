@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from ordered_model.models import OrderedModel
 import uuid
+from django.urls import reverse
 
 User = get_user_model()
 

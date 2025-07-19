@@ -1,10 +1,11 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse, Http404, HttpResponseBadRequest, JsonResponse
 from django.views.decorators.http import require_http_methods
-from django.http import Http404, HttpResponseBadRequest, HttpResponse, JsonResponse
 from django.urls import reverse
 from django.template.loader import render_to_string
 from .models import Story, Page
+
 
 # Create your views here.
 

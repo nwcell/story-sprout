@@ -32,7 +32,11 @@ class Page(OrderedModel):
     content_generating = models.BooleanField(default=False, help_text="Whether content is being generated for this page")
     content_draft = models.TextField(blank=True, null=True, help_text="Draft content stored while generating")
     image_text = models.TextField(blank=True, null=True)
+    image_text_generating = models.BooleanField(default=False, help_text="Whether image text is being generated for this page")
+    image_text_draft = models.TextField(blank=True, null=True, help_text="Draft image text stored while generating")
     image = models.ImageField(upload_to='page_images', blank=True, null=True)
+    image_generating = models.BooleanField(default=False, help_text="Whether image is being generated for this page")
+    image_draft = models.ImageField(upload_to='page_images', blank=True, null=True, help_text="Draft image stored while generating")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     

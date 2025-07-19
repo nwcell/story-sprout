@@ -16,8 +16,14 @@ You are an expert children's book author with deep experience in picture books. 
 
 {% for p in page.story.pages.all %}
 ### Page {{p.page_number}}{% if p.page_number == page.page_number %} (CURRENT){% endif %}
+#### Content
 {{p.content}}
-{{p.image_description}}
+{% if p.page_number == page.page_number %}
+#### Draft Content
+{{p.content_draft}}
+{% endif %}
+#### Image Description
+{{p.image_text}}
 {% endfor %}
 
 ## Instructions

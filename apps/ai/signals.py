@@ -2,8 +2,7 @@ from dataclasses import dataclass
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from django.contrib.contenttypes.models import ContentType
-
-from .services.prompt import orchestrate
+from .services import orchestrate
 
 @dataclass
 class Trigger:

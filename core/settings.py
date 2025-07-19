@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'crispy_tailwind',
     'ordered_model',
     'django_celery_results',
+    'markdownx',
     
     # Local apps
     'apps.accounts',

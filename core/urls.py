@@ -33,6 +33,7 @@ urlpatterns = [
     path('healthcheck/', healthcheck, name='healthcheck'),
     path('admin/', admin.site.urls),
     path('accounts/', include('allauth.urls')),
+    path('markdownx/', include('markdownx.urls')),
     path('', include('apps.landing.urls')),
     path('dashboard/', include('apps.dashboard.urls')),
     path('stories/', include('apps.stories.urls')),

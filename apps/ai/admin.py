@@ -1,5 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
+from markdownx.utils import markdownify
 
 from .models import AiJob, AIWorkflow
 
@@ -60,7 +62,7 @@ class AiJobAdmin(admin.ModelAdmin):
     list_filter = ['status', 'created_at']
     search_fields = ['id', 'last_error', 'prompt_result']
     date_hierarchy = 'created_at'
-    readonly_fields = ['created_at', 'started_at', 'completed_at', 'attempts']
+    readonly_fields = ['created_at', 'started_at', 'completed_at', 'attempts', 'formatted_prompt_payload']
     
     # Field organization
     fieldsets = [
@@ -70,7 +72,7 @@ class AiJobAdmin(admin.ModelAdmin):
             ],
         }),
         ('Data', {
-            'fields': ['prompt_payload', 'last_error'],
+            'fields': ['formatted_prompt_payload', 'last_error'],
             'classes': ['collapse'],
         }),
         ('Output', {
@@ -97,3 +99,12 @@ class AiJobAdmin(admin.ModelAdmin):
         return format_html('<a href="{}">{}</a>', url, workflow_name)
     
     workflow_display.short_description = 'Workflow'
+    
+    def formatted_prompt_payload(self, obj):
+        if not obj.prompt_payload:
+            return "—"
+        
+        md_text = str(obj.prompt_payload)
+        return mark_safe(markdownify(md_text))
+    
+    formatted_prompt_payload.short_description = 'Prompt Payload'

@@ -310,6 +310,20 @@ wheels = [
 ]
 
 [[package]]
+name = "django-markdownx"
+version = "4.0.9"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+    { name = "markdown" },
+    { name = "pillow" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/4a/80/e4ff7b93b7518efe7fbe9b18ac5735b53fae943063df6fbef53bc454e045/django-markdownx-4.0.9.tar.gz", hash = "sha256:f82949beaddcaf5cbe765f580b1bf062b3aa5eea94633fdbbb6466514311a907", size = 32649 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/1a/76/53574402650befe1ee7b7bb2ddf49b2862a2a080c8042ff3c853922363bb/django_markdownx-4.0.9-py2.py3-none-any.whl", hash = "sha256:0e78759a8701073fee3e4883764a9bf1cdf3fe4c2941747acbe4f093f9285805", size = 42411 },
+]
+
+[[package]]
 name = "django-ordered-model"
 version = "3.7.4"
 source = { registry = "https://pypi.org/simple" }
@@ -630,6 +644,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/cd/e3/3091066f6682016840e9a36111560656b609b95de04b2ec7b19ad2580eaa/litellm-1.74.3.tar.gz", hash = "sha256:a9e87ebe78947ceec67e75f830f1c956cc653b84563574241acea9c84e7e3ca1", size = 9256457 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/14/6f/07735b5178f32e28daf8a30ed6ad3e2c8c06ac374dc06aecde007110470f/litellm-1.74.3-py3-none-any.whl", hash = "sha256:638ec73633c6f2cf78a7343723d8f3bc13c192558fcbaa29f3ba6bc7802e8663", size = 8618899 },
+]
+
+[[package]]
+name = "markdown"
+version = "3.8.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/d7/c2/4ab49206c17f75cb08d6311171f2d65798988db4360c4d1485bd0eedd67c/markdown-3.8.2.tar.gz", hash = "sha256:247b9a70dd12e27f67431ce62523e675b866d254f900c4fe75ce3dda62237c45", size = 362071 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/96/2b/34cc11786bc00d0f04d0f5fdc3a2b1ae0b6239eef72d3d345805f9ad92a1/markdown-3.8.2-py3-none-any.whl", hash = "sha256:5c83764dbd4e00bdd94d85a19b8d55ccca20fe35b2e678a1422b380324dd5f24", size = 106827 },
 ]
 
 [[package]]
@@ -1101,6 +1124,7 @@ dependencies = [
     { name = "django-celery-results" },
     { name = "django-crispy-forms" },
     { name = "django-htmx" },
+    { name = "django-markdownx" },
     { name = "django-ordered-model" },
     { name = "django-tailwind" },
     { name = "flower" },
@@ -1122,6 +1146,7 @@ requires-dist = [
     { name = "django-celery-results", specifier = ">=2.6.0" },
     { name = "django-crispy-forms", specifier = ">=2.4" },
     { name = "django-htmx", specifier = ">=1.23.2" },
+    { name = "django-markdownx", specifier = ">=4.0.9" },
     { name = "django-ordered-model", specifier = ">=3.7.4" },
     { name = "django-tailwind", specifier = ">=4.2.0" },
     { name = "flower", specifier = ">=2.0.1" },

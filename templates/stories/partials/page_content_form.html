@@ -14,7 +14,6 @@
            hx-swap="outerHTML">
       </div>
       {% endif %}
-    {% csrf_token %}
     <input type="hidden" name="content_generating" id="id_content_generating" value="{% if page.content_generating %}true{% else %}false{% endif %}">
     
     <div class="flex items-start space-x-2">

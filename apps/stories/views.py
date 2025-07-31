@@ -4,10 +4,12 @@ from django.http import HttpResponse, Http404, HttpResponseBadRequest, JsonRespo
 from django.views.decorators.http import require_http_methods
 from django.urls import reverse
 from django.template.loader import render_to_string
+
 from .models import Story, Page
 
 
-# Create your views here.
+
+# https://github.com/spookylukey/django-htmx-patterns/blob/master/inline_partials.rst
 
 @login_required
 @require_http_methods(['POST'])

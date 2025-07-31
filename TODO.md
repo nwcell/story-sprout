@@ -6,7 +6,7 @@ List of things that i want to get to eventually
 - [ ] Get story magic button working
   - [ ] Get Task working
   - [ ] Move LiteLLM into Adapter
-  - [ ] 
+  - [x] Fix email verification
 
 ## Low Priority
 - [ ] Consider migrating to an outbox pattern - https://microservices.io/patterns/data/transactional-outbox.html

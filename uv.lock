@@ -333,6 +333,18 @@ wheels = [
 ]
 
 [[package]]
+name = "django-render-block"
+version = "0.11"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/6b/2f/588cf58f7b37ab3b7994727d590381aed747173ef5670457c798518621dc/django_render_block-0.11.tar.gz", hash = "sha256:17886dd3bff222fe8a2f019509c6c53e0e4a38fe684e80d48e8697a879e1301b", size = 12432 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ef/ef/f80dddb0e05887cda30b7c8140a2b0caa957d31d68fcfec84cb445d792ef/django_render_block-0.11-py3-none-any.whl", hash = "sha256:e6a7161393fb59ee803ab0a97ce96286897abafa42835215e019b47ebc442727", size = 9652 },
+]
+
+[[package]]
 name = "django-tailwind"
 version = "4.2.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1126,6 +1138,7 @@ dependencies = [
     { name = "django-htmx" },
     { name = "django-markdownx" },
     { name = "django-ordered-model" },
+    { name = "django-render-block" },
     { name = "django-tailwind" },
     { name = "flower" },
     { name = "gunicorn" },
@@ -1148,6 +1161,7 @@ requires-dist = [
     { name = "django-htmx", specifier = ">=1.23.2" },
     { name = "django-markdownx", specifier = ">=4.0.9" },
     { name = "django-ordered-model", specifier = ">=3.7.4" },
+    { name = "django-render-block", specifier = ">=0.11" },
     { name = "django-tailwind", specifier = ">=4.2.0" },
     { name = "flower", specifier = ">=2.0.1" },
     { name = "gunicorn", specifier = ">=23.0.0" },

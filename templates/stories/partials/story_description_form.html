@@ -4,7 +4,7 @@
       hx-swap="outerHTML"
       hx-trigger="submit, keydown[metaKey&&key=='Enter'] from:body, keydown[ctrlKey&&key=='Enter'] from:body, blur from:textarea"
       class="w-full">
-    {% csrf_token %}
+    <!-- CSRF token not needed here - handled by global hx-headers -->
     <h3 class="text-lg font-medium text-black mb-2">Description</h3>
     <div class="flex items-start space-x-2" x-data="{}">
         <textarea name="description"

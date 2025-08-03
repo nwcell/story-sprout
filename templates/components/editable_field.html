@@ -1,0 +1,69 @@
+{% load static %}
+
+{# Combined editable field template with both display and edit modes #}
+{% if mode == 'edit' %}
+    {# Edit Mode #}
+    <form hx-post="{{ url }}"
+          hx-target="this"
+          hx-swap="outerHTML"
+          hx-trigger="submit, keydown[metaKey&&key=='Enter'] from:body, keydown[ctrlKey&&key=='Enter'] from:body, blur from:textarea"
+          class="hover:bg-gray-50 p-2 rounded transition-colors">
+        <h3 class="text-lg font-medium text-black mb-2">{{ label }}</h3>
+        <div class="flex items-start space-x-2">
+            <textarea name="{{ field_name }}" 
+                      rows="4"
+                      class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray resize-none flex-grow"
+                      placeholder="{{ placeholder }}"
+                      x-init="$el.focus()">{{ value }}</textarea>
+
+            <!-- Button Group -->
+            <span class="isolate inline-flex flex-col rounded-md shadow-sm">
+                <!-- Save Button -->
+                <button type="submit"
+                        @mousedown.prevent
+                        class="relative inline-flex items-center justify-center rounded-t-md bg-white p-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-green-50 hover:text-green-600 focus:z-10"
+                        title="Save (Ctrl+Enter)">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+                <!-- Cancel Button -->
+                <button type="button"
+                        @mousedown.prevent
+                        class="relative -mt-px inline-flex items-center justify-center rounded-b-md bg-white p-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-red-50 hover:text-red-600 focus:z-10"
+                        title="Cancel (Esc)"
+                        hx-get="{{ url }}"
+                        hx-target="closest form"
+                        hx-swap="outerHTML">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            </span>
+            {% if form.errors %}
+            <div class="text-red-500 text-sm mt-1">{{ form.errors }}</div>
+            {% endif %}
+        </div>
+        <div class="text-xs text-gray-500 mt-1">Ctrl+Enter to save, Escape to cancel, or use the buttons.</div>
+    </form>
+{% else %}
+    {# Display Mode #}
+    <div id="{{ field_name }}" 
+         hx-get="{{ url }}?mode=edit" 
+         hx-trigger="click"
+         hx-target="this"
+         hx-swap="outerHTML"
+         class="cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors group">
+        <h3 class="text-lg font-medium text-black">
+            {{ label }}
+            <i class="fa-solid fa-pen-to-square text-sm text-gray-400 ml-2 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+        </h3>
+        <div class="prose max-w-none group">
+            {% if value %}
+                {{ value|linebreaks }}
+            {% else %}
+                <p class="text-gray-400 italic">{{ placeholder }}</p>
+            {% endif %}
+        </div>
+    </div>
+{% endif %}

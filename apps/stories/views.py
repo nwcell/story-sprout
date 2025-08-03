@@ -75,6 +75,37 @@ def story_detail(request, story_uuid):
     
     return render(request, 'stories/story_detail.html', context)
 
+
+@login_required
+@require_http_methods(['GET'])
+def story_detail_new(request, story_uuid):
+    """New componentized version of the story detail view."""
+    # Get the story by UUID
+    story = get_object_or_404(Story, uuid=story_uuid)
+    
+    # Check if the user has permission to view this story
+    if story.user != request.user:
+        raise Http404("Story not found")
+    
+    # Get the pages ordered by the OrderedModel's order field
+    pages = story.pages.all()
+    
+    # Process pages: add first/last flags and prepare content_draft for display
+    for page in pages:
+        # If magic mode is active, prepare draft content for display
+        if page.content_generating and page.content_draft is not None:
+            # Create a temporary copy for template display
+            page.display_content = page.content_draft
+        else:
+            page.display_content = page.content
+    
+    context = {
+        'story': story,
+        'pages': pages
+    }
+    
+    return render(request, 'stories/story_detail_new.html', context)
+
 @login_required
 @require_http_methods(['GET', 'POST'])
 def new_story(request):

@@ -18,7 +18,7 @@
             </div>
             <div class="md:col-span-2">
                 <form action="{% url 'dashboard:settings' %}" method="POST">
-                    {% csrf_token %}
+                    {% csrf_token %}<!-- Keep this for regular POST forms (non-HTMX) -->
                     <div class="border border-light-gray">
                         <div class="px-8 py-8 space-y-8">
                             <fieldset>

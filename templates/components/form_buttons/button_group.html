@@ -1,0 +1,31 @@
+{% load static %}
+
+<span class="isolate inline-flex {{ layout|default:'flex-col' }} rounded-md shadow-sm">
+    {% include "components/form_buttons/save_button.html" with 
+        type="submit" 
+        shortcut=save_shortcut|default:"Cmd+Enter"
+        button_class="rounded-t-md"
+        disabled=disabled
+        extra_classes=extra_classes %}
+    
+    {% include "components/form_buttons/cancel_button.html" with 
+        get_url=get_url 
+        shortcut="Esc"
+        button_class="-mt-px rounded-b-md"
+        target=target|default:"closest form"
+        swap=swap|default:"outerHTML" %}
+        
+    {% if show_magic and not is_generating %}
+        <button type="button"
+                @mousedown.prevent
+                class="relative -mt-px inline-flex items-center justify-center rounded-b-md bg-white p-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-purple-50 hover:text-purple-600 focus:z-10"
+                title="Generate Content (Cmd+G)"
+                hx-post="{{ magic_url }}"
+                hx-target="{{ magic_target|default:'closest form' }}"
+                hx-swap="{{ magic_swap|default:'outerHTML' }}">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+            </svg>
+        </button>
+    {% endif %}
+</span>

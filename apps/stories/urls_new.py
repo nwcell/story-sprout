@@ -5,16 +5,23 @@ from . import htmx_views
 app_name = 'stories'
 
 urlpatterns = [
+    # Main views
     path('', views.stories, name='stories'),
     path('new/', views.new_story, name='new_story'),
     path('<uuid:story_uuid>/', views.story_detail, name='story_detail'),
-    path('<uuid:story_uuid>/new/', views.story_detail_new, name='story_detail_new'),
     
-    # New unified HTMX endpoints for story editing
-    path('<uuid:story_uuid>/title/editable/', htmx_views.EditableStoryTitleView.as_view(), name='editable_story_title'),
-    path('<uuid:story_uuid>/description/editable/', htmx_views.EditableStoryDescriptionView.as_view(), name='editable_story_description'),
+    # New componentized HTMX endpoints for story editing
+    path('<uuid:story_uuid>/new/title/', htmx_views.StoryTitleDisplayView.as_view(), name='new_get_story_title'),
+    path('<uuid:story_uuid>/new/edit/title/', htmx_views.StoryTitleEditView.as_view(), name='new_edit_story_title'),
+    path('<uuid:story_uuid>/new/description/', htmx_views.StoryDescriptionDisplayView.as_view(), name='new_get_story_description'),
+    path('<uuid:story_uuid>/new/edit/description/', htmx_views.StoryDescriptionEditView.as_view(), name='new_edit_story_description'),
     
-    # HTMX endpoints for in-place editing
+    # New componentized HTMX endpoints for page content editing
+    path('pages/<int:pk>/new/', htmx_views.PageContentDisplayView.as_view(), name='new_get_page_content'),
+    path('pages/<int:pk>/new/edit/', htmx_views.PageContentEditView.as_view(), name='new_edit_page_content'),
+    path('pages/<int:pk>/toggle-generating-new/', htmx_views.ContentGeneratingToggleView.as_view(), name='new_toggle_content_generating'),
+    
+    # Keep the original HTMX endpoints for backward compatibility
     path('<uuid:story_uuid>/title/', views.get_story_title, name='get_story_title'),
     path('<uuid:story_uuid>/edit/title/', views.edit_story_title, name='edit_story_title'),
     path('<uuid:story_uuid>/description/', views.get_story_description, name='get_story_description'),
@@ -37,7 +44,4 @@ urlpatterns = [
     path('pages/<int:page_id>/image/upload/', views.upload_page_image, name='upload_page_image'),
     path('pages/<int:page_id>/image/delete/', views.delete_page_image, name='delete_page_image'),
     path('pages/<int:page_id>/move/<str:direction>/', views.move_page, name='move_page'),
-    
-    # HTMX endpoints for story fields
-    # Only keep working endpoints that match actual view classes
-] 
+]

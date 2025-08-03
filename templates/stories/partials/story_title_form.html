@@ -3,7 +3,7 @@
       hx-target="this"
       hx-swap="outerHTML"
       hx-trigger="submit, keyup[key=='Enter'] from:input, blur from:input">
-    {% csrf_token %}
+    <!-- CSRF token not needed here - handled by global hx-headers -->
     <div class="flex items-center space-x-2" x-data="{}">
         <input name="title"
                value="{{ story.title }}"

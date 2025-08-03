@@ -1,5 +1,5 @@
-{% extends "dashboard/base.html" %}
-{% load ui_components %}
+{% extends "dashboard/dashboard_base.html" %}
+{% comment %}Template tag library removed{% endcomment %}
 
 {% block title %}{{ story.title }} - Story Sprout{% endblock %}
 
@@ -17,8 +17,7 @@
     <div class="mt-4 bg-white shadow overflow-hidden sm:rounded-md border border-light-gray p-6">
         <div class="flex items-center justify-between">
             <div class="flex-1">
-                {% comment %} {% include 'stories/components/story_description.html' %} {% endcomment %}
-                {% url 'stories:editable_story_description' story.uuid as desc_url %}
+                {% url 'stories:edit_story_description' story.uuid as desc_url %}
                 {% include "components/editable_field.html" with field_name="description" value=story.description label="Description" placeholder="Click to add a description" url=desc_url mode=mode %}
             </div>
             <div class="text-right ml-6">

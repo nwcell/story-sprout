@@ -1,0 +1,24 @@
+{% comment %}
+  user_info.html - User information and logout link
+  Used in both mobile and desktop sidebar
+{% endcomment %}
+
+<div class="flex-shrink-0 flex border-t border-light-gray p-4">
+    <a href="{% url 'account_logout' %}" class="flex-shrink-0 {% if desktop %}w-full{% endif %} group block">
+        <div class="flex items-center">
+            <div class="w-10 h-10 border border-light-gray flex items-center justify-center">
+                <svg class="h-5 w-5 text-gray" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm font-medium text-black">
+                    {{ user.email }}
+                </p>
+                <p class="text-xs font-medium text-gray uppercase tracking-wider">
+                    Logout
+                </p>
+            </div>
+        </div>
+    </a>
+</div>

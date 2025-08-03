@@ -1,0 +1,38 @@
+{% comment %}
+  tailwind_config.html - Shared Tailwind CSS configuration
+  Used by all base templates to ensure consistent styling
+{% endcomment %}
+
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    black: '#121212',
+                    'dark-gray': '#292929',
+                    gray: '#4a4a4a',
+                    'light-gray': '#e0e0e0',
+                    white: '#ffffff'
+                },
+                fontFamily: {
+                    sans: ['Space Grotesk', 'sans-serif'],
+                },
+            }
+        },
+        variants: {
+            extend: {
+                // Add HTMX state variants for interactive UI feedback
+                opacity: ['htmx-requesting', 'htmx-indicator', 'htmx-settling'],
+                backgroundColor: ['htmx-requesting', 'htmx-settling'],
+                cursor: ['htmx-requesting', 'htmx-settling'],
+                display: ['htmx-indicator', 'htmx-requesting', 'htmx-settling', 'group-hover'],
+                scale: ['htmx-settling']
+            }
+        }
+    }
+</script>
+
+<!-- Space Grotesk Font -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap">

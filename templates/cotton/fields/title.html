@@ -1,0 +1,7 @@
+<input name="title"
+        value="{{ form.title.value|default:story.title }}" 
+        class="w-full text-2xl font-medium uppercase tracking-wide p-2 border-none rounded-lg outline-none"
+        placeholder="{{ placeholder }}">
+{% if form.title.errors %}
+    <div class="text-red-500 text-sm mt-1">{{ form.title.errors }}</div>
+{% endif %}

@@ -13,12 +13,16 @@ class HtmxEditableFieldView(View):
         form_class: The form class for editing
         template_name: Single template for both display and edit modes
         field_name: Name of the field being edited
+        field_label: Human-readable label for the field (defaults to capitalized field_name)
+        placeholder: Placeholder text for empty fields
         permission_denied_message: Message to display when permission is denied
     """
     model = None
     form_class = None
     template_name = None  # Use this as a single template for both display and edit modes
     field_name = None
+    field_label = None  # Defaults to capitalized field_name if not set
+    placeholder = "Click to edit"
     permission_denied_message = "You don't have permission to edit this item."
     
     def check_permissions(self, obj):
@@ -44,10 +48,20 @@ class HtmxEditableFieldView(View):
     
     def get_context_data(self, obj, form=None, mode='display'):
         """Get the context data for the template"""
+        field_value = getattr(obj, self.field_name) if self.field_name else None
+        
+        # Get label - use field_label if set, otherwise capitalize field_name
+        label = self.field_label if self.field_label else self.field_name.capitalize() if self.field_name else ''
+        
         context = {
             'mode': mode,
             self.model.__name__.lower(): obj,
-            'value': getattr(obj, self.field_name) if self.field_name else None,
+            'value': field_value,
+            'url': self.request.path,  # Add the current request URL to the context
+            'field_name': self.field_name,  # Ensure field_name is always in context
+            'label': label,  # Add field label
+            'placeholder': self.placeholder,  # Add placeholder text
+            'slot': field_value,  # Add value as slot for Cotton compatibility
         }
         
         if form:

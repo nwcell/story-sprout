@@ -12,7 +12,7 @@ urlpatterns = [
     
     # New unified HTMX endpoints for story editing
     path('<uuid:story_uuid>/title/editable/', htmx_views.EditableStoryTitleView.as_view(), name='editable_story_title'),
-    path('<uuid:story_uuid>/description/editable/', htmx_views.EditableStoryDescriptionView.as_view(), name='editable_story_description'),
+    path('<uuid:story_uuid>/description/editable/', htmx_views.EditableStoryDescriptionView.as_view(), name='story_description'),
     
     # HTMX endpoints for in-place editing
     path('<uuid:story_uuid>/title/', views.get_story_title, name='get_story_title'),

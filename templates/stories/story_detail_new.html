@@ -5,28 +5,30 @@
 
 {% block dashboard_content %}
 <div class="max-w-7xl mx-auto">
-    <div class="flex items-center justify-between">
-        {% include 'stories/components/story_title.html' %}
-        
-        <a href="{% url 'stories:stories' %}" class="inline-flex items-center px-4 py-2 text-sm font-medium text-black bg-white hover:bg-gray-50 border border-light-gray uppercase tracking-wider rounded">
-            <i class="fa-solid fa-arrow-left mr-2"></i>
-            Back to Stories
-        </a>
-    </div>
-
-    <div class="mt-4 bg-white shadow overflow-hidden sm:rounded-md border border-light-gray p-6">
+    <form id="story-form"
+      hx-patch=""
+      hx-trigger="change from:input delay:600ms, keyup from:input changed delay:600ms, blur"
+      hx-swap="none"
+      hx-sync="this:queue last">
         <div class="flex items-center justify-between">
-            <div class="flex-1">
-                {% url 'stories:edit_story_description' story.uuid as desc_url %}
-                {% include "components/editable_field.html" with field_name="description" value=story.description label="Description" placeholder="Click to add a description" url=desc_url mode=mode %}
+            <div class="flex items-center space-x-2">
+                <c-fields.title name="title" label="Title" placeholder="Enter story title"/>
             </div>
-            <div class="text-right ml-6">
-                <p class="text-sm text-gray">Created: <time datetime="{{ story.created_at|date:'c' }}">{{ story.created_at|date:"M d, Y" }}</time></p>
-                <p class="text-sm text-gray">Updated: <time datetime="{{ story.updated_at|date:'c' }}">{{ story.updated_at|date:"M d, Y" }}</time></p>
-                <p class="text-sm text-gray mt-1">{{ pages.count }} Pages</p>
+            
+            <a href="{% url 'stories:stories' %}" class="inline-flex items-center px-4 py-2 text-sm font-medium text-black bg-white hover:bg-gray-50 border border-light-gray uppercase tracking-wider rounded">
+                <i class="fa-solid fa-arrow-left mr-2"></i>
+                Back to Stories
+            </a>
+        </div>
+
+        <div class="mt-4 bg-white shadow overflow-hidden sm:rounded-md border border-light-gray p-6">
+            <div class="flex items-center justify-between">
+                <div class="flex-1">
+                    <c-fields.textarea name="description" label="Description" placeholder="Click to add a description">{{ story.description }}</c-fields.textarea>
+                </div>
             </div>
         </div>
-    </div>
+    </form>
 
     <div class="mt-8">
         <div class="flex items-center justify-between">

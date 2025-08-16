@@ -24,7 +24,7 @@ class EditableStoryDescriptionView(HtmxEditableFieldView):
     """Unified HTMX view for displaying and editing a story's description"""
     model = Story
     form_class = StoryDescriptionForm
-    template_name = 'components/editable_field.html'
+    template_name = 'cotton/editable_field.html'
     field_name = 'description'
     
     def get_object(self, request, *args, **kwargs):

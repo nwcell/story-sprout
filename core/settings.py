@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'ordered_model',
     'django_celery_results',
     'markdownx',
+    'django_cotton',
     
     # Local apps
     'apps.accounts',

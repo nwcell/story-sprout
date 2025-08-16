@@ -1,5 +1,3 @@
 <textarea name="{{ field_name }}" 
-          class="w-full p-3 border-none rounded-lg text-gray resize-none"
-          placeholder="{{ placeholder }}"
-          x-init="$el.style.height='auto'; $el.style.height = $el.scrollHeight + 'px'"
-          @input="$el.style.height='auto'; $el.style.height = $el.scrollHeight + 'px'">{{ slot }}</textarea>
+          class="field-sizing-content w-full p-3 border-none rounded-lg text-gray resize-none" 
+          placeholder="{{ placeholder }}">{{ slot }}</textarea>

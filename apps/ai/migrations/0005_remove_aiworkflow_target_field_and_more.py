@@ -5,27 +5,26 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('ai', '0004_aiworkflow_remove_aijob_ai_aijob_job_typ_9e609c_idx_and_more'),
+        ("ai", "0004_aiworkflow_remove_aijob_ai_aijob_job_typ_9e609c_idx_and_more"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='aiworkflow',
-            name='target_field',
+            model_name="aiworkflow",
+            name="target_field",
         ),
         migrations.RemoveField(
-            model_name='aiworkflow',
-            name='target_flag',
+            model_name="aiworkflow",
+            name="target_flag",
         ),
         migrations.RemoveField(
-            model_name='aiworkflow',
-            name='workflow_payload',
+            model_name="aiworkflow",
+            name="workflow_payload",
         ),
         migrations.AlterField(
-            model_name='aijob',
-            name='workflow',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='ai.aiworkflow'),
+            model_name="aijob",
+            name="workflow",
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to="ai.aiworkflow"),
         ),
     ]

@@ -40,7 +40,7 @@ Wave must transform each legacy command into its uv equivalent before execution:
 ### 3.1 Initialize (first time)
 ```bash
 # Scaffold pyproject.toml & .python-version
-uv init 
+uv init
 
 # Add dependencies
 uv add django djangorestframework psycopg[binary]
@@ -67,13 +67,13 @@ uv run -m pytest
 ### 3.3 Dependency Management
 ```bash
 # Add dependencies
-uv add django-debug-toolbar        
+uv add django-debug-toolbar
 
 # Upgrade a single package
-uv lock --upgrade-package django   
+uv lock --upgrade-package django
 
 # Install exactly what is in uv.lock
-uv sync                            
+uv sync
 ```
 
 ## 4. Handy Shortcuts
@@ -89,6 +89,18 @@ uvx ruff@latest check .
 
 # Recreate the environment from scratch
 rm -rf .venv && uv venv
+```
+
+## 5. Linting
+```
+# Check and auto-fix
+uv run ruff check --fix
+
+# Format code
+uv run ruff format
+
+# Both together (recommended before commits)
+uv run ruff check --fix && uv run ruff format
 ```
 
 

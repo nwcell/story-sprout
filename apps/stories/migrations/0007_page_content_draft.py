@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('stories', '0006_page_content_generating'),
+        ("stories", "0006_page_content_generating"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='page',
-            name='content_draft',
-            field=models.TextField(blank=True, help_text='Draft content stored while generating', null=True),
+            model_name="page",
+            name="content_draft",
+            field=models.TextField(blank=True, help_text="Draft content stored while generating", null=True),
         ),
     ]

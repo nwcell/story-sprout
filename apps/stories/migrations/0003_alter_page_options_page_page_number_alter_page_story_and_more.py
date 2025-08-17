@@ -5,29 +5,30 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('stories', '0002_page'),
+        ("stories", "0002_page"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='page',
-            options={'ordering': ['page_number'], 'verbose_name': 'Page', 'verbose_name_plural': 'Pages'},
+            name="page",
+            options={"ordering": ["page_number"], "verbose_name": "Page", "verbose_name_plural": "Pages"},
         ),
         migrations.AddField(
-            model_name='page',
-            name='page_number',
+            model_name="page",
+            name="page_number",
             field=models.PositiveIntegerField(default=1),
             preserve_default=False,
         ),
         migrations.AlterField(
-            model_name='page',
-            name='story',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='pages', to='stories.story'),
+            model_name="page",
+            name="story",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, related_name="pages", to="stories.story"
+            ),
         ),
         migrations.AddConstraint(
-            model_name='page',
-            constraint=models.UniqueConstraint(fields=('story', 'page_number'), name='unique_page_number_per_story'),
+            model_name="page",
+            constraint=models.UniqueConstraint(fields=("story", "page_number"), name="unique_page_number_per_story"),
         ),
     ]

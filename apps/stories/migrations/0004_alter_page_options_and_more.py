@@ -4,28 +4,27 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('stories', '0003_alter_page_options_page_page_number_alter_page_story_and_more'),
+        ("stories", "0003_alter_page_options_page_page_number_alter_page_story_and_more"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='page',
-            options={'ordering': ('order',), 'verbose_name': 'Page', 'verbose_name_plural': 'Pages'},
+            name="page",
+            options={"ordering": ("order",), "verbose_name": "Page", "verbose_name_plural": "Pages"},
         ),
         migrations.RemoveConstraint(
-            model_name='page',
-            name='unique_page_number_per_story',
+            model_name="page",
+            name="unique_page_number_per_story",
         ),
         migrations.RemoveField(
-            model_name='page',
-            name='page_number',
+            model_name="page",
+            name="page_number",
         ),
         migrations.AddField(
-            model_name='page',
-            name='order',
-            field=models.PositiveIntegerField(db_index=True, default=1, editable=False, verbose_name='order'),
+            model_name="page",
+            name="order",
+            field=models.PositiveIntegerField(db_index=True, default=1, editable=False, verbose_name="order"),
             preserve_default=False,
         ),
     ]

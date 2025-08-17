@@ -4,23 +4,26 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('stories', '0004_alter_page_options_and_more'),
+        ("stories", "0004_alter_page_options_and_more"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='page',
-            options={'ordering': ['story__user', 'story', 'order'], 'verbose_name': 'Page', 'verbose_name_plural': 'Pages'},
+            name="page",
+            options={
+                "ordering": ["story__user", "story", "order"],
+                "verbose_name": "Page",
+                "verbose_name_plural": "Pages",
+            },
         ),
         migrations.AlterModelOptions(
-            name='story',
-            options={'ordering': ['user', '-created_at'], 'verbose_name': 'Story', 'verbose_name_plural': 'Stories'},
+            name="story",
+            options={"ordering": ["user", "-created_at"], "verbose_name": "Story", "verbose_name_plural": "Stories"},
         ),
         migrations.AddField(
-            model_name='page',
-            name='image_text',
+            model_name="page",
+            name="image_text",
             field=models.TextField(blank=True, null=True),
         ),
     ]

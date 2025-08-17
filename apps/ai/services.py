@@ -1,6 +1,7 @@
 from django.contrib.contenttypes.models import ContentType
-from .models import AIWorkflow
+
 from . import tasks
+from .models import AIWorkflow
 
 
 def orchestrate(target_ct: ContentType, target_id: int, workflow_func: str, user=None):

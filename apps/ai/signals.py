@@ -1,8 +1,11 @@
 from dataclasses import dataclass
+
+from django.contrib.contenttypes.models import ContentType
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
-from django.contrib.contenttypes.models import ContentType
+
 from .services import orchestrate
+
 
 @dataclass
 class Trigger:
@@ -11,14 +14,16 @@ class Trigger:
     field_name: str
     workflow_func: str
 
+
 TRIGGERS = [
     Trigger(
-        app_label='stories',
-        model_name='page',
-        field_name='content_generating',
-        workflow_func='page_content_workflow',
+        app_label="stories",
+        model_name="page",
+        field_name="content_generating",
+        workflow_func="page_content_workflow",
     ),
 ]
+
 
 @receiver(pre_save)
 def handle_boolean_field_changes(sender, instance, **kwargs):
@@ -38,9 +43,9 @@ def handle_boolean_field_changes(sender, instance, **kwargs):
         old_value = getattr(old_instance, trigger.field_name, False)
     except sender.DoesNotExist:
         old_value = False
-    
+
     new_value = getattr(instance, trigger.field_name, False)
-    
+
     if old_value is False and new_value is True:
         orchestrate(
             target_ct=ContentType.objects.get_for_model(sender),
@@ -48,4 +53,3 @@ def handle_boolean_field_changes(sender, instance, **kwargs):
             workflow_func=trigger.workflow_func,
             user=instance.story.user,
         )
-

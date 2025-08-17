@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('stories', '0005_alter_page_options_alter_story_options_and_more'),
+        ("stories", "0005_alter_page_options_alter_story_options_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='page',
-            name='content_generating',
-            field=models.BooleanField(default=False, help_text='Whether content is being generated for this page'),
+            model_name="page",
+            name="content_generating",
+            field=models.BooleanField(default=False, help_text="Whether content is being generated for this page"),
         ),
     ]

@@ -27,3 +27,40 @@ dependencies = [
     "stripe>=12.3.0",
     "whitenoise>=6.9.0",
 ]
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.3.0",
+    "ruff>=0.12.9",
+]
+
+[tool.ruff]
+# Set the maximum line length to 119 characters
+line-length = 119
+
+# Enable auto-fixing for all fixable rules
+fix = true
+
+# Select default linting rules
+lint.select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # Pyflakes
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "SIM", # flake8-simplify
+    "I",   # isort
+]
+
+# Configure docstring and comment line length
+lint.pydocstyle.convention = "google"
+
+[tool.ruff.format]
+# Use double quotes for strings
+quote-style = "double"
+
+# Prefer single-line magic trailing comma
+skip-magic-trailing-comma = false
+
+# Set docstring line length to 79 characters
+docstring-code-line-length = 79

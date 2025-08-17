@@ -4,20 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('stories', '0007_page_content_draft'),
+        ("stories", "0007_page_content_draft"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='page',
-            name='image_text_draft',
-            field=models.TextField(blank=True, help_text='Draft image text stored while generating', null=True),
+            model_name="page",
+            name="image_text_draft",
+            field=models.TextField(blank=True, help_text="Draft image text stored while generating", null=True),
         ),
         migrations.AddField(
-            model_name='page',
-            name='image_text_generating',
-            field=models.BooleanField(default=False, help_text='Whether image text is being generated for this page'),
+            model_name="page",
+            name="image_text_generating",
+            field=models.BooleanField(default=False, help_text="Whether image text is being generated for this page"),
         ),
     ]

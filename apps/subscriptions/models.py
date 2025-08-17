@@ -1,7 +1,8 @@
-from django.db import models
 from django.contrib.auth import get_user_model
+from django.db import models
 
 User = get_user_model()
+
 
 class StripeCustomer(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -12,4 +13,4 @@ class StripeCustomer(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.user.email} - {self.subscription_status}" 
+        return f"{self.user.email} - {self.subscription_status}"

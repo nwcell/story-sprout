@@ -12,9 +12,9 @@
       hx-sync="this:queue last">
         <div class="flex items-center justify-between">
             <div class="flex items-center space-x-2">
-                <c-fields.title name="title" label="Title" placeholder="Enter story title"/>
+                <c-fields.title name="title" value="{{ story.title }}" label="Title" placeholder="Enter story title"/>
             </div>
-            
+
             <a href="{% url 'stories:stories' %}" class="inline-flex items-center px-4 py-2 text-sm font-medium hover:bg-gray-50 border border-light-gray uppercase tracking-wider rounded">
                 <i class="fa-solid fa-arrow-left mr-2"></i>
                 Back to Stories
@@ -36,7 +36,7 @@
         </div>
 
         {% include 'stories/partials/pages_list.html' %}
-        
+
         <div class="mt-6 text-center">
             <button hx-post="{% url 'stories:add_page' story.uuid %}"
                     hx-target="#story-pages"

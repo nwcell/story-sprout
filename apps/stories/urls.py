@@ -9,11 +9,11 @@ urlpatterns = [
     path('new/', views.new_story, name='new_story'),
     path('<uuid:story_uuid>/', views.story_detail, name='story_detail'),
     path('<uuid:story_uuid>/new/', views.story_detail_new, name='story_detail_new'),
-    
+
     # New unified HTMX endpoints for story editing
     path('<uuid:story_uuid>/title/editable/', htmx_views.EditableStoryTitleView.as_view(), name='editable_story_title'),
     path('<uuid:story_uuid>/description/editable/', htmx_views.EditableStoryDescriptionView.as_view(), name='story_description'),
-    
+
     # HTMX endpoints for in-place editing
     path('<uuid:story_uuid>/title/', views.get_story_title, name='get_story_title'),
     path('<uuid:story_uuid>/edit/title/', views.edit_story_title, name='edit_story_title'),
@@ -37,7 +37,4 @@ urlpatterns = [
     path('pages/<int:page_id>/image/upload/', views.upload_page_image, name='upload_page_image'),
     path('pages/<int:page_id>/image/delete/', views.delete_page_image, name='delete_page_image'),
     path('pages/<int:page_id>/move/<str:direction>/', views.move_page, name='move_page'),
-    
-    # HTMX endpoints for story fields
-    # Only keep working endpoints that match actual view classes
-] 
+]

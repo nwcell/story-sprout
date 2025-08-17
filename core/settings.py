@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'django_celery_results',
     'markdownx',
     'django_cotton',
+    'django_browser_reload',
     
     # Local apps
     'apps.accounts',
@@ -77,6 +78,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django_htmx.middleware.HtmxMiddleware',
     'allauth.account.middleware.AccountMiddleware',
+    'django_browser_reload.middleware.BrowserReloadMiddleware',
 ]
 
 ROOT_URLCONF = 'core.urls'

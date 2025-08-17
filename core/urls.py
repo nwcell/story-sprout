@@ -38,6 +38,7 @@ urlpatterns = [
     path('dashboard/', include('apps.dashboard.urls')),
     path('stories/', include('apps.stories.urls')),
     path('subscriptions/', include('apps.subscriptions.urls')),
+    path('__reload__/', include("django_browser_reload.urls")),
 ]
 
 if settings.DEBUG:

@@ -17,8 +17,20 @@
 			80,
 			120
 		],
+		"[python]": {
+			"editor.formatOnSave": true,
+			"editor.codeActionsOnSave": {
+				"source.fixAll": "explicit",
+				"source.organizeImports": "explicit"
+			},
+			"editor.defaultFormatter": "charliermarsh.ruff"
+		},
+		"ruff.enable": true,
+		"ruff.fixAll": true,
+		"ruff.organizeImports": true,
+		"ruff.showNotifications": "always",
 		"ruff.path": [
-			"/Users/travis/Projects/story-sprout/.venv/bin/ruff",
+			"/Users/travis/Projects/story-sprout/.venv/bin/ruff"
 		],
 		"ruff.interpreter": [
 			"/Users/travis/Projects/story-sprout/.venv/bin/python"

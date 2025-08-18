@@ -55,8 +55,9 @@ INSTALLED_APPS = [
     "ordered_model",
     "django_celery_results",
     "markdownx",
-    "django_cotton",
     "django_browser_reload",
+    "django_cotton.apps.SimpleAppConfig",
+    "template_partials.apps.SimpleAppConfig",
     # Local apps
     "apps.accounts",
     "apps.ai",
@@ -86,13 +87,32 @@ TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [os.path.join(BASE_DIR, "templates"), os.path.join(BASE_DIR, "apps/ai/prompt_templates")],
-        "APP_DIRS": True,
+        "APP_DIRS": False,
         "OPTIONS": {
             "context_processors": [
                 "django.template.context_processors.debug",
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+            ],
+            "loaders": [
+                (
+                    "template_partials.loader.Loader",
+                    [
+                        (
+                            "django.template.loaders.cached.Loader",
+                            [
+                                "django_cotton.cotton_loader.Loader",
+                                "django.template.loaders.filesystem.Loader",
+                                "django.template.loaders.app_directories.Loader",
+                            ],
+                        )
+                    ],
+                )
+            ],
+            "builtins": [
+                "django_cotton.templatetags.cotton",
+                "template_partials.templatetags.partials",
             ],
         },
     },

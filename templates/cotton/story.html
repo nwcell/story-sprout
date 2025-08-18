@@ -1,10 +1,5 @@
-{% extends "dashboard/dashboard_base.html" %}
+<c-vars story />
 
-{% load partials %}
-
-{% block title %}{{ story.title }} - Story Sprout{% endblock %}
-
-{% block dashboard_content %}
 <div class="max-w-7xl mx-auto">
   <div class="flex items-center justify-between">
     <div class="flex items-center space-x-2">
@@ -51,4 +46,3 @@
     </div>
   </div>
 </div>
-{% endblock %}

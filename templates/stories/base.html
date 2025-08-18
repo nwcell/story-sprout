@@ -1,0 +1,9 @@
+{% extends "dashboard/dashboard_base.html" %}
+
+{% load partials %}
+
+{% block title %}{{ story.title }} - Story Sprout{% endblock %}
+
+{% block dashboard_content %}
+<c-story :story="{{ story }}" />
+{% endblock %}

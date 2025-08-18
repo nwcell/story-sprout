@@ -15,6 +15,7 @@ dependencies = [
     "django-crispy-forms>=2.4",
     "django-htmx>=1.23.2",
     "django-markdownx>=4.0.9",
+    "django-ninja>=1.4.3",
     "django-ordered-model>=3.7.4",
     "django-render-block>=0.11",
     "django-tailwind>=4.2.0",

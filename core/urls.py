@@ -22,6 +22,8 @@ from django.http import JsonResponse
 from django.urls import include, path
 from django.views.decorators.http import require_http_methods
 
+from .api import api
+
 
 @require_http_methods(["GET"])
 def healthcheck(request):
@@ -39,6 +41,7 @@ urlpatterns = [
     path("stories/", include("apps.stories.urls")),
     path("subscriptions/", include("apps.subscriptions.urls")),
     path("__reload__/", include("django_browser_reload.urls")),
+    path("api/", api.urls),
 ]
 
 if settings.DEBUG:

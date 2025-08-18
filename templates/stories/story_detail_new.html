@@ -5,47 +5,55 @@
 
 {% block dashboard_content %}
 <div class="max-w-7xl mx-auto">
-    <form id="story-form"
-      hx-patch=""
-      hx-trigger="change from:input delay:600ms, keyup from:input changed delay:600ms, blur"
-      hx-swap="none"
-      hx-sync="this:queue last">
-        <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-2">
-                <c-fields.title name="title" value="{{ story.title }}" label="Title" placeholder="Enter story title"/>
-            </div>
-
-            <a href="{% url 'stories:stories' %}" class="inline-flex items-center px-4 py-2 text-sm font-medium hover:bg-gray-50 border border-light-gray uppercase tracking-wider rounded">
-                <i class="fa-solid fa-arrow-left mr-2"></i>
-                Back to Stories
-            </a>
-        </div>
-
-        <div class="mt-4 bg-white shadow overflow-hidden sm:rounded-md border border-light-gray p-6">
-            <div class="flex items-center justify-between">
-                <div class="flex-1">
-                    <c-fields.textarea name="description" label="Description" placeholder="Click to add a description">{{ story.description }}</c-fields.textarea>
-                </div>
-            </div>
-        </div>
-    </form>
-
-    <div class="mt-8">
-        <div class="flex items-center justify-between">
-            <h2 class="text-xl font-medium text-black uppercase tracking-wide">Pages</h2>
-        </div>
-
-        {% include 'stories/partials/pages_list.html' %}
-
-        <div class="mt-6 text-center">
-            <button hx-post="{% url 'stories:add_page' story.uuid %}"
-                    hx-target="#story-pages"
-                    hx-swap="beforeend"
-                    class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-black hover:bg-dark-gray uppercase tracking-wider rounded transition-colors">
-                <i class="fa-solid fa-plus mr-2"></i>
-                Add New Page
-            </button>
-        </div>
+  {% comment %} <form id="story-form"
+    hx-patch=""
+    hx-trigger="change from:input delay:600ms, keyup from:input changed delay:600ms, blur"
+    hx-swap="none"
+    hx-sync="this:queue last"> {% endcomment %}
+  <div class="flex items-center justify-between">
+    <div class="flex items-center space-x-2">
+      <c-fields.input hx-patch="#"
+                      hx-trigger="keyup changed delay:2s"
+                      hx-ext='json-enc'
+                      name="title"
+                      value="{{ story.title }}"
+                      label="Title"
+                      placeholder="Enter story title"
+                      addClass="uppercase text-2xl font-medium"
+                      autocapitalize="on"/>
     </div>
+
+    <a href="{% url 'stories:stories' %}" class="inline-flex items-center px-4 py-2 text-sm font-medium hover:bg-gray-50 border border-light-gray uppercase tracking-wider rounded">
+      <i class="fa-solid fa-arrow-left mr-2"></i>
+      Back to Stories
+    </a>
+  </div>
+
+  <div class="mt-4 bg-white shadow overflow-hidden sm:rounded-md border border-light-gray p-6">
+    <div class="flex items-center justify-between">
+      <div class="flex-1">
+        <c-fields.textarea name="description" label="Description" placeholder="Click to add a description">{{ story.description }}</c-fields.textarea>
+      </div>
+    </div>
+  </div>
+  {% comment %} </form> {% endcomment %}
+
+  <div class="mt-8">
+    <div class="flex items-center justify-between">
+      <h2 class="text-xl font-medium text-black uppercase tracking-wide">Pages</h2>
+    </div>
+
+    {% include 'stories/partials/pages_list.html' %}
+
+    <div class="mt-6 text-center">
+      <button hx-post="{% url 'stories:add_page' story.uuid %}"
+          hx-target="#story-pages"
+          hx-swap="beforeend"
+          class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-black hover:bg-dark-gray uppercase tracking-wider rounded transition-colors">
+        <i class="fa-solid fa-plus mr-2"></i>
+        Add New Page
+      </button>
+    </div>
+  </div>
 </div>
 {% endblock %}

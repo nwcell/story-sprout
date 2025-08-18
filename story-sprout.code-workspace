@@ -28,14 +28,14 @@
 		"ruff.enable": true,
 		"ruff.fixAll": true,
 		"ruff.organizeImports": true,
-		"ruff.showNotifications": "always",
+		// "ruff.showNotifications": "always",
 		"ruff.path": [
 			"/Users/travis/Projects/story-sprout/.venv/bin/ruff"
 		],
 		"ruff.interpreter": [
 			"/Users/travis/Projects/story-sprout/.venv/bin/python"
 		],
-		"python.defaultInterpreterPath": "/Users/travis/Projects/story-sprout/.venv/bin/python",
-		"python.languageServer": "Pylance"
+		"python.defaultInterpreterPath": "/Users/travis/Projects/story-sprout/.venv/bin/python"
+		// "python.languageServer": "None"
 	}
 }

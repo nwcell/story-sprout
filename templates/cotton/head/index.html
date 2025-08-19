@@ -1,13 +1,10 @@
-{% comment %}
-  head.html - Shared head elements for all templates
-  Includes meta tags and common resources
-{% endcomment %}
 {% load django_htmx %}
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-{% include "components/tailwind_config.html" %}
+{% comment %} {% include "components/tailwind_config.html" %} {% endcomment %}
+<c-head.tailwind />
 
 <!-- Font Awesome -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">

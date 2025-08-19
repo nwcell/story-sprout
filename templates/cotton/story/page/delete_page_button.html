@@ -1,0 +1,22 @@
+<div id="delete-page-buttons-{{ page.uuid }}" x-data="{ confirm: false }">
+  <button type="button"
+          @click="confirm = true"
+          x-show="! confirm"
+          class="delete-page-button p-1 rounded-full text-gray-400 transition-colors hover:text-red-500">
+    <i class="fa-solid fa-trash"></i>
+  </button>
+  <span class="delete-page-confirm" x-show="confirm">
+    <button type="button"
+            hx-delete="{% url 'api-1:delete_page' story_uuid=story.uuid page_uuid=page.uuid %}"
+            hx-target="#page-{{ page.id }}"
+            hx-swap="outerHTML"
+            class="p-1 rounded-full text-gray-400 transition-colors hover:text-green-500">
+      <i class="fa-solid fa-check"></i>
+    </button>
+    <button type="button"
+            @click="confirm = false"
+            class="p-1 rounded-full text-gray-400 transition-colors hover:text-red-500">
+      <i class="fa-solid fa-x"></i>
+    </button>
+  </span>
+</div>

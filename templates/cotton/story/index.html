@@ -1,15 +1,10 @@
-{% extends "dashboard/dashboard_base.html" %}
+<c-vars story />
 
-{% load partials %}
-
-{% block title %}{{ story.title }} - Story Sprout{% endblock %}
-
-{% block dashboard_content %}
 <div class="max-w-7xl mx-auto">
   <div class="flex items-center justify-between">
     <div class="flex items-center space-x-2">
-      <c-fields.input hx-patch="#"
-                      hx-trigger="keyup changed delay:2s"
+      <c-fields.input hx-patch="{% url 'api-1:update_story' key=story.uuid %}"
+                      hx-trigger="keyup changed delay:1s"
                       hx-ext='json-enc'
                       name="title"
                       value="{{ story.title }}"
@@ -28,7 +23,12 @@
   <div class="mt-4 bg-white shadow overflow-hidden sm:rounded-md border border-light-gray p-6">
     <div class="flex items-center justify-between">
       <div class="flex-1">
-        <c-fields.textarea name="description" label="Description" placeholder="Click to add a description">{{ story.description }}</c-fields.textarea>
+        <c-fields.textarea  hx-patch="{% url 'api-1:update_story' key=story.uuid %}"
+                            hx-trigger="keyup changed delay:1s"
+                            hx-ext='json-enc'
+                            name="description"
+                            label="Description"
+                            placeholder="Click to add a description">{{ story.description }}</c-fields.textarea>
       </div>
     </div>
   </div>
@@ -38,17 +38,18 @@
       <h2 class="text-xl font-medium text-black uppercase tracking-wide">Pages</h2>
     </div>
 
-    {% include 'stories/partials/pages_list.html' %}
+    <div id="story-pages" class="mt-4 space-y-6">
+      {% for page in story.pages.all %}
+        <c-story.page :page="{{ page }}" />
+      {% endfor %}
 
-    <div class="mt-6 text-center">
-      <button hx-post="{% url 'stories:add_page' story.uuid %}"
-          hx-target="#story-pages"
-          hx-swap="beforeend"
-          class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-black hover:bg-dark-gray uppercase tracking-wider rounded transition-colors">
-        <i class="fa-solid fa-plus mr-2"></i>
-        Add New Page
-      </button>
+      {% if not story.page_count %}
+        <div class="text-center {% if not story.page_count %}shadow sm:rounded-md border border-light-gray p-6 {% endif %}">
+          <p class="text-gray">This story doesn't have any pages yet.</p>
+        </div>
+      {% endif %}
     </div>
+
+    <c-story.page.new-page-button :story="{{ story }}" />
   </div>
 </div>
-{% endblock %}

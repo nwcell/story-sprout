@@ -12,28 +12,19 @@ from .models import Page, Story
 
 @login_required
 @require_http_methods(["GET"])
-def story_detail_new(request, story_uuid):
+def story_detail(request, story_uuid):
     """New componentized version of the story detail view."""
     # Get the story by UUID
     story = get_object_or_404(Story, uuid=story_uuid)
+
+    # Prefetch pages for efficiency
+    story = Story.objects.prefetch_related("pages").get(uuid=story_uuid)
 
     # Check if the user has permission to view this story
     if story.user != request.user:
         raise Http404("Story not found")
 
-    # Get the pages ordered by the OrderedModel's order field
-    pages = story.pages.all()
-
-    # Process pages: add first/last flags and prepare content_draft for display
-    for page in pages:
-        # If magic mode is active, prepare draft content for display
-        if page.content_generating and page.content_draft is not None:
-            # Create a temporary copy for template display
-            page.display_content = page.content_draft
-        else:
-            page.display_content = page.content
-
-    context = {"story": story, "pages": pages}
+    context = {"story": story}
 
     return render(request, "stories/base.html", context)
 
@@ -74,7 +65,7 @@ def stories(request):
 
 @login_required
 @require_http_methods(["GET"])
-def story_detail(request, story_uuid):
+def story_detail_old(request, story_uuid):
     # Get the story by UUID
     story = get_object_or_404(Story, uuid=story_uuid)
 

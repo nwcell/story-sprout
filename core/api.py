@@ -60,7 +60,7 @@ class CustomNinjaAPI(NinjaAPI):
         return CustomOpenAPISchema(api=self, path_prefix=path_prefix)
 
 
-api = CustomNinjaAPI()
+api = CustomNinjaAPI(version="1")
 
 
-api.add_router("/story/", "apps.stories.api.router")
+api.add_router("/stories/", "apps.stories.api.router")

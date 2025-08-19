@@ -31,12 +31,12 @@ class Story(models.Model):
 class Page(OrderedModel):
     story = models.ForeignKey(Story, on_delete=models.CASCADE, related_name="pages")
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    content = models.TextField()
+    content = models.TextField(blank=True, null=True, default="", help_text="Content for this page")
     content_generating = models.BooleanField(
         default=False, help_text="Whether content is being generated for this page"
     )
     content_draft = models.TextField(blank=True, null=True, help_text="Draft content stored while generating")
-    image_text = models.TextField(blank=True, null=True)
+    image_text = models.TextField(blank=True, null=True, default="", help_text="Image text for this page")
     image_text_generating = models.BooleanField(
         default=False, help_text="Whether image text is being generated for this page"
     )

@@ -41,7 +41,7 @@
 }
 
 .animate-twinkle {
-  animation: 
+  animation:
     twinkle 1.5s ease-in-out infinite,
     rainbow 4s linear infinite;
   transition: all 0.3s ease;
@@ -167,9 +167,9 @@ input:focus, textarea:focus, select:focus {
 /* Form Labels */
 label {
     display: block;
-    font-weight: 500;
+    /* font-weight: 500; */
     margin-bottom: var(--spacing-xs);
-    text-transform: uppercase;
+    /* text-transform: uppercase; */
     letter-spacing: 0.05em;
     font-size: var(--font-size-small);
 }
@@ -246,4 +246,4 @@ label {
     .grid-2, .grid-3, .grid-4 {
         grid-template-columns: 1fr;
     }
-} 
+}

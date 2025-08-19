@@ -8,7 +8,8 @@ urlpatterns = [
     path("", views.stories, name="stories"),
     path("new/", views.new_story, name="new_story"),
     path("<uuid:story_uuid>/", views.story_detail, name="story_detail"),
-    path("<uuid:story_uuid>/new/", views.story_detail_new, name="story_detail_new"),
+    # Old Stuff
+    path("<uuid:story_uuid>/old/", views.story_detail_old, name="story_detail_old"),
     # New unified HTMX endpoints for story editing
     path(
         "<uuid:story_uuid>/title/editable/", htmx_views.EditableStoryTitleView.as_view(), name="editable_story_title"

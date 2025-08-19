@@ -7,13 +7,15 @@
 <html lang="en">
 <head>
     <title>{% block title %}Story Sprout{% endblock %}</title>
-    {% include "components/head.html" %}
+
+    <c-head />
+
     {% block extra_head %}{% endblock %}
 </head>
 <body hx-headers='{"x-csrftoken": "{{ csrf_token }}"}'>
     <header>
         {% block header %}
-        {% include "components/marketing_nav.html" %}
+        {% include "marketing_nav.html" %}
         {% endblock %}
     </header>
 

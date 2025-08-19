@@ -8,9 +8,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}Story Sprout Authentication{% endblock %}</title>
-  
-  {% include "components/head.html" %}
-  
+
+  <c-head />
+
   <style type="text/css">
     /* Global styles */
     body {
@@ -19,7 +19,7 @@
       letter-spacing: normal;
     }
   </style>
-  
+
   {% block extra_head %}{% endblock %}
 </head>
 <body class="bg-white">
@@ -44,7 +44,7 @@
       </div>
     </footer>
   </div>
-  
+
   {% block extra_js %}{% endblock %}
 </body>
 </html>

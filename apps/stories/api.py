@@ -103,6 +103,11 @@ def upload_page_image(request, story_uuid: UUID, page_uuid: UUID, file: File[Upl
     page = get_object_or_404(Page, uuid=page_uuid, story=story)
     page.image = file
     page.save()
+
+    if request.htmx:
+        # Return the updated image component
+        context = {"image": page.image}
+        return render(request, "cotton/fields/image.html", context)
     return page
 
 

@@ -1,71 +1,78 @@
-// Alpine.js image upload component
-function imageUpload(hasImage = false) {
-    return {
-        fileName: '',
-        isDragging: false,
-        isHovering: false,
-        hasImage: hasImage,
-        isUploading: false,
+// Stateless image upload utility functions
+function showOverlay(el) {
+    // If el is the file input, find the container by going up
+    const container = el.closest('[x-data]').querySelector('[x-ref="container"]');
+    if (container) {
+        container.classList.add('bg-black', 'bg-opacity-20');
+    }
+}
 
-        showOverlay() {
-            this.$refs.container.classList.add('bg-black', 'bg-opacity-20');
-        },
+function hideOverlay(el) {
+    // If el is the file input, find the container by going up
+    const container = el.closest('[x-data]').querySelector('[x-ref="container"]');
+    if (container) {
+        container.classList.remove('bg-black', 'bg-opacity-20');
+    }
+}
 
-        hideOverlay() {
-            this.$refs.container.classList.remove('bg-black', 'bg-opacity-20');
-        },
+function handleMouseEnter(el, data) {
+    if (!data.isDragging && !data.isUploading) {
+        showOverlay(el);
+        data.isHovering = true;
+    }
+}
 
-        handleMouseEnter() {
-            if (!this.isDragging && !this.isUploading) {
-                this.showOverlay();
-                this.isHovering = true;
-            }
-        },
+function handleMouseLeave(el, data) {
+    if (!data.isDragging && !data.isUploading) {
+        hideOverlay(el);
+        data.isHovering = false;
+    }
+}
 
-        handleMouseLeave() {
-            if (!this.isDragging && !this.isUploading) {
-                this.hideOverlay();
-                this.isHovering = false;
-            }
-        },
+function handleDragOver(el, data, event) {
+    event.preventDefault();
+    if (data.isUploading) return;
 
-        handleDragOver() {
-            if (this.isUploading) return;
+    if (data.isHovering) {
+        data.isHovering = false;
+    } else {
+        showOverlay(el);
+    }
+    data.isDragging = true;
+}
+
+function handleDragEnd(el, data, event) {
+    event.preventDefault();
+    if (data.isUploading) return;
+
+    hideOverlay(el);
+    data.isDragging = false;
+}
+
+function handleFileSelected(el, data) {
+    const fileInput = el.closest('[x-data]').querySelector('[x-ref="fileInput"]');
+    if (fileInput && fileInput.files.length > 0) {
+        data.fileName = fileInput.files[0].name;
+    }
+}
+
+function handleFileDrop(el, data, event) {
+    event.preventDefault();
+    if (data.isUploading) return;
+
+    const files = event.dataTransfer.files;
+    if (files.length > 0) {
+        const fileInput = el.closest('[x-data]').querySelector('[x-ref="fileInput"]');
+        if (fileInput) {
+            // Set the files on the input and trigger change event
+            fileInput.files = files;
+            data.fileName = files[0].name;
             
-            if (this.isHovering) {
-                this.isHovering = false;
-            } else {
-                this.showOverlay();
-            }
-            this.isDragging = true;
-        },
-
-        handleDragEnd() {
-            if (this.isUploading) return;
-            
-            this.hideOverlay();
-            this.isDragging = false;
-        },
-
-        handleFileSelected() {
-            if (this.$refs.fileInput.files.length > 0) {
-                this.fileName = this.$refs.fileInput.files[0].name;
-                this.isUploading = true;
-                this.hideOverlay();
-            }
-        },
-
-        // HTMX event handlers
-        init() {
-            // Listen for HTMX events
-            this.$el.addEventListener('htmx:beforeRequest', () => {
-                this.isUploading = true;
-            });
-            
-            this.$el.addEventListener('htmx:afterRequest', () => {
-                this.isUploading = false;
-                this.fileName = '';
-            });
+            // Trigger the change event to activate HTMX
+            fileInput.dispatchEvent(new Event('change', { bubbles: true }));
         }
     }
+
+    hideOverlay(el);
+    data.isDragging = false;
 }

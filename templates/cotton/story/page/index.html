@@ -28,7 +28,9 @@
       </div>
 
       <div class="md:w-1/3 mt-4 md:mt-0">
-        <c-fields.image :image=page.image upload_url="{% url 'api-1:upload_page_image' story_uuid=story.uuid page_uuid=page.uuid %}" />
+        <c-fields.image :image=page.image
+                        upload_url="{% url 'api-1:upload_page_image' story_uuid=story.uuid page_uuid=page.uuid %}"
+                        delete_url="{% url 'api-1:delete_page_image' story_uuid=story.uuid page_uuid=page.uuid %}" />
       </div>
     </div>
 

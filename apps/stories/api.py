@@ -97,20 +97,6 @@ def update_page(request, story_uuid: UUID, page_uuid: UUID, payload: PageIn):
     return page
 
 
-@router.post("/{story_uuid}/pages/{page_uuid}/image", response=PageOut)
-def upload_page_image(request, story_uuid: UUID, page_uuid: UUID, file: File[UploadedFile]):
-    story = get_object_or_404(Story, uuid=story_uuid)
-    page = get_object_or_404(Page, uuid=page_uuid, story=story)
-    page.image = file
-    page.save()
-
-    if request.htmx:
-        # Return the updated image component
-        context = {"image": page.image}
-        return render(request, "cotton/fields/image.html", context)
-    return page
-
-
 @router.delete("/{story_uuid}/pages/{page_uuid}")
 def delete_page(request, story_uuid: UUID, page_uuid: UUID):
     story = get_object_or_404(Story, uuid=story_uuid)
@@ -126,3 +112,39 @@ def delete_page(request, story_uuid: UUID, page_uuid: UUID):
         return response
 
     return HttpResponse(status=204)
+
+
+@router.post("/{story_uuid}/pages/{page_uuid}/image", response=PageOut)
+def upload_page_image(request, story_uuid: UUID, page_uuid: UUID, file: File[UploadedFile]):
+    story = get_object_or_404(Story, uuid=story_uuid)
+    page = get_object_or_404(Page, uuid=page_uuid, story=story)
+    page.image = file
+    page.save()
+
+    if request.htmx:
+        # Return the updated image component with all required context
+        context = {
+            "image": page.image,
+            "upload_url": request.path,
+            "delete_url": request.path,
+        }
+        return render(request, "cotton/fields/image.html", context)
+    return page
+
+
+@router.delete("/{story_uuid}/pages/{page_uuid}/image")
+def delete_page_image(request, story_uuid: UUID, page_uuid: UUID):
+    story = get_object_or_404(Story, uuid=story_uuid)
+    page = get_object_or_404(Page, uuid=page_uuid, story=story)
+    page.image = None
+    page.save()
+
+    if request.htmx:
+        # Return the updated image component with all required context
+        context = {
+            "image": page.image,
+            "upload_url": request.path,
+            "delete_url": request.path,
+        }
+        return render(request, "cotton/fields/image.html", context)
+    return page

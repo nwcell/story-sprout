@@ -3,14 +3,11 @@
   Previously named: base.html, then marketing_base.html
 {% endcomment %}
 <!DOCTYPE html>
+{% load static %}
 {% load django_htmx %}
 <html lang="en">
 <head>
     <title>{% block title %}Story Sprout - AI-Powered Storytelling{% endblock %}</title>
-
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" href="{% static '/images/favicon.ico' %}">
-    <link rel="apple-touch-icon" href="{% static '/images/favicon.png' %}">
 
     <c-head />
 

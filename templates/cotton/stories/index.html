@@ -1,0 +1,80 @@
+<div class="max-w-7xl mx-auto">
+    <h1 class="text-2xl font-medium text-black uppercase tracking-wide">STORIES</h1>
+</div>
+
+<div class="max-w-7xl mx-auto mt-8">
+    <!-- User Stories List -->
+    <div class="bg-white shadow overflow-hidden sm:rounded-md border border-light-gray">
+        <div class="px-4 py-5 sm:px-6 flex justify-between items-center border-b border-light-gray">
+            <div>
+                <h3 class="text-lg leading-6 font-medium text-black uppercase tracking-wide flex items-center">
+                    <i class="fa-solid fa-book mr-2"></i>
+                    Your Stories
+                </h3>
+                <p class="mt-1 max-w-2xl text-sm text-gray">
+                    Create and manage your storytelling projects
+                </p>
+            </div>
+            <a href="{% url 'stories:new_story' %}" class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-black hover:bg-dark-gray uppercase tracking-wider rounded">
+                <i class="fa-solid fa-plus mr-2"></i>
+                New Story
+            </a>
+        </div>
+        <ul role="list" class="divide-y divide-gray-200">
+            {% if stories %}
+                {% for story in stories %}
+                <li>
+                    <a href="{% url 'stories:story_detail' story_uuid=story.uuid %}" class="block hover:bg-gray-50">
+                        <div class="px-4 py-4 sm:px-6">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <p class="text-md font-medium text-black truncate">{{ story.title }}</p>
+                                    <div class="ml-2 flex-shrink-0 flex">
+                                        <p class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                            {{ story.pages.count }} Pages
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="ml-2 flex-shrink-0 flex space-x-2">
+                                    <button type="button" class="p-1 rounded-full text-gray-400 hover:text-gray-500">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </button>
+                                    <button type="button" class="p-1 rounded-full text-gray-400 hover:text-gray-500">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="mt-2 sm:flex sm:justify-between">
+                                <div class="sm:flex">
+                                    <p class="flex items-center text-sm text-gray">
+                                        <i class="fa-solid fa-align-left flex-shrink-0 mr-1.5 text-gray"></i>
+                                        {{ story.description|truncatechars:100 }}
+                                    </p>
+                                </div>
+                                <div class="mt-2 flex items-center text-sm text-gray sm:mt-0">
+                                    <i class="fa-solid fa-clock flex-shrink-0 mr-1.5 text-gray"></i>
+                                    <p>
+                                        Updated <time datetime="{{ story.updated_at|date:'c' }}">{{ story.updated_at|date:"M d, Y" }}</time>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </li>
+                {% endfor %}
+            {% else %}
+                <li>
+                    <div class="px-4 py-6 sm:px-6 text-center">
+                        <p class="text-gray">You don't have any stories yet.</p>
+                        <div class="mt-4">
+                            <a href="#" class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-black hover:bg-dark-gray uppercase tracking-wider rounded">
+                                <i class="fa-solid fa-plus mr-2"></i>
+                                Create Your First Story
+                            </a>
+                        </div>
+                    </div>
+                </li>
+            {% endif %}
+        </ul>
+    </div>
+</div>

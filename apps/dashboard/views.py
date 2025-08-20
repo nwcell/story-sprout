@@ -12,7 +12,8 @@ from .models import SubscriptionPlan, UserSettings
 @login_required
 @require_http_methods(["GET"])
 def dashboard_home(request):
-    return render(request, "dashboard/home.html")
+    return redirect("stories:stories")
+    # return render(request, "dashboard/home.html")
 
 
 @login_required

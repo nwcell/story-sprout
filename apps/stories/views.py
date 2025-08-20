@@ -12,6 +12,17 @@ from .models import Page, Story
 
 @login_required
 @require_http_methods(["GET"])
+def stories(request):
+    # Get stories for the logged-in user, ordered by most recently updated
+    stories = Story.objects.filter(user=request.user).order_by("-updated_at")
+
+    context = {"stories": stories}
+
+    return render(request, "stories/index.html", context)
+
+
+@login_required
+@require_http_methods(["GET"])
 def story_detail(request, story_uuid):
     """New componentized version of the story detail view."""
     # Get the story by UUID
@@ -26,7 +37,7 @@ def story_detail(request, story_uuid):
 
     context = {"story": story}
 
-    return render(request, "stories/base.html", context)
+    return render(request, "stories/detail.html", context)
 
 
 @login_required
@@ -50,17 +61,6 @@ def move_page(request, page_id, direction):
 
     context = {"story": story, "pages": pages}
     return render(request, "stories/partials/pages_list.html", context)
-
-
-@login_required
-@require_http_methods(["GET"])
-def stories(request):
-    # Get stories for the logged-in user, ordered by most recently updated
-    user_stories = Story.objects.filter(user=request.user).order_by("-updated_at")
-
-    context = {"user_stories": user_stories}
-
-    return render(request, "stories/stories.html", context)
 
 
 @login_required

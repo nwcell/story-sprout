@@ -65,16 +65,16 @@ def create_page(request, story_uuid: UUID, payload: PageIn):
     if request.htmx:
         # Get new page and append OOB new page button
         context = {"page": page, "story": story}
-        response = render(request, "cotton/story/page/index.html", context)
+        response = render(request, "cotton/stories/page/index.html", context)
         response["HX-Trigger"] = "create-page"
 
         # Add OOB new button
         if page.order == 0:
-            response = append_content(response, "cotton/story/page/new_page_button.html", context, oob=True)
+            response = append_content(response, "cotton/stories/page/new_page_button.html", context, oob=True)
 
         # Update OOB move buttons
         for page in story.pages.all():
-            response = append_content(response, "cotton/story/page/move_page_buttons.html", {"page": page}, oob=True)
+            response = append_content(response, "cotton/stories/page/move_page_buttons.html", {"page": page}, oob=True)
         return response
     return page
 
@@ -108,7 +108,7 @@ def delete_page(request, story_uuid: UUID, page_uuid: UUID):
         response["HX-Trigger"] = "delete-page"
         # Update OOB move buttons
         for page in story.pages.all():
-            response = append_content(response, "cotton/story/page/move_page_buttons.html", {"page": page}, oob=True)
+            response = append_content(response, "cotton/stories/page/move_page_buttons.html", {"page": page}, oob=True)
         return response
 
     return HttpResponse(status=204)

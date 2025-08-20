@@ -118,6 +118,11 @@ def delete_page(request, story_uuid: UUID, page_uuid: UUID):
 def upload_page_image(request, story_uuid: UUID, page_uuid: UUID, file: File[UploadedFile]):
     story = get_object_or_404(Story, uuid=story_uuid)
     page = get_object_or_404(Page, uuid=page_uuid, story=story)
+
+    # Basic server-side validation (client-side already filters)
+    allowed_types = ["image/jpeg", "image/png", "image/webp", "image/gif"]
+    if file.content_type not in allowed_types or file.size > 10 * 1024 * 1024:
+        return HttpResponse("Invalid file", status=422)
     page.image = file
     page.save()
 

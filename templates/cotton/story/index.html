@@ -40,7 +40,7 @@
 
     <div id="story-pages" class="mt-4 space-y-6">
       {% for page in story.pages.all %}
-        <c-story.page :page="{{ page }}" />
+        <c-story.page :page=page />
       {% endfor %}
 
       {% if not story.page_count %}
@@ -50,6 +50,6 @@
       {% endif %}
     </div>
 
-    <c-story.page.new-page-button :story="{{ story }}" />
+    <c-story.page.new-page-button :story=story />
   </div>
 </div>

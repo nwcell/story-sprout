@@ -25,6 +25,10 @@
 			},
 			"editor.defaultFormatter": "charliermarsh.ruff"
 		},
+		"[django-html]": {
+			"editor.tabSize": 2,
+			"editor.insertSpaces": true
+		},
 		"ruff.enable": true,
 		"ruff.fixAll": true,
 		"ruff.organizeImports": true,

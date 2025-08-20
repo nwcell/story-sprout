@@ -1,0 +1,30 @@
+<c-vars image />
+
+<!-- Image upload component -->
+<label for="image-upload"
+       class="relative rounded-md cursor-pointer transition-all duration-200 group aspect-square {% if not image %}border-2 border-dashed{% endif %}"
+       {% if image %}style="background-image: url('{{ image.url }}'); background-size: cover; background-position: center;"{% endif %}>
+
+  <!-- Universal overlay -->
+  <div class="{% if not image %}{% endif %} w-full h-full flex flex-col items-center justify-center px-4 transition-all duration-200 rounded
+              {% if image %}bg-black bg-opacity-0 group-hover:bg-opacity-50{% else %}group-hover:bg-gray group-hover:bg-opacity-10{% endif %}">
+
+    <!-- Upload text -->
+    <div class="text-center transition-opacity duration-200 {% if image %}opacity-0 group-hover:opacity-100 text-white{% else %}text-black{% endif %}">
+
+      <i class="fa-solid fa-cloud-upload text-2xl"></i>
+
+      <span class="text-sm block">
+        <span class="font-semibold">Click to upload</span> or drag and drop
+      </span>
+    </div>
+
+    <!-- File format info -->
+    <p class="text-xs mt-2 transition-opacity duration-200 {% if image %}opacity-0 group-hover:opacity-100 text-white{% else %}text-black{% endif %}">
+      jpg, jpeg, png, webp
+    </p>
+  </div>
+
+  <!-- Hidden file input -->
+  <input id="image-upload" type="file" class="hidden" accept=".jpg,.jpeg,.png,.webp" />
+</label>

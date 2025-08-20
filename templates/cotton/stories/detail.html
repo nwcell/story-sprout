@@ -1,3 +1,5 @@
+{% load partials %}
+
 <c-vars story />
 
 <div class="max-w-7xl mx-auto">
@@ -38,17 +40,7 @@
       <h2 class="text-xl font-medium text-black uppercase tracking-wide">Pages</h2>
     </div>
 
-    <div id="story-pages" class="mt-4 space-y-6">
-      {% for page in story.pages.all %}
-        <c-stories.page :page=page />
-      {% endfor %}
-
-      {% if not story.page_count %}
-        <div class="text-center {% if not story.page_count %}shadow sm:rounded-md border border-light-gray p-6 {% endif %}">
-          <p class="text-gray">This story doesn't have any pages yet.</p>
-        </div>
-      {% endif %}
-    </div>
+    <c-stories.page.list :story=story />
 
     <c-stories.page.new-page-button :story=story />
   </div>

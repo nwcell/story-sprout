@@ -3,7 +3,7 @@
   <div class="px-6 py-4 border-b border-light-gray flex justify-between items-center">
     <h3 class="text-lg font-medium text-black">Page {{ page.order|add:"1" }}</h3>
     <div class="flex space-x-2">
-      <c-stories.page.move-page-buttons :page=page />
+      <c-stories.page.move-page-buttons :story=story :page=page />
       <c-stories.page.delete-page-button :story=story :page=page />
     </div>
   </div>

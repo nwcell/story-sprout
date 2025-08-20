@@ -1,3 +1,4 @@
+from typing import Literal
 from uuid import UUID
 
 from django.http import HttpResponse
@@ -73,8 +74,9 @@ def create_page(request, story_uuid: UUID, payload: PageIn):
             response = append_content(response, "cotton/stories/page/new_page_button.html", context, oob=True)
 
         # Update OOB move buttons
-        for page in story.pages.all():
-            response = append_content(response, "cotton/stories/page/move_page_buttons.html", {"page": page}, oob=True)
+        for oob_page in story.pages.all():
+            context["page"] = oob_page
+            response = append_content(response, "cotton/stories/page/move_page_buttons.html", context, oob=True)
         return response
     return page
 
@@ -103,15 +105,33 @@ def delete_page(request, story_uuid: UUID, page_uuid: UUID):
     page = get_object_or_404(Page, uuid=page_uuid, story=story)
     page.delete()
 
+    context = {"story": story}
     if request.htmx:
         response = HttpResponse("")
         response["HX-Trigger"] = "delete-page"
-        # Update OOB move buttons
-        for page in story.pages.all():
-            response = append_content(response, "cotton/stories/page/move_page_buttons.html", {"page": page}, oob=True)
+        # Update OOB
+        response = append_content(response, "cotton/stories/page/new_page_button.html", context, oob=True)
+        for oob_page in story.pages.all():
+            context["page"] = oob_page
+            response = append_content(response, "cotton/stories/page/move_page_buttons.html", context, oob=True)
         return response
 
     return HttpResponse(status=204)
+
+
+@router.post("/{story_uuid}/pages/{page_uuid}/move/{direction}")
+def move_page(request, story_uuid: UUID, page_uuid: UUID, direction: Literal["up", "down"]):
+    story = get_object_or_404(Story, uuid=story_uuid)
+    page = get_object_or_404(Page, uuid=page_uuid, story=story)
+
+    if direction == "up":
+        page.up()
+    else:
+        page.down()
+
+    if request.htmx:
+        return render(request, "cotton/stories/page/list.html", {"story": story})
+    return page
 
 
 @router.post("/{story_uuid}/pages/{page_uuid}/image", response=PageOut)

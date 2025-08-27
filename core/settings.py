@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
-    "whitenoise.runserver_nostatic",
+    "whitenoise.runserver_nostatic",  # https://whitenoise.readthedocs.io/en/latest/
     "django.contrib.staticfiles",
     "django.contrib.sites",
     # Third party apps
@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     "django_cotton.apps.SimpleAppConfig",
     "template_partials.apps.SimpleAppConfig",
     # Local apps
+    "apps.common",
     "apps.accounts",
     "apps.ai",
     "apps.stories",
@@ -93,7 +94,7 @@ ROOT_URLCONF = "core.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [os.path.join(BASE_DIR, "templates"), os.path.join(BASE_DIR, "apps/ai/prompt_templates")],
+        "DIRS": [BASE_DIR / "templates", BASE_DIR / "apps/ai/prompt_templates"],
         "APP_DIRS": False,
         "OPTIONS": {
             "context_processors": [
@@ -131,12 +132,27 @@ WSGI_APPLICATION = "core.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+# Database configuration with PostgreSQL support via environment variables
+if os.getenv("DB_NAME"):
+    # Use PostgreSQL if database environment variables are provided
+    DATABASES = {
+        "default": {
+            "ENGINE": os.getenv("DB_ENGINE", "django.db.backends.postgresql"),
+            "NAME": os.getenv("DB_NAME"),
+            "USER": os.getenv("DB_USER"),
+            "PASSWORD": os.getenv("DB_PASSWORD"),
+            "HOST": os.getenv("DB_HOST", "localhost"),
+            "PORT": os.getenv("DB_PORT", "5432"),
+        }
     }
-}
+else:
+    # Fallback to SQLite for development
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 
 # Password validation
@@ -174,12 +190,12 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = "static/"
-STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
-STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_DIRS = [BASE_DIR / "static"]
 
 # Media files (User uploaded content)
 MEDIA_URL = "media/"
-MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+MEDIA_ROOT = BASE_DIR / "media"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -238,7 +254,6 @@ CELERY_TIMEZONE = TIME_ZONE
 CELERY_RESULT_BACKEND = "django-db"
 CELERY_CACHE_BACKEND = "django-cache"
 
-# https://whitenoise.readthedocs.io/en/latest/
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",

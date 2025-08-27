@@ -3,6 +3,8 @@ from uuid import UUID
 
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
+from django.urls import reverse
+from django_htmx.http import push_url
 from ninja import File, ModelSchema, Router, Schema
 from ninja.files import UploadedFile
 
@@ -12,6 +14,7 @@ from core.utils import append_content
 router = Router()
 
 
+# Story
 class StoryOut(ModelSchema):
     class Meta:
         model = Story
@@ -23,18 +26,42 @@ class StoryIn(Schema):
     description: str | None = None
 
 
-@router.get("/{key}", response=StoryOut)
-def get_story(request, key: UUID):
-    story = Story.objects.get(uuid=key)
+@router.get("", response=list[StoryOut])
+def list_stories(request):
+    story_list = Story.objects.filter(user=request.user)
     if request.htmx:
-        # TODO: Fix this
-        return render(request, "stories/story_detail_new.html", {"story": story})
+        # TODO: Verify this works
+        response = render(request, "cotton/stories/index.html", {"stories": story_list, "oob": True})
+        # response = push_url(response, reverse("stories:stories"))
+        response["HX-Trigger"] = "list-stories"
+        return response
+    return story_list
+
+
+@router.post("", response=StoryOut)
+def create_story(request, payload: StoryIn | None = None):
+    if not payload:
+        payload = StoryIn()
+    story = Story.objects.create(user=request.user, **payload.dict())
+    if request.htmx:
+        response = render(request, "cotton/stories/detail.html", {"story": story})
+        response = push_url(response, reverse("stories:story_detail", kwargs={"story_uuid": story.uuid}))
+        return response
     return story
 
 
-@router.patch("/{key}", response=StoryOut)
-def update_story(request, key: UUID, payload: StoryIn):
-    story = get_object_or_404(Story, uuid=key)
+@router.get("/{story_uuid}", response=StoryOut)
+def get_story(request, story_uuid: UUID):
+    story = Story.objects.get(uuid=story_uuid)
+    if request.htmx:
+        # TODO: Fix this
+        return render(request, "cotton/stories/detail.html", {"story": story})
+    return story
+
+
+@router.patch("/{story_uuid}", response=StoryOut)
+def update_story(request, story_uuid: UUID, payload: StoryIn):
+    story = get_object_or_404(Story, uuid=story_uuid)
     for attr, value in payload.dict(exclude_unset=True).items():
         setattr(story, attr, value)
     story.save()
@@ -47,6 +74,19 @@ def update_story(request, key: UUID, payload: StoryIn):
     return story
 
 
+@router.delete("/{story_uuid}")
+def delete_story(request, story_uuid: UUID):
+    story = get_object_or_404(Story, uuid=story_uuid)
+    story.delete()
+
+    if request.htmx:
+        response = HttpResponse("")
+        response["HX-Trigger"] = "delete-story"
+        return response
+    return HttpResponse(status=204)
+
+
+# Page
 class PageOut(ModelSchema):
     class Meta:
         model = Page
@@ -119,7 +159,7 @@ def delete_page(request, story_uuid: UUID, page_uuid: UUID):
     return HttpResponse(status=204)
 
 
-@router.post("/{story_uuid}/pages/{page_uuid}/move/{direction}")
+@router.post("/{story_uuid}/pages/{page_uuid}/move/{direction}", response=PageOut)
 def move_page(request, story_uuid: UUID, page_uuid: UUID, direction: Literal["up", "down"]):
     story = get_object_or_404(Story, uuid=story_uuid)
     page = get_object_or_404(Page, uuid=page_uuid, story=story)

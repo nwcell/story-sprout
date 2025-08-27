@@ -2,35 +2,39 @@
 
 <c-vars story />
 
-<div class="max-w-7xl mx-auto">
+<div class="max-w-7xl mx-auto {% comment %}md:mr-80 md:ml-auto{% endcomment %}">
   <div class="flex items-center justify-between">
     <div class="flex items-center space-x-2">
-      <c-fields.input hx-patch="{% url 'api-1:update_story' key=story.uuid %}"
+      <c-buttons id="revise-story"
+                 icon="wand-magic-sparkles"
+                 addClass="hover:text-purple-600" />
+
+      <c-fields.input hx-patch="{% url 'api-1:update_story' story_uuid=story.uuid %}"
                       hx-trigger="keyup changed delay:1s"
                       hx-ext='json-enc'
                       name="title"
-                      value="{{ story.title }}"
+                      value="{{ story.title | default_if_none:'' }}"
                       label="Title"
                       placeholder="Enter story title"
                       addClass="uppercase text-2xl font-medium"
                       autocapitalize="on"/>
     </div>
 
-    <a href="{% url 'stories:stories' %}" class="inline-flex items-center px-4 py-2 text-sm font-medium hover:bg-gray-50 border border-light-gray uppercase tracking-wider rounded">
-      <i class="fa-solid fa-arrow-left mr-2"></i>
-      Back to Stories
-    </a>
+    <c-buttons icon="arrow-left"
+               hx-get="{% url 'api-1:list_stories' %}"
+               hx-target="#dashboard-content"
+               hx-push-url="{% url 'stories:stories' %}" />
   </div>
 
   <div class="mt-4 bg-white shadow overflow-hidden sm:rounded-md border border-light-gray p-6">
     <div class="flex items-center justify-between">
       <div class="flex-1">
-        <c-fields.textarea  hx-patch="{% url 'api-1:update_story' key=story.uuid %}"
+        <c-fields.textarea  hx-patch="{% url 'api-1:update_story' story_uuid=story.uuid %}"
                             hx-trigger="keyup changed delay:1s"
                             hx-ext='json-enc'
                             name="description"
                             label="Description"
-                            placeholder="Click to add a description">{{ story.description }}</c-fields.textarea>
+                            placeholder="Click to add a description">{{ story.description | default_if_none:'' }}</c-fields.textarea>
       </div>
     </div>
   </div>
@@ -45,3 +49,5 @@
     <c-stories.page.new-page-button :story=story />
   </div>
 </div>
+
+{% comment %}<c-ai.panel>Panel</c-ai.panel>{% endcomment %}

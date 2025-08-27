@@ -4,11 +4,16 @@
     <h3 class="text-lg font-medium text-black">Page {{ page.order|add:"1" }}</h3>
     <div class="flex space-x-2">
       <c-stories.page.move-page-buttons :story=story :page=page />
-      <c-stories.page.delete-page-button :story=story :page=page />
+
+      <c-buttons.delete id="delete-page-buttons-{{ page.uuid }}"
+                  hx-delete="{% url 'api-1:delete_page' story_uuid=story.uuid page_uuid=page.uuid %}"
+                  hx-target="#page-{{ page.id }}"
+                  hx-swap="outerHTML"
+                  hx-trigger="click" />
     </div>
   </div>
   <div class="px-6 py-4 relative">
-    <div class="flex flex-col md:flex-row md:space-x-6">
+    <div class="flex flex-col lg:flex-row lg:space-x-6">
       <div class="flex-1">
         <h4 class="font-medium text-black mb-1">Content</h4>
         <c-fields.textarea  hx-patch="{% url 'api-1:update_page' story_uuid=story.uuid page_uuid=page.uuid %}"
@@ -27,7 +32,7 @@
                             placeholder="Click to add image description">{{ page.image_text|default_if_none:"" }}</c-fields.textarea>
       </div>
 
-      <div class="md:w-1/3 mt-4 md:mt-0">
+      <div class="lg:w-1/3 mt-4 lg:mt-0">
         <c-fields.image :image=page.image
                         upload_url="{% url 'api-1:upload_page_image' story_uuid=story.uuid page_uuid=page.uuid %}"
                         delete_url="{% url 'api-1:delete_page_image' story_uuid=story.uuid page_uuid=page.uuid %}" />

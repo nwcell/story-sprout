@@ -41,6 +41,8 @@ urlpatterns = [
     path("stories/", include("apps.stories.urls")),
     path("subscriptions/", include("apps.subscriptions.urls")),
     path("__reload__/", include("django_browser_reload.urls")),
+    # Catch legacy livereload requests and return 204 to stop spam
+    # path("livereload/<path:path>", lambda request, path: JsonResponse({}, status=204)),
     path("api/", api.urls),
 ]
 

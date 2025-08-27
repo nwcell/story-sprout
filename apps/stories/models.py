@@ -8,15 +8,15 @@ User = get_user_model()
 
 
 class Story(models.Model):
-    title = models.CharField(max_length=255)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    description = models.TextField()
+    title = models.CharField(max_length=50, default="New Story", blank=True, null=True)
+    description = models.TextField(default="", blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.title
+        return self.title or "Untitled Story"
 
     @property
     def page_count(self):
@@ -67,7 +67,8 @@ class Page(OrderedModel):
         return self.order + 1
 
     def __str__(self):
-        return f"Page {self.page_number} of {self.story.title}"
+        story_title = self.story.title or "Untitled Story"
+        return f"Page {self.page_number} of {story_title}"
 
     class Meta(OrderedModel.Meta):
         verbose_name = "Page"

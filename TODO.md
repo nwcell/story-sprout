@@ -3,14 +3,19 @@
 List of things that i want to get to eventually
 
 ## High Priority
-- [ ] Get story magic button working
-  - [ ] Get Task working
-  - [ ] Move LiteLLM into Adapter
-  - [x] Fix email verification
+- [ ] Refactor New Story to new approach
+- [ ] Refactor story list view to new approach
+- [ ] Migrate to locally building Tailwind
+
+## Possible Future
+- [ ] Migrate to Bubble UI
+- [ ]
+
+## Experimentation
+- [ ] Stream AI updates to UI
 
 ## Low Priority
+- [ ] Clean up Marketing site codebase & make presentable
+- [ ] Spin up Postgres DB & migrate there
+- [ ] Deploy to Digital Ocean
 - [ ] Consider migrating to an outbox pattern - https://microservices.io/patterns/data/transactional-outbox.html
-- [ ] Do a top down cleanup of template htmx patterns, so it's more consistent
-- [ ] Story views are a hot mess.  We need a more structured layout
-- [ ] Migrate icons into template tag system (or alternative) - https://heroicons.com/outline
-- [ ] Migrate async ui to websockets

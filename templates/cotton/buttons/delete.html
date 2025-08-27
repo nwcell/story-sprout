@@ -1,4 +1,6 @@
-<div id="delete-page-buttons-{{ page.uuid }}" x-data="{ confirm: false }">
+<c-vars id />
+
+<div id={{ id }} x-data="{ confirm: false }">
   <button type="button"
           @click="confirm = true"
           x-show="! confirm"
@@ -7,10 +9,8 @@
   </button>
   <span class="delete-page-confirm" x-show="confirm">
     <button type="button"
-            hx-delete="{% url 'api-1:delete_page' story_uuid=story.uuid page_uuid=page.uuid %}"
-            hx-target="#page-{{ page.id }}"
-            hx-swap="outerHTML"
-            class="p-1 rounded-full text-gray-400 transition-colors hover:text-green-500">
+            class="p-1 rounded-full text-gray-400 transition-colors hover:text-green-500"
+            {{ attrs }}>
       <i class="fa-solid fa-check"></i>
     </button>
     <button type="button"

@@ -9,7 +9,7 @@ from ninja import File, ModelSchema, Router, Schema
 from ninja.files import UploadedFile
 
 from apps.stories.models import Page, Story
-from core.utils import append_content
+from core.utils import append_template, update_title
 
 router = Router()
 
@@ -32,7 +32,8 @@ def list_stories(request):
     if request.htmx:
         # TODO: Verify this works
         response = render(request, "cotton/stories/index.html", {"stories": story_list, "oob": True})
-        # response = push_url(response, reverse("stories:stories"))
+        response = update_title(response, "Stories")
+        response = push_url(response, reverse("stories:stories"))
         response["HX-Trigger"] = "list-stories"
         return response
     return story_list
@@ -45,6 +46,7 @@ def create_story(request, payload: StoryIn | None = None):
     story = Story.objects.create(user=request.user, **payload.dict())
     if request.htmx:
         response = render(request, "cotton/stories/detail.html", {"story": story})
+        response = update_title(response, f"Story - {story.title or 'Untitled'}")
         response = push_url(response, reverse("stories:story_detail", kwargs={"story_uuid": story.uuid}))
         return response
     return story
@@ -55,7 +57,10 @@ def get_story(request, story_uuid: UUID):
     story = Story.objects.get(uuid=story_uuid)
     if request.htmx:
         # TODO: Fix this
-        return render(request, "cotton/stories/detail.html", {"story": story})
+        response = render(request, "cotton/stories/detail.html", {"story": story})
+        response = update_title(response, f"Story - {story.title or 'Untitled'}")
+        response = push_url(response, reverse("stories:story_detail", kwargs={"story_uuid": story.uuid}))
+        return response
     return story
 
 
@@ -68,7 +73,13 @@ def update_story(request, story_uuid: UUID, payload: StoryIn):
 
     if request.htmx:
         # TODO: Add logic to detect autozave vs a generic update
-        response = HttpResponse(status=204)
+        # Only update title tag if we're updating the title
+        if "title" in payload.dict(exclude_unset=True):
+            response = HttpResponse("")
+            response = update_title(response, f"Story - {story.title or 'Untitled'}")
+        else:
+            response = HttpResponse(status=204)
+
         response["HX-Trigger"] = "update-story"
         return response
     return story
@@ -111,12 +122,12 @@ def create_page(request, story_uuid: UUID, payload: PageIn):
 
         # Add OOB new button
         if page.order == 0:
-            response = append_content(response, "cotton/stories/page/new_page_button.html", context, oob=True)
+            response = append_template(response, "cotton/stories/page/new_page_button.html", context, oob=True)
 
         # Update OOB move buttons
         for oob_page in story.pages.all():
             context["page"] = oob_page
-            response = append_content(response, "cotton/stories/page/move_page_buttons.html", context, oob=True)
+            response = append_template(response, "cotton/stories/page/move_page_buttons.html", context, oob=True)
         return response
     return page
 
@@ -150,10 +161,10 @@ def delete_page(request, story_uuid: UUID, page_uuid: UUID):
         response = HttpResponse("")
         response["HX-Trigger"] = "delete-page"
         # Update OOB
-        response = append_content(response, "cotton/stories/page/new_page_button.html", context, oob=True)
+        response = append_template(response, "cotton/stories/page/new_page_button.html", context, oob=True)
         for oob_page in story.pages.all():
             context["page"] = oob_page
-            response = append_content(response, "cotton/stories/page/move_page_buttons.html", context, oob=True)
+            response = append_template(response, "cotton/stories/page/move_page_buttons.html", context, oob=True)
         return response
 
     return HttpResponse(status=204)

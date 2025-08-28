@@ -35,4 +35,6 @@ def story_detail(request, story_uuid):
 
     context = {"story": story}
 
+    # TODO: 404 page for missing story that provides link to list view
+
     return render(request, "stories/detail.html", context)

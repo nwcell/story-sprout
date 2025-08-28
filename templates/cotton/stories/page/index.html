@@ -5,7 +5,7 @@
     <div class="flex space-x-2">
       <c-stories.page.move-page-buttons :story=story :page=page />
 
-      <c-buttons.delete id="delete-page-buttons-{{ page.uuid }}"
+      <c-button.delete id="delete-page-buttons-{{ page.uuid }}"
                   hx-delete="{% url 'api-1:delete_page' story_uuid=story.uuid page_uuid=page.uuid %}"
                   hx-target="#page-{{ page.id }}"
                   hx-swap="outerHTML"

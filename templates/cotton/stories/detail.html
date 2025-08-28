@@ -2,10 +2,10 @@
 
 <c-vars story />
 
-<div class="max-w-7xl mx-auto {% comment %}md:mr-80 md:ml-auto{% endcomment %}">
+<div class="max-w-7xl mx-auto overflow-auto">
   <div class="flex items-center justify-between">
     <div class="flex items-center space-x-2">
-      <c-buttons id="revise-story"
+      <c-button id="revise-story"
                  icon="wand-magic-sparkles"
                  addClass="hover:text-purple-600" />
 
@@ -20,7 +20,7 @@
                       autocapitalize="on"/>
     </div>
 
-    <c-buttons icon="arrow-left"
+    <c-button icon="arrow-left"
                hx-get="{% url 'api-1:list_stories' %}"
                hx-target="#dashboard-content"
                hx-push-url="{% url 'stories:stories' %}" />
@@ -49,5 +49,3 @@
     <c-stories.page.new-page-button :story=story />
   </div>
 </div>
-
-{% comment %}<c-ai.panel>Panel</c-ai.panel>{% endcomment %}

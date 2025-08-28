@@ -56,7 +56,7 @@
                             </div>
                         </a>
                         <div class="absolute top-4 right-4">
-                            <c-buttons.delete id="story-{{ story.uuid }}"
+                            <c-button.delete id="story-{{ story.uuid }}"
                                               hx-delete="{% url 'api-1:delete_story' story_uuid=story.uuid %}"
                                               hx-target="#story-{{ story.uuid }}"
                                               hx-swap="outerHTML"

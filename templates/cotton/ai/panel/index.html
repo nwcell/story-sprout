@@ -4,7 +4,7 @@
 
   <!-- Main Panel -->
   <div id="ai-panel-main"
-       class="h-48 bg-white border-t border-light-gray flex flex-col transition-transform duration-500 ease-in-out"
+       class="bg-white border-t border-light-gray flex flex-col transition-transform duration-500 ease-in-out"
        :class="{ 'translate-y-0': aiPanelOpen, 'translate-y-full': !aiPanelOpen }">
     <div id="ai-panel-bar" class="p-2 border-b border-light-gray flex items-center justify-between">
       <h2 id="ai-panel-title" class="text-lg font-medium text-black">AI Panel Content</h2>
@@ -13,7 +13,7 @@
                  class="hover:text-red-500"
                  @click="aiPanelOpen = false" />
     </div>
-    <div id="ai-panel-body" class="p-2 flex-1">
+    <div id="ai-panel-body" class="p-2">
       <c-ai.panel.content />
     </div>
   </div>

@@ -1,4 +1,8 @@
-<div id="add-page" {% if oob %}hx-swap-oob="true"{% endif %} class="text-center">
+<c-vars story />
+
+<div id="add-page"
+     {% if oob %}hx-swap-oob="true"{% endif %}
+     class="text-center">
   <div class="mt-4">
     <button hx-post="{% url 'api-1:create_page' story.uuid %}"
             hx-target="#story-pages"

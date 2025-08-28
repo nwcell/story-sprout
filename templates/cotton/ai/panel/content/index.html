@@ -1,19 +1,17 @@
-<c-vars prompt chips :input_enabled=True input_placeholder="Enter your text here" />
+<c-vars prompt="What would you like to do?"
+        :chips="[{'emoji': '🗞', 'color': 'amber', 'text': 'Outline story!'}, {'emoji': '✍️', 'color': 'emerald', 'text': 'Draft a Title!'}]"
+        :freeform=True
+        freeform_text="Write my own"
+        input_placeholder="Enter your text here"
+        submit_text="Submit" />
 
-<div id="ai-prompt" class="p-2">
-  <p>{{prompt}}what would you like to do?</p>
-</div>
-<div id="ai-chip-row" class="p-2 space-x-2">
-  {% for chip in chips %}
-    <c-ai.chip emoji="{{chip.emoji}}">{{chip.text}}</c-ai.chip>
-  {% endfor %}
-  <c-ai.chip></c-ai.chip>
-  <c-ai.chip emoji="🗞" color="amber">Come up with a Summary!</c-ai.chip>
-  <c-ai.chip emoji="✍️" color="emerald">Draft a Title!</c-ai.chip>
-</div>
-{% if input_enabled %}
+<c-ai.panel.content.prompt_row :prompt=prompt />
+<c-ai.panel.content.chip_row :chips=chips :freeform=freeform freeform_text=freeform_text />
+{% if freeform %}
   <div id="text-input" class="p-2 flex items-center space-x-2">
     <c-fields.input type="text" name="ai-panel-text" placeholder="{{ input_placeholder }}" :hide_border=False class="border-gray-200 flex-1" />
-    <c-button icon="paper-plane" />
   </div>
 {% endif %}
+<div id="ai-submit" class="p-2">
+  <c-button icon="paper-plane" class="w-full">{{ submit_text }}</c-button>
+</div>

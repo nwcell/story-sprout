@@ -1,0 +1,7 @@
+<c-vars prompt />
+
+<div id="ai-prompt"
+     class="p-2"
+     {% if oob %}hx-swap-oob="true"{% endif %}>
+  <p>{{prompt}}</p>
+</div>

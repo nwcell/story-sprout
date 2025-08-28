@@ -1,0 +1,12 @@
+<c-vars chips :freeform=False freeform_text="Write my own" />
+
+<div id="ai-chip-row"
+     class="p-2 flex flex-wrap gap-2"
+     {% if oob %}hx-swap-oob="true"{% endif %}>
+  {% for chip in chips %}
+    <c-ai.chip emoji="{{chip.emoji}}" color="{{chip.color}}">{{chip.text}}</c-ai.chip>
+  {% endfor %}
+  {% if freeform %}
+    <c-ai.chip emoji="✏️" color="rainbow">{{freeform_text}}</c-ai.chip>
+  {% endif %}
+</div>

@@ -1,0 +1,27 @@
+<c-vars emoji="🖋" color="neutral" slot="Do something" />
+
+<button type="button" class="inline-flex items-center px-3 py-1.5 border rounded-full text-sm font-medium transition-all duration-200 ease-in-out hover:shadow-lg hover:scale-105 active:scale-95 cursor-pointer select-none
+{% if color == 'pink' %}bg-pink-100 border-pink-200 text-pink-700 hover:bg-pink-200 hover:border-pink-300 hover:shadow-pink-200/50
+{% elif color == 'rose' %}bg-rose-100 border-rose-200 text-rose-700 hover:bg-rose-200 hover:border-rose-300 hover:shadow-rose-200/50
+{% elif color == 'purple' %}bg-purple-100 border-purple-200 text-purple-700 hover:bg-purple-200 hover:border-purple-300 hover:shadow-purple-200/50
+{% elif color == 'violet' %}bg-violet-100 border-violet-200 text-violet-700 hover:bg-violet-200 hover:border-violet-300 hover:shadow-violet-200/50
+{% elif color == 'indigo' %}bg-indigo-100 border-indigo-200 text-indigo-700 hover:bg-indigo-200 hover:border-indigo-300 hover:shadow-indigo-200/50
+{% elif color == 'blue' %}bg-blue-100 border-blue-200 text-blue-700 hover:bg-blue-200 hover:border-blue-300 hover:shadow-blue-200/50
+{% elif color == 'sky' %}bg-sky-100 border-sky-200 text-sky-700 hover:bg-sky-200 hover:border-sky-300 hover:shadow-sky-200/50
+{% elif color == 'cyan' %}bg-cyan-100 border-cyan-200 text-cyan-700 hover:bg-cyan-200 hover:border-cyan-300 hover:shadow-cyan-200/50
+{% elif color == 'teal' %}bg-teal-100 border-teal-200 text-teal-700 hover:bg-teal-200 hover:border-teal-300 hover:shadow-teal-200/50
+{% elif color == 'emerald' %}bg-emerald-100 border-emerald-200 text-emerald-700 hover:bg-emerald-200 hover:border-emerald-300 hover:shadow-emerald-200/50
+{% elif color == 'green' %}bg-green-100 border-green-200 text-green-700 hover:bg-green-200 hover:border-green-300 hover:shadow-green-200/50
+{% elif color == 'lime' %}bg-lime-100 border-lime-200 text-lime-700 hover:bg-lime-200 hover:border-lime-300 hover:shadow-lime-200/50
+{% elif color == 'yellow' %}bg-yellow-100 border-yellow-200 text-yellow-700 hover:bg-yellow-200 hover:border-yellow-300 hover:shadow-yellow-200/50
+{% elif color == 'amber' %}bg-amber-100 border-amber-200 text-amber-700 hover:bg-amber-200 hover:border-amber-300 hover:shadow-amber-200/50
+{% elif color == 'orange' %}bg-orange-100 border-orange-200 text-orange-700 hover:bg-orange-200 hover:border-orange-300 hover:shadow-orange-200/50
+{% elif color == 'red' %}bg-red-100 border-red-200 text-red-700 hover:bg-red-200 hover:border-red-300 hover:shadow-red-200/50
+{% elif color == 'warm' %}bg-warm-gray-100 border-warm-gray-200 text-warm-gray-700 hover:bg-warm-gray-200 hover:border-warm-gray-300 hover:shadow-warm-gray-200/50
+{% elif color == 'cool' %}bg-cool-gray-100 border-cool-gray-200 text-cool-gray-700 hover:bg-cool-gray-200 hover:border-cool-gray-300 hover:shadow-cool-gray-200/50
+{% elif color == 'slate' %}bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200 hover:border-slate-300 hover:shadow-slate-200/50
+{% elif color == 'neutral' %}bg-neutral-100 border-neutral-200 text-neutral-700 hover:bg-neutral-200 hover:border-neutral-300 hover:shadow-neutral-200/50
+{% else %}bg-blue-100 border-blue-200 text-blue-700 hover:bg-blue-200 hover:border-blue-300 hover:shadow-blue-200/50{% endif %}">
+  {% if emoji %}<span class="mr-1">{{emoji}}</span>{% endif %}
+  <span>{{ slot }}</span>
+</button>

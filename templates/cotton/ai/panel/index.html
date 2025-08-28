@@ -14,7 +14,7 @@
                  @click="aiPanelOpen = false" />
     </div>
     <div id="ai-panel-body" class="p-2 flex-1">
-      hei
+      <c-ai.panel.content />
     </div>
   </div>
 
@@ -23,6 +23,6 @@
        class="absolute bottom-0 right-2 bg-white border-t border-l border-r border-light-gray rounded-t-lg cursor-pointer hover:bg-gray-50 transition-all duration-500 ease-in-out px-3 py-1"
        :class="{ 'translate-y-0': !aiPanelOpen, 'translate-y-full': aiPanelOpen }">
     <c-button icon="wand-magic-sparkles"
-               class="text-purple-600 hover:text-purple-700" />
+              class="text-purple-600 hover:text-purple-700" />
   </div>
 </div>

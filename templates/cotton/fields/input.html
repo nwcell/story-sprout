@@ -1,8 +1,8 @@
-<c-vars type="text" class />
+<c-vars type="text" :hide_border=True name value placeholder class />
 
 <input type="{{ type }}"
        name="{{ name }}"
        value="{{ value }}"
-       class="field-sizing-content w-full tracking-wide p-2 border-none rounded-lg outline-none {{ class }}"
        placeholder="{{ placeholder }}"
+       class="field-sizing-content w-full tracking-wide p-2 rounded-lg outline-none {% if hide_border %}border-none{% endif %} {{ class }}"
        {{ attrs }}>

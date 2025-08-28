@@ -7,7 +7,7 @@
     <div class="flex items-center space-x-2">
       <c-button id="revise-story"
                  icon="wand-magic-sparkles"
-                 addClass="hover:text-purple-600" />
+                 class="hover:text-purple-600" />
 
       <c-fields.input hx-patch="{% url 'api-1:update_story' story_uuid=story.uuid %}"
                       hx-trigger="keyup changed delay:1s"
@@ -16,7 +16,7 @@
                       value="{{ story.title | default_if_none:'' }}"
                       label="Title"
                       placeholder="Enter story title"
-                      addClass="text-2xl font-medium"
+                      class="text-2xl font-medium"
                       autocapitalize="on"/>
     </div>
 

@@ -1,12 +1,28 @@
 <div id="ai-panel"
-     class="fixed h-48 bottom-0 left-0 md:left-64 right-0 bg-white border-t border-light-gray z-[30] transition delay-150 duration-300 flex flex-col">
-  <div id="ai-panel-header" class="p-2 border-b border-light-gray flex items-center justify-between">
-    <h2>AI Panel Content</h2>
-    <c-button id="close-ai-panel"
-               icon="xmark"
-               class="hover:text-red-500" />
+     x-show="aiPanelAvailable"
+     class="fixed bottom-0 left-0 md:left-64 right-0 z-[30]">
+
+  <!-- Main Panel -->
+  <div id="ai-panel-main"
+       class="h-48 bg-white border-t border-light-gray flex flex-col transition-transform duration-500 ease-in-out"
+       :class="{ 'translate-y-0': aiPanelOpen, 'translate-y-full': !aiPanelOpen }">
+    <div id="ai-panel-bar" class="p-2 border-b border-light-gray flex items-center justify-between">
+      <h2 id="ai-panel-title" class="text-lg font-medium text-black">AI Panel Content</h2>
+      <c-button id="close-ai-panel"
+                 icon="xmark"
+                 class="hover:text-red-500"
+                 @click="aiPanelOpen = false" />
+    </div>
+    <div id="ai-panel-body" class="p-2 flex-1">
+      hei
+    </div>
   </div>
-  <div id="ai-panel-body" class="p-2 flex-1">
-    hei
+
+  <!-- Tab - slides up from behind when panel closes -->
+  <div @click="aiPanelOpen = true"
+       class="absolute bottom-0 right-2 bg-white border-t border-l border-r border-light-gray rounded-t-lg cursor-pointer hover:bg-gray-50 transition-all duration-500 ease-in-out px-3 py-1"
+       :class="{ 'translate-y-0': !aiPanelOpen, 'translate-y-full': aiPanelOpen }">
+    <c-button icon="wand-magic-sparkles"
+               class="text-purple-600 hover:text-purple-700" />
   </div>
 </div>

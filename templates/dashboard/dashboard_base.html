@@ -16,7 +16,21 @@
 
     {% block extra_head %}{% endblock %}
 </head>
-<body class="h-full bg-white font-sans" x-data="{ sidebarOpen: false }" hx-headers='{"x-csrftoken": "{{ csrf_token }}"}'>
+<body class="h-full bg-white font-sans" x-data="{ 
+  sidebarOpen: false, 
+  aiPanelOpen: false, 
+  aiPanelAvailable: false,
+  init() {
+    this.checkAiPanelAvailability();
+    // Listen for HTMX navigation events
+    document.addEventListener('htmx:afterSwap', () => {
+      this.checkAiPanelAvailability();
+    });
+  },
+  checkAiPanelAvailability() {
+    this.aiPanelAvailable = window.location.pathname.includes('/stories/') && !window.location.pathname.endsWith('/stories/');
+  }
+}" hx-headers='{"x-csrftoken": "{{ csrf_token }}"}'>
     <div>
         <!-- Off-canvas menu for mobile -->
         <div x-show="sidebarOpen" class="fixed inset-0 flex z-40 md:hidden pointer-events-auto" role="dialog" aria-modal="true">
@@ -67,7 +81,7 @@
             </div>
 
             <main class="flex-1">
-                <div id="dashboard-content" class="py-8 px-4 sm:px-6 lg:px-8 mb-52">
+                <div id="dashboard-content" class="py-8 px-4 sm:px-6 lg:px-8 transition-all duration-500 ease-in-out" :class="{ 'mb-52': aiPanelAvailable && aiPanelOpen, 'mb-4': !aiPanelAvailable || !aiPanelOpen }">
                     {% block dashboard_content %}{% endblock %}
                 </div>
             </main>

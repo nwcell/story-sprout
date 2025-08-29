@@ -1,5 +1,5 @@
 <textarea name="{{ name }}"
-          class="field-sizing-content w-full p-3 border-none rounded-lg resize-none overflow-hidden"
+          class="field-sizing-content w-full p-3 border-none rounded-lg resize-none"
           placeholder="{{ placeholder }}"
           x-data="{ resize() { $el.style.height = '5px'; $el.style.height = $el.scrollHeight + 'px' } }"
           x-init="resize()"

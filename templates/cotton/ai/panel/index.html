@@ -1,6 +1,7 @@
-<div id="ai-panel"
+ <div id="ai-panel"
      x-show="aiPanelAvailable"
-     class="fixed bottom-0 left-0 md:left-64 right-0 z-[30]">
+     class="fixed bottom-0 left-0 md:left-64 right-0"
+     :class="{ 'z-[30] pointer-events-auto': aiPanelOpen, 'z-auto pointer-events-none': !aiPanelOpen }">
 
   <!-- Main Panel -->
   <div id="ai-panel-main"
@@ -17,12 +18,15 @@
       <c-ai.panel.content />
     </div>
   </div>
+</div>
 
-  <!-- Tab - slides up from behind when panel closes -->
-  <div @click="aiPanelOpen = true"
-       class="absolute bottom-0 right-2 bg-white border-t border-l border-r border-light-gray rounded-t-lg cursor-pointer hover:bg-gray-50 transition-all duration-500 ease-in-out px-3 py-1"
-       :class="{ 'translate-y-0': !aiPanelOpen, 'translate-y-full': aiPanelOpen }">
+<!-- Floating Tab (separate from panel to avoid blocking) -->
+<div x-show="aiPanelAvailable && !aiPanelOpen"
+     @click="aiPanelOpen = true"
+     class="fixed bottom-0 right-2 z-[40]">
+  <div class="bg-white border-t border-l border-r border-light-gray rounded-t-lg cursor-pointer hover:bg-gray-50 transition-all duration-500 ease-in-out px-4 py-2"
+       role="button" aria-label="Open AI panel">
     <c-button icon="wand-magic-sparkles"
-              class="text-purple-600 hover:text-purple-700" />
+              class="text-purple-600 hover:text-purple-700 text-2xl" />
   </div>
 </div>

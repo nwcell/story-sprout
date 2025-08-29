@@ -1,12 +1,12 @@
 <c-vars prompt="What would you like to do?"
-        :chips="[{'emoji': '🗞', 'color': 'amber', 'text': 'Outline story!'}, {'emoji': '✍️', 'color': 'emerald', 'text': 'Draft a Title!'}]"
+        :chips="[{'emoji': '🗞', 'color': 'amber', 'text': 'Outline story!'}, {'emoji': '🌮', 'color': 'neutral', 'text': 'Taco'}, {'emoji': '✍️', 'color': 'emerald', 'text': 'Draft a Title!'}]"
         :freeform=True
         freeform_text="Write my own"
         input_placeholder="Enter your text here"
         submit_text="Submit" />
 
 <c-ai.panel.content.prompt_row :prompt=prompt />
-<c-ai.panel.content.chip_row :chips=chips :freeform=freeform freeform_text=freeform_text />
+<c-ai.panel.content.chip_row :chips=chips :freeform=freeform freeform_text={{ freeform_text }} />
 {% if freeform %}
   <div id="text-input" class="p-2 flex items-center space-x-2">
     <c-fields.input type="text" name="ai-panel-text" placeholder="{{ input_placeholder }}" :hide_border=False class="border-gray-200 flex-1" />

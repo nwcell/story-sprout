@@ -1,0 +1,5 @@
+title: Getting Started
+arrange:
+  - project_requirements_document.md
+  - implementation_plan.md
+  - tech_stack_document.md

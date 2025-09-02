@@ -22,3 +22,6 @@ migrate:
 	@uv run manage.py migrate
 
 db-sync: makemigrations migrate
+
+docs:
+	@uv run mkdocs serve --dev-addr=127.0.0.1:8001

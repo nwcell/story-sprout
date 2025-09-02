@@ -1,0 +1,8 @@
+title: Story Sprout Documentation
+arrange:
+  - index.md
+  - getting-started
+  - architecture
+  - development
+  - ai-features
+  - security

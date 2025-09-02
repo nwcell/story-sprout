@@ -1,3 +1,8 @@
+# Story Sprout Application Flow
+
+This flowchart shows the complete user journey through the Story Sprout application, from initial visit to final PDF export.
+
+```mermaid
 flowchart TD
   A[User visits site]
   A-->B[Auth check]
@@ -25,3 +30,4 @@ flowchart TD
   T-->U[PDF Export]
   U-->V[Notify via EmailSMS]
   V-->W[LibraryVersioning]
+```

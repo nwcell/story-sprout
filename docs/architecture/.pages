@@ -1,0 +1,5 @@
+title: Architecture
+arrange:
+  - backend_structure_document.md
+  - app_flow_document.md
+  - app_flowchart.md

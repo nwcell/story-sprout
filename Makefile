@@ -5,7 +5,7 @@
 manage:
 	@uv run manage.py $*
 
-runserver:
+dev:
 	@echo "Starting Django development server..."
 	@uv run manage.py runserver
 
@@ -23,5 +23,5 @@ migrate:
 
 db-sync: makemigrations migrate
 
-docs:
+serve-docs:
 	@uv run mkdocs serve --dev-addr=127.0.0.1:8001

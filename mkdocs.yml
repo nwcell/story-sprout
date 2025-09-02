@@ -79,7 +79,6 @@ plugins:
       minify_html: true
   - git-revision-date-localized:
       enable_creation_date: true
-      enable_git_follow: false
       type: timeago
 
 # Additional configuration

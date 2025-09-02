@@ -1,5 +1,7 @@
+<c-vars :hide_border=True name placeholder class />
+
 <textarea name="{{ name }}"
-          class="field-sizing-content w-full p-3 border-none rounded-lg resize-none"
+          class="field-sizing-content w-full p-3 rounded-lg resize-none {% if hide_border %}border-none{% endif %} {{ class }}"
           placeholder="{{ placeholder }}"
           x-data="{ resize() { $el.style.height = '5px'; $el.style.height = $el.scrollHeight + 'px' } }"
           x-init="resize()"

@@ -9,7 +9,7 @@
 <c-ai.panel.content.chip_row :chips=chips :freeform=freeform freeform_text={{ freeform_text }} />
 {% if freeform %}
   <div id="text-input" class="p-2 flex items-center space-x-2">
-    <c-fields.input type="text" name="ai-panel-text" placeholder="{{ input_placeholder }}" :hide_border=False class="border-gray-200 flex-1" />
+    <c-fields.textarea type="text" name="ai-panel-text" placeholder="{{ input_placeholder }}" :hide_border=False class="border-gray-200 flex-1" />
   </div>
 {% endif %}
 <div id="ai-submit" class="p-2">

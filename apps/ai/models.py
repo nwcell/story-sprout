@@ -10,6 +10,65 @@ from django.utils import timezone
 User = get_user_model()
 
 
+class AIRequest(models.Model):
+    """
+    An explicit request to run an AI workflow against a target object.
+    This replaces the signal-based trigger system.
+    """
+
+    class Status(models.TextChoices):
+        PENDING = "pending", "Pending"
+        RUNNING = "running", "Running"
+        SUCCESS = "success", "Success"
+        FAILED = "failed", "Failed"
+
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    celery_task_id = models.UUIDField(null=True, blank=True)
+
+    # The object the AI will modify
+    target_ct = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    target_id = models.PositiveIntegerField()
+    target = GenericForeignKey("target_ct", "target_id")
+
+    # The specific AI workflow to execute
+    workflow_name = models.CharField(max_length=100)
+
+    # Flexible input parameters for the workflow
+    input_params = models.JSONField(default=dict, blank=True)
+
+    # Tracking and output
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    output_text = models.TextField(blank=True)
+    error_message = models.TextField(blank=True)
+
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f"AIRequest for {self.target} ({self.workflow_name})"
+
+    @classmethod
+    def create_for_target(cls, user, target, workflow_name, **kwargs):
+        """
+        Creates and saves a new AIRequest instance for a specific target object.
+        `kwargs` will be saved as the `input_params`.
+        """
+        from django.contrib.contenttypes.models import ContentType
+
+        content_type = ContentType.objects.get_for_model(target)
+
+        ai_request = cls.objects.create(
+            user=user,
+            target_ct=content_type,
+            target_id=target.pk,
+            workflow_name=workflow_name,
+            input_params=kwargs,
+        )
+        return ai_request
+
+
 class AIWorkflow(models.Model):
     """Model for tracking AI generation workflows with generic foreign keys to target objects."""
 

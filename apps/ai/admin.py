@@ -3,7 +3,32 @@ from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from markdownx.utils import markdownify
 
-from .models import AiJob, AIWorkflow
+from .models import AiJob, AIRequest, AIWorkflow
+
+
+@admin.register(AIRequest)
+class AIRequestAdmin(admin.ModelAdmin):
+    list_display = ("uuid", "user", "workflow_name", "target_display", "status", "created_at")
+    list_filter = ("status", "workflow_name", "user")
+    search_fields = ("uuid", "user__username", "workflow_name")
+    readonly_fields = ("uuid", "created_at", "completed_at", "celery_task_id")
+
+    def target_display(self, obj):
+        """Display target object with link to admin if available."""
+        if not obj.target:
+            return "—"
+
+        target_name = str(obj.target)
+        try:
+            content_type = obj.target_ct
+            app_label = content_type.app_label
+            model_name = content_type.model
+            url = f"/admin/{app_label}/{model_name}/{obj.target_id}/change/"
+            return format_html('<a href="{}">{}</a>', url, target_name)
+        except Exception:
+            return target_name
+
+    target_display.short_description = "Target"
 
 
 @admin.register(AIWorkflow)

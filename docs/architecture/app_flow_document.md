@@ -55,3 +55,37 @@ If a user enters invalid data—such as an empty character name or malformed ema
 ## Conclusion and Overall App Journey
 
 A family’s journey begins with a simple signup and team creation, then flows naturally through character definition, story outline, and real-time AI generation. Edits and parental reviews are always within reach, and a delightful flipbook reader brings the tale to life. When the story is ready, exporting a PDF and sharing keepsakes is just a click away. Throughout the process, friendly reminders guide families through free versus paid pages and offer upgrades without interrupting creativity. Error messages and fallback options ensure no one is left stuck, and thoughtful settings let parents control experience and safety. From the first page to the final flip, StorySprout delivers a seamless path to magical, personalized storybooks for families everywhere.
+
+## Story Sprout Application Flow
+
+This flowchart shows the complete user journey through the Story Sprout application, from initial visit to final PDF export.
+
+```mermaid
+flowchart TD
+  A[User visits site]
+  A-->B[Auth check]
+  B-->C{Authenticated?}
+  C-->|No|D[LoginSignup]
+  C-->|Yes|E[Dashboard]
+  E-->F{Existing book?}
+  F-->|New|G[Create Book Draft]
+  F-->|Edit|H[Select Book]
+  G-->I[Character Builder]
+  H-->I
+  I-->J[Plot Composer]
+  J-->K[Review Story]
+  K-->L{Approve Story?}
+  L-->|No|O[Flag for Parent]
+  L-->|Yes|M[Text Moderation]
+  M-->N{Passed?}
+  N-->|No|O
+  N-->|Yes|P[Image Generation]
+  P-->Q[Image Moderation]
+  Q-->R{Passed?}
+  R-->|No|O
+  R-->|Yes|S[Assemble Flipbook]
+  S-->T[Flipbook Reader]
+  T-->U[PDF Export]
+  U-->V[Notify via EmailSMS]
+  V-->W[LibraryVersioning]
+```

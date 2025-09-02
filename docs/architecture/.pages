@@ -1,5 +1,5 @@
 title: Architecture
-arrange:
-  - backend_structure_document.md
-  - app_flow_document.md
-  - app_flowchart.md
+nav:
+  - Tech Stack: tech_stack_document.md
+  - App Flow: app_flow_document.md
+  - AI Flow: ai_workflow_design.md

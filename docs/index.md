@@ -1,4 +1,4 @@
-# Story Sprout Documentation
+# Overview
 
 Welcome to the comprehensive documentation for **Story Sprout**, a modern Django-based storytelling platform with AI-powered features.
 
@@ -65,7 +65,7 @@ uv run manage.py runserver
 Use the navigation menu to explore different sections of the documentation. Each section provides detailed information about specific aspects of the Story Sprout platform.
 
 - **Getting Started** - Project overview and setup
-- **Architecture** - System design and structure  
+- **Architecture** - System design and structure
 - **Development** - Coding guidelines and patterns
 - **AI Features** - AI integration and workflows
 - **Security** - Security practices and guidelines
@@ -80,4 +80,4 @@ This documentation is automatically updated with git revision dates. Each page s
 
 ---
 
-**Ready to dive in?** Start with the [Project Requirements](project_requirements_document.md) to understand the full scope and vision of Story Sprout.
+**Ready to dive in?** Check out the [PRD](prd.md) to understand the full scope and vision of Story Sprout.

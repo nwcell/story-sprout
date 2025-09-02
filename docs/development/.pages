@@ -1,8 +1,7 @@
 title: Development
-arrange:
-  - frontend_guidelines_document.md
-  - ui_patterns.md
-  - htmx_patterns.md
-  - ruff-usage.md
-  - cursor_project_rules.md
-  - windsurf_file.md
+nav:
+  - Frontend: frontend_guidelines_document.md
+  - Backend: backend_structure_document.md
+  - UI Patterns: ui_patterns.md
+  - HTMX Patterns: htmx_patterns.md
+  - Ruff Usage: ruff-usage.md

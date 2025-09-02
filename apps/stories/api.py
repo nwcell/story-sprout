@@ -8,8 +8,8 @@ from django_htmx.http import push_url
 from ninja import File, ModelSchema, Router, Schema
 from ninja.files import UploadedFile
 
+from apps.common.htmx import append_template, update_title
 from apps.stories.models import Page, Story
-from core.utils import append_template, update_title
 
 router = Router()
 

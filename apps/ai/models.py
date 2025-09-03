@@ -47,23 +47,21 @@ class AIRequest(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(null=True, blank=True)
 
+    class Meta:
+        verbose_name = "AI Request"
+        verbose_name_plural = "AI Requests"
+        ordering = ["user", "-created_at"]
+
     def __str__(self):
-        return f"AIRequest for {self.target} ({self.workflow})"
+        return f"{self.workflow} - {self.target}"
 
     @classmethod
     def create_for_target(cls, user: User, workflow_name: str, target_uuid: UUID, input_params: dict | None = None):
-        """
-        Creates and saves a new AIRequest instance for a specific target object.
-        `kwargs` will be saved as the `input_params`.
-        """
         workflow = get_workflow(workflow_name)
-        if not workflow:
-            raise ValidationError(f"Unknown workflow: {workflow_name}")
 
-        target_model = workflow.target_model
         try:
-            target = target_model.objects.get(uuid=target_uuid)
-        except target_model.DoesNotExist as exc:
+            target = workflow.target_model.objects.get(uuid=target_uuid)
+        except workflow.target_model.DoesNotExist as exc:
             raise ValidationError(f"Target object with UUID {target_uuid} not found.") from exc
 
         ai_request = cls.objects.create(

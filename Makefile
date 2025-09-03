@@ -11,7 +11,7 @@ dev:
 
 tasks:
 	@echo "Starting Celery worker..."
-	@uv run -m celery -A core worker -l INFO
+	@uv run manage.py runworker
 
 makemigrations:
 	@echo "Creating database migrations..."

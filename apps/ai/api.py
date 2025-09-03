@@ -36,6 +36,7 @@ class JobOut(ModelSchema):
 
 @router.post("/jobs", response=JobOut)
 def create_job(request, payload: JobIn):
+    # TODO: Add permissions check
     try:
         ai_request = AIRequest.create_for_target(
             user=request.user,

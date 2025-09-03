@@ -6,7 +6,7 @@ from .models import AIRequest
 
 @admin.register(AIRequest)
 class AIRequestAdmin(admin.ModelAdmin):
-    list_display = ("uuid", "user", "workflow", "target_display", "status", "created_at")
+    list_display = ("__str__", "uuid", "user", "workflow", "target_display", "status", "created_at")
     list_filter = ("status", "workflow", "user")
     search_fields = ("uuid", "user__username", "workflow")
     readonly_fields = ("uuid", "created_at", "completed_at", "celery_task_id")

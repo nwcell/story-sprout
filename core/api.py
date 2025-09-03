@@ -60,7 +60,8 @@ class CustomNinjaAPI(NinjaAPI):
         return CustomOpenAPISchema(api=self, path_prefix=path_prefix)
 
 
-api = CustomNinjaAPI(version="1")
+api = CustomNinjaAPI(title="Story Sprout API", version="1")
 
 
+api.add_router("/ai/", "apps.ai.api.router")
 api.add_router("/stories/", "apps.stories.api.router")

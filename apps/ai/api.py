@@ -1,49 +1,19 @@
-from django.core.exceptions import ValidationError
-from ninja import ModelSchema, Router
-from ninja.errors import HttpError
+from ninja import Router
 
-from apps.ai.models import AIRequest
+from apps.ai.schemas import JobStatus, StoryTitleIn
+from apps.ai.util.celery import enqueue_job
 
 router = Router()
 
 
-class JobIn(ModelSchema):
-    class Meta:
-        model = AIRequest
-        fields = [
-            "workflow",
-            "target_uuid",
-            "input_params",
-        ]
-
-
-class JobOut(ModelSchema):
-    class Meta:
-        model = AIRequest
-        fields = [
-            "uuid",
-            "user",
-            "workflow",
-            "target_uuid",
-            "input_params",
-            "status",
-            "output_text",
-            "error_message",
-            "created_at",
-            "completed_at",
-        ]
-
-
-@router.post("/jobs", response=JobOut)
-def create_job(request, payload: JobIn):
-    # TODO: Add permissions check
-    try:
-        ai_request = AIRequest.create_for_target(
-            user=request.user,
-            workflow_name=payload.workflow,
-            target_uuid=payload.target_uuid,
-            input_params=payload.input_params,
-        )
-    except ValidationError as e:
-        raise HttpError(422, e.message) from e
-    return ai_request
+# TODO: Add Auth
+@router.post("/jobs/story-title")
+def create_story_title_job(request, payload: StoryTitleIn) -> JobStatus:
+    # API validates via Pydantic (Ninja) here; Celery validates again at run time.
+    job = enqueue_job(
+        user=request.user,
+        workflow="ai.story_title",
+        payload=payload,  # JSON serializable
+        # params={"args": **payload.dict()},  # JSON serializable
+    )
+    return {"job_uuid": str(job.uuid), "status": job.status}

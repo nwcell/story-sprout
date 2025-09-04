@@ -214,6 +214,27 @@ wheels = [
 ]
 
 [[package]]
+name = "celery-typed"
+version = "0.1.0"
+source = { editable = "libs/celery-typed" }
+dependencies = [
+    { name = "celery" },
+    { name = "kombu" },
+    { name = "pydantic" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "celery", specifier = ">=5.2.0" },
+    { name = "kombu", specifier = ">=5.2.0" },
+    { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.0.0" },
+    { name = "pydantic", specifier = ">=2.0.0" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.0.0" },
+    { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=4.0.0" },
+    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.1.0" },
+]
+
+[[package]]
 name = "certifi"
 version = "2025.7.9"
 source = { registry = "https://pypi.org/simple" }
@@ -1702,6 +1723,7 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "celery" },
+    { name = "celery-typed" },
     { name = "cookiecutter" },
     { name = "crispy-tailwind" },
     { name = "django" },
@@ -1741,6 +1763,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "celery", specifier = ">=5.5.3" },
+    { name = "celery-typed", editable = "libs/celery-typed" },
     { name = "cookiecutter", specifier = ">=2.6.0" },
     { name = "crispy-tailwind", specifier = ">=1.0.3" },
     { name = "django", specifier = ">=5.2.4" },

@@ -1,153 +1,144 @@
-from django.contrib import admin
+from __future__ import annotations
+
+import json
+from collections.abc import Iterable
+
+from celery import current_app
+from django.contrib import admin, messages
+from django.db import transaction
 from django.utils.html import format_html
+from django.utils.timezone import now
 
-from .models import AIRequest
+from .models import Job
 
 
-@admin.register(AIRequest)
-class AIRequestAdmin(admin.ModelAdmin):
-    list_display = ("__str__", "uuid", "user", "workflow", "target_display", "status", "created_at")
-    list_filter = ("status", "workflow", "user")
-    search_fields = ("uuid", "user__username", "workflow")
-    readonly_fields = ("uuid", "created_at", "completed_at", "celery_task_id")
+@admin.register(Job)
+class JobAdmin(admin.ModelAdmin):
+    # ------- List view -------
+    list_display = (
+        "uuid",
+        "workflow",
+        "user",
+        "status",
+        "created_at",
+        "started_at",
+        "finished_at",
+        "duration_ms",
+        "celery_task_id_short",
+    )
+    list_filter = ("status", "workflow", ("created_at", admin.DateFieldListFilter))
+    search_fields = (
+        "uuid",
+        "workflow",
+        "celery_task_id",
+        "user__username",
+        "user__email",
+    )
+    date_hierarchy = "created_at"
+    ordering = ("-created_at",)
 
-    def target_display(self, obj):
-        """Display target object with link to admin if available."""
-        if not obj.target:
-            return "—"
+    # ------- Detail view -------
+    readonly_fields = (
+        "uuid",
+        "user",
+        "workflow",
+        "payload_pretty",
+        "celery_task_id",
+        "status",
+        "output_text",
+        "error_message",
+        "runtime_ms",
+        "created_at",
+        "updated_at",
+        "started_at",
+        "finished_at",
+        "dispatched_at",
+    )
+    fields = (
+        "uuid",
+        "user",
+        "workflow",
+        "payload_pretty",
+        "status",
+        ("created_at", "updated_at"),
+        ("started_at", "finished_at"),
+        ("runtime_ms", "celery_task_id"),
+        "output_text",
+        "error_message",
+        "dispatched_at",
+    )
 
-        target_name = str(obj.target)
+    actions = ("requeue_selected",)
+
+    # ------- Pretty JSON payload -------
+    @admin.display(description="Payload (pretty JSON)")
+    def payload_pretty(self, obj: Job) -> str:
         try:
-            content_type = obj.target_ct
-            app_label = content_type.app_label
-            model_name = content_type.model
-            url = f"/admin/{app_label}/{model_name}/{obj.target_id}/change/"
-            return format_html('<a href="{}">{}</a>', url, target_name)
+            txt = json.dumps(obj.payload_json or {}, indent=2, sort_keys=True)
         except Exception:
-            return target_name
+            txt = str(obj.payload_json)
+        return format_html("<pre style='max-height:420px;overflow:auto'>{}</pre>", txt)
 
-    target_display.short_description = "Target"
+    # ------- Helpers for list view -------
+    @admin.display(description="Duration (ms)")
+    def duration_ms(self, obj: Job) -> int | None:
+        # Prefer stored runtime_ms; fallback to derive if finished
+        if obj.runtime_ms is not None:
+            return obj.runtime_ms
+        if obj.started_at and obj.finished_at:
+            return int((obj.finished_at - obj.started_at).total_seconds() * 1000)
+        return None
 
+    @admin.display(description="Task ID", ordering="celery_task_id")
+    def celery_task_id_short(self, obj: Job) -> str:
+        tid = obj.celery_task_id or ""
+        return f"{tid[:8]}…" if len(tid) > 9 else tid
 
-# @admin.register(AIWorkflow)
-# class AIWorkflowAdmin(admin.ModelAdmin):
-#     """Admin interface for AI Workflows."""
+    # ------- Admin action: Requeue -------
+    @admin.action(description="Requeue selected jobs")
+    def requeue_selected(self, request, queryset: Iterable[Job]):
+        # Only requeue jobs not currently RUNNING
+        to_requeue = list(queryset.exclude(status=Job.Status.RUNNING))
+        if not to_requeue:
+            self.message_user(request, "Nothing to requeue.", level=messages.INFO)
+            return
 
-#     # Basic display configuration
-#     list_display = ["id", "uuid", "workflow_func", "target_display"]
-#     list_filter = ["workflow_func"]
-#     search_fields = ["id", "uuid", "workflow_func"]
-#     date_hierarchy = "created_at"
-#     readonly_fields = ["uuid", "created_at", "updated_at"]
+        # Validate Celery task name exists before we start
+        missing = [j for j in to_requeue if j.workflow not in current_app.tasks]
+        if missing:
+            self.message_user(
+                request,
+                f"Skipped {len(missing)} job(s): unknown workflow names present.",
+                level=messages.WARNING,
+            )
+            to_requeue = [j for j in to_requeue if j not in missing]
 
-#     # Field organization
-#     fieldsets = [
-#         (
-#             "Workflow Information",
-#             {
-#                 "fields": ["uuid", "workflow_func", "user"],
-#             },
-#         ),
-#         (
-#             "Target",
-#             {
-#                 "fields": ["target_ct", "target_id"],
-#             },
-#         ),
-#         (
-#             "Timestamps",
-#             {
-#                 "fields": ["created_at", "updated_at"],
-#             },
-#         ),
-#     ]
+        count = 0
+        for job in to_requeue:
+            # Reset state to QUEUED; keep payload_json as-is (replayable)
+            Job.objects.filter(pk=job.pk).update(
+                status=Job.Status.QUEUED,
+                error_message="",
+                output_text="",
+                runtime_ms=None,
+                started_at=None,
+                finished_at=None,
+                dispatched_at=None,
+                celery_task_id="",
+                updated_at=now(),
+            )
 
-#     def target_display(self, obj):
-#         """Display target object with link to admin if available."""
-#         if not obj.target:
-#             return "—"
+            # Publish after the DB commit to avoid drift
+            def _publish(jid=job.pk, workflow=job.workflow, kwargs=job.payload_json):
+                res = current_app.send_task(workflow, kwargs=kwargs)
+                Job.objects.filter(pk=jid).update(
+                    celery_task_id=res.id,
+                    dispatched_at=now(),
+                    updated_at=now(),
+                )
 
-#         # Get the name of the target
-#         target_name = str(obj.target)
+            transaction.on_commit(_publish)
+            count += 1
 
-#         # Try to create an admin link for the target
-#         try:
-#             content_type = obj.target_ct
-#             app_label = content_type.app_label
-#             model_name = content_type.model
-#             url = f"/admin/{app_label}/{model_name}/{obj.target_id}/change/"
-#             return format_html('<a href="{}">{}</a>', url, target_name)
-#         except Exception:
-#             return target_name
-
-#     target_display.short_description = "Target"
-
-
-# @admin.register(AiJob)
-# class AiJobAdmin(admin.ModelAdmin):
-#     """Admin interface for AI generation jobs."""
-
-#     # Basic display configuration
-#     list_display = ["id", "workflow_display", "status", "created_at", "completed_at"]
-#     list_filter = ["status", "created_at"]
-#     search_fields = ["id", "last_error", "prompt_result"]
-#     date_hierarchy = "created_at"
-#     readonly_fields = ["created_at", "started_at", "completed_at", "attempts", "formatted_prompt_payload"]
-
-#     # Field organization
-#     fieldsets = [
-#         (
-#             "Job Information",
-#             {
-#                 "fields": ["workflow", "status", "attempts"],
-#             },
-#         ),
-#         (
-#             "Data",
-#             {
-#                 "fields": ["formatted_prompt_payload", "last_error"],
-#                 "classes": ["collapse"],
-#             },
-#         ),
-#         (
-#             "Output",
-#             {
-#                 "fields": ["prompt_result"],
-#             },
-#         ),
-#         (
-#             "Usage & Cost",
-#             {
-#                 "fields": ["usage_tokens", "cost_usd"],
-#             },
-#         ),
-#         (
-#             "Timestamps",
-#             {
-#                 "fields": ["created_at", "started_at", "completed_at"],
-#             },
-#         ),
-#     ]
-
-#     def workflow_display(self, obj):
-#         """Display workflow with link to admin."""
-#         if not obj.workflow:
-#             return "—"
-
-#         # Get the name of the workflow
-#         workflow_name = str(obj.workflow)
-
-#         # Create admin link for the workflow
-#         url = f"/admin/ai/aiworkflow/{obj.workflow.id}/change/"
-#         return format_html('<a href="{}">{}</a>', url, workflow_name)
-
-#     workflow_display.short_description = "Workflow"
-
-#     def formatted_prompt_payload(self, obj):
-#         if not obj.prompt_payload:
-#             return "—"
-
-#         md_text = str(obj.prompt_payload)
-#         return mark_safe(markdownify(md_text))
-
-#     formatted_prompt_payload.short_description = "Prompt Payload"
+        if count:
+            self.message_user(request, f"Requeued {count} job(s).", level=messages.SUCCESS)

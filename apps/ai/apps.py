@@ -6,9 +6,5 @@ class AiConfig(AppConfig):
     name = "apps.ai"
 
     def ready(self):
-        # Import signals to register them with Django's signal dispatcher
-        # This import is intentional to register signal handlers, even though not used directly
-        import apps.ai.signals  # noqa
-
-        # Import tasks to register them with Celery
-        import apps.ai.tasks  # noqa
+        from apps.ai import tasks  # noqa
+        from apps.ai import signals  # noqa

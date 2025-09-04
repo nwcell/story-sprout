@@ -1,6 +1,6 @@
 from ninja import Router
 
-from apps.ai.schemas import JobStatus, StoryTitleIn
+from apps.ai.schemas import JobStatus, StoryIn
 from apps.ai.util.celery import enqueue_job
 
 router = Router()
@@ -8,7 +8,7 @@ router = Router()
 
 # TODO: Add Auth
 @router.post("/jobs/story-title")
-def create_story_title_job(request, payload: StoryTitleIn) -> JobStatus:
+def create_story_title_job(request, payload: StoryIn) -> JobStatus:
     # API validates via Pydantic (Ninja) here; Celery validates again at run time.
     job = enqueue_job(
         user=request.user,

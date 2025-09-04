@@ -8,7 +8,7 @@ class JobStatus(BaseModel):
     status: str
 
 
-class StoryTitleIn(BaseModel):
+class StoryIn(BaseModel):
     story_uuid: UUID
 
 

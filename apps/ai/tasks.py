@@ -19,7 +19,7 @@ ai = AIEngine()
 
 
 @shared_task(name="ai.story_title", base=JobTask)
-def story_title(payload: StoryJob) -> str:
+def ai_story_title_job(payload: StoryJob) -> str:
     logger.info(f"story_title received: {payload} (type: {type(payload)})")
     story = Story.objects.get(uuid=payload.story_uuid)
     out = ai.prompt_completion("story_title.md", {"story": story})

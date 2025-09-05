@@ -8,12 +8,16 @@
      class="max-w-7xl mx-auto overflow-auto">
   <div class="flex items-center justify-between">
     <div class="flex items-center space-x-2">
-      <c-button id="revise-story"
-                 icon="wand-magic-sparkles"
-                 class="hover:text-purple-600" />
-
+      {% comment %} <c-button id="revise-story" icon="wand-magic-sparkles" class="hover:text-purple-600" /> {% endcomment %}
       <c-htmx.sse hx-get="{% url 'api-1:get_story_title' story_uuid=story.uuid %}" event="get_story_title" />
       <c-stories.title :story=story />
+      <c-ai.chip name="ai-chip"
+                 type="button"
+                 emoji="✍️"
+                 color="purple"
+                 hx-post="{% url 'api-1:ai_story_title' %}"
+                 hx-ext='json-enc'
+                 hx-vals='{"story_uuid": "{{ story.uuid }}"}'>Suggest</c-ai.chip>
     </div>
 
     <c-button icon="arrow-left"
@@ -25,6 +29,7 @@
   <div class="mt-4 bg-white shadow overflow-hidden sm:rounded-md border border-light-gray p-6">
     <div class="flex items-center justify-between">
       <div class="flex-1">
+        <h4 class="font-medium text-black mb-1">Story Outline</h4>
         <c-fields.textarea  hx-patch="{% url 'api-1:update_story' story_uuid=story.uuid %}"
                             hx-trigger="keyup changed delay:1s"
                             hx-ext='json-enc'

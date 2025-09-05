@@ -1,6 +1,6 @@
 # Makefile for Story Sprout project commands
 
-.PHONY: manage runserver tasks makemigrations migrate db-sync kill-celery list-workers
+.PHONY: manage runserver tasks makemigrations migrate db-sync kill-celery
 
 manage:
 	@uv run manage.py $*
@@ -18,13 +18,6 @@ tasks:
 kill-celery:
 	@echo "Killing all Celery workers..."
 	@./scripts/kill-celery.sh
-
-list-workers:
-	@echo "📋 Active Celery workers:"
-	@uv run celery -A core inspect active 2>/dev/null || echo "No workers found or broker not available"
-	@echo ""
-	@echo "🖥️  System processes:"
-	@ps aux | grep 'celery.*worker' | grep -v grep || echo "No worker processes found"
 
 makemigrations:
 	@echo "Creating database migrations..."

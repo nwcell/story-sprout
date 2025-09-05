@@ -63,5 +63,5 @@ class CustomNinjaAPI(NinjaAPI):
 api = CustomNinjaAPI(title="Story Sprout API", version="1")
 
 
-api.add_router("/ai/", "apps.ai.api.router")
-api.add_router("/stories/", "apps.stories.api.router")
+api.add_router("/ai/", "apps.ai.api.router", tags=["ai"])
+api.add_router("/stories/", "apps.stories.api.router", tags=["stories"])

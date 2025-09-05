@@ -11,13 +11,28 @@ logger = logging.getLogger(__name__)
 
 
 # TODO: Add Auth
-@router.post("/jobs/story-title")
+@router.post("/jobs/story/title/suggest")
 def ai_story_title(request, payload: StoryJob) -> JobStatus:
     # API validates via Pydantic (Ninja) here; Celery validates again at run time.
     logger.info(f"ai_story_title received: {payload} (type: {type(payload)})")
     job = enqueue_job(
         user=request.user,
         workflow="ai.story_title",
+        payload=payload,
+    )
+    if request.htmx:
+        return HttpResponse(status=204)
+    return {"job_uuid": str(job.uuid), "status": job.status}
+
+
+# TODO: Add Auth
+@router.post("/jobs/story/description/suggest")
+def ai_story_description(request, payload: StoryJob) -> JobStatus:
+    # API validates via Pydantic (Ninja) here; Celery validates again at run time.
+    logger.info(f"ai_story_description received: {payload} (type: {type(payload)})")
+    job = enqueue_job(
+        user=request.user,
+        workflow="ai.story_description",
         payload=payload,
     )
     if request.htmx:

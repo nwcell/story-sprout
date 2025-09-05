@@ -70,18 +70,19 @@ Based on the book context and surrounding pages, generate text for the current p
    - Match the style and complexity of existing illustrations
 {% endif %}
 
+{% include "_formatting_rules.md" %}
+
 ## Response Format
 
 Picture book content should be EXTREMELY brief - just the actual text that would appear on the page. Do not include any descriptions of what should be illustrated.
 
-**For page content:**
+For page content:
 - Provide ONLY the 1-3 sentences that would appear printed on the page
 - Do NOT include any scene descriptions, visual elements, or illustration guidance
-- Do NOT use markdown formatting or quotation marks
 - Do NOT explain your choices or add any commentary
 
-**BAD EXAMPLE:** 
-"The illustration shows Andrew standing next to Chug at the station. The background is colorful with a sunrise."
+BAD EXAMPLE: 
+The illustration shows Andrew standing next to Chug at the station. The background is colorful with a sunrise.
 
-**GOOD EXAMPLE:**
-"Good morning, Chug!" said Andrew. "Are you ready for our adventure today?"
+GOOD EXAMPLE:
+Good morning, Chug! said Andrew. Are you ready for our adventure today?

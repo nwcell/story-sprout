@@ -38,3 +38,18 @@ def ai_story_description(request, payload: StoryJob) -> JobStatus:
     if request.htmx:
         return HttpResponse(status=204)
     return {"job_uuid": str(job.uuid), "status": job.status}
+
+
+# TODO: Add Auth
+@router.post("/jobs/story/brainstorm")
+def ai_story_brainstorm(request, payload: StoryJob) -> JobStatus:
+    # API validates via Pydantic (Ninja) here; Celery validates again at run time.
+    logger.info(f"ai_story_brainstorm received: {payload} (type: {type(payload)})")
+    job = enqueue_job(
+        user=request.user,
+        workflow="ai.story_brainstorm",
+        payload=payload,
+    )
+    if request.htmx:
+        return HttpResponse(status=204)
+    return {"job_uuid": str(job.uuid), "status": job.status}

@@ -21,7 +21,7 @@
 </label>
 {% elif type == 'button' %}
 <button type="button"
-        class="chip-{{ color|default:'neutral' }}"
+        class="chip-{{ color|default:'neutral' }} m-2"
         {{ attrs }}>
   {% if emoji %}<span class="mr-1">{{emoji}}</span>{% endif %}
   <span>{{ slot|default:"Do something" }}</span>

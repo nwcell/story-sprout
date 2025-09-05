@@ -5,12 +5,12 @@ Celery tasks for AI services.
 import logging
 
 from celery import shared_task
-from django_eventstream import send_event
 
 from apps.ai.schemas import StoryJob
 from apps.ai.util.ai import AIEngine
 from apps.ai.util.celery import JobTask
 from apps.stories.models import Story
+from apps.stories.services import set_description_and_notify, set_title_and_notify
 
 logger = logging.getLogger(__name__)
 
@@ -25,10 +25,8 @@ def ai_story_title_job(payload: StoryJob) -> str:
     out = ai.prompt_completion("story_title.md", {"story": story})
 
     logger.info(f"story_title result: {out} (title: {out.title})")
-    story.title = out
-    story.save()
-    send_event(story.channel, "get_story_title", "")
-    return f"notified:{story.channel}:get_story_title"
+    set_title_and_notify(story, out)
+    return f"job:{story.channel}:ai_story_title_job"
 
 
 @shared_task(name="ai.story_description", base=JobTask)
@@ -38,7 +36,19 @@ def ai_story_description_job(payload: StoryJob) -> str:
     out = ai.prompt_completion("story_description.md", {"story": story})
 
     logger.info(f"story_description result: {out}")
-    story.description = out
-    story.save()
-    send_event(story.channel, "get_story_description", "")
-    return f"notified:{story.channel}:get_story_description"
+    set_description_and_notify(story, out)
+    return f"job:{story.channel}:ai_story_description_job"
+
+
+@shared_task(name="ai.story_brainstorm", base=JobTask)
+def ai_story_brainstorm_job(payload: StoryJob) -> str:
+    logger.info(f"story_brainstorm received: {payload} (type: {type(payload)})")
+    story = Story.objects.get(uuid=payload.story_uuid)
+    out = ai.prompt_completion("story_brainstorm.md", {"story": story})
+
+    logger.info(f"story_brainstorm result: {out}")
+    set_description_and_notify(story, out)
+
+    # Let's update the title, do reflect the new description!
+    ai_story_title_job.delay(payload)
+    return f"job:{story.channel}:ai_story_brainstorm_job"

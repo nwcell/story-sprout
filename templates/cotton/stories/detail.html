@@ -43,6 +43,14 @@
     </div>
   </div>
 
+        <c-ai.chip name="ai-chip"
+                 type="button"
+                 emoji="🧠"
+                 color="purple"
+                 hx-post="{% url 'api-1:ai_story_brainstorm' %}"
+                 hx-ext='json-enc'
+                 hx-vals='{"story_uuid": "{{ story.uuid }}"}'>Brainstorm</c-ai.chip>
+
   <div class="mt-8">
     <div class="flex items-center justify-between">
       <h2 class="text-xl font-medium text-black uppercase tracking-wide">Pages</h2>

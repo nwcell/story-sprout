@@ -11,6 +11,8 @@ dev:
 
 tasks:
 	@echo "Starting Celery worker..."
+	@echo "Clearing Redis queues to prevent stale tasks..."
+	@redis-cli DEL celery > /dev/null 2>&1 || echo "Warning: Could not clear Redis (not running?)"
 	@uv run manage.py runworker
 
 makemigrations:

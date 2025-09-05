@@ -22,4 +22,8 @@ def story_title(arg: StoryIn) -> StoryTitleOut:
     logger.info(f"story_title received: {arg} (type: {type(arg)})")
     story = Story.objects.get(uuid=arg.story_uuid)
     out = ai.prompt_completion("story_title.md", {"story": story})
+
+    logger.info(f"story_title result: {out} (title: {out.title})")
+    story.title = out
+    story.save()
     return out

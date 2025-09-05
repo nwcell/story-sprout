@@ -66,7 +66,7 @@ def enqueue_job(user: User, workflow: str, payload: BaseModel | dict) -> Job:
     def _publish():
         # Pass payload directly - celery-typed handles Pydantic serialization
         Job.objects.filter(uuid=job.uuid).update(celery_task_id=job.uuid)
-        task = current_app.tasks[workflow]  # raises if not registered
+        task = current_app.tasks[workflow]
         task.apply_async(args=(payload,), kwargs=None, task_id=str(job.uuid))
         Job.objects.filter(uuid=job.uuid).update(dispatched_at=timezone.now())
 

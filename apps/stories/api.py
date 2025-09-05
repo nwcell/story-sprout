@@ -26,6 +26,10 @@ class StoryIn(Schema):
     description: str | None = None
 
 
+class StoryTitleOut(Schema):
+    title: str
+
+
 @router.get("", response=list[StoryOut])
 def list_stories(request):
     story_list = Story.objects.filter(user=request.user)
@@ -58,6 +62,17 @@ def get_story(request, story_uuid: UUID):
     if request.htmx:
         # TODO: Fix this
         response = render(request, "cotton/stories/detail.html", {"story": story})
+        response = update_title(response, f"Story - {story.title or 'Untitled'}")
+        response = push_url(response, reverse("stories:story_detail", kwargs={"story_uuid": story.uuid}))
+        return response
+    return story
+
+
+@router.get("/{story_uuid}/title", response=StoryTitleOut)
+def get_story_title(request, story_uuid: UUID):
+    story = Story.objects.get(uuid=story_uuid)
+    if request.htmx:
+        response = render(request, "cotton/stories/title.html", {"story": story})
         response = update_title(response, f"Story - {story.title or 'Untitled'}")
         response = push_url(response, reverse("stories:story_detail", kwargs={"story_uuid": story.uuid}))
         return response

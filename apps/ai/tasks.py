@@ -5,8 +5,9 @@ Celery tasks for AI services.
 import logging
 
 from celery import shared_task
+from django_eventstream import send_event
 
-from apps.ai.schemas import StoryIn, StoryTitleOut
+from apps.ai.schemas import StoryJob
 from apps.ai.util.ai import AIEngine
 from apps.ai.util.celery import JobTask
 from apps.stories.models import Story
@@ -18,12 +19,13 @@ ai = AIEngine()
 
 
 @shared_task(name="ai.story_title", base=JobTask)
-def story_title(arg: StoryIn) -> StoryTitleOut:
-    logger.info(f"story_title received: {arg} (type: {type(arg)})")
-    story = Story.objects.get(uuid=arg.story_uuid)
+def story_title(payload: StoryJob) -> str:
+    logger.info(f"story_title received: {payload} (type: {type(payload)})")
+    story = Story.objects.get(uuid=payload.story_uuid)
     out = ai.prompt_completion("story_title.md", {"story": story})
 
     logger.info(f"story_title result: {out} (title: {out.title})")
     story.title = out
     story.save()
-    return out
+    send_event(story.channel, "get_story_title", "")
+    return f"notified:{story.channel}:get_story_title"

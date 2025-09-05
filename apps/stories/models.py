@@ -22,6 +22,10 @@ class Story(models.Model):
     def page_count(self):
         return self.pages.count()
 
+    @property
+    def channel(self):
+        return f"story-{self.uuid}"
+
     class Meta:
         verbose_name = "Story"
         verbose_name_plural = "Stories"

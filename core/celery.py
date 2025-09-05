@@ -12,6 +12,7 @@ app = Celery("story_sprout")
 
 # Register exactly as shown in blog post - at module level
 register_preserializer(PydanticModelDump)(BaseModel)
+# pydantic_celery(app)
 
 # Using a string here means the worker doesn't have to serialize
 # the configuration object to child processes.

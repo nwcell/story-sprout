@@ -39,9 +39,15 @@
 <!-- HTMX + django-htmx -->
 {% htmx_script %}
 <script defer src="{% static 'vendor/htmx/json-enc.js' %}"></script>
+<script defer src="{% static 'vendor/htmx/htmx-ext-sse.js' %}"></script>
 
 <!-- Alpine.js -->
-<script defer src="{% static 'vendor/alpine.min.js' %}"></script>
+<script defer src="{% static 'vendor/alpine/alpine-intersect.js' %}"></script>
+<script defer src="{% static 'vendor/alpine/alpine.min.js' %}"></script>
 
 <!-- Component Scripts -->
 <script defer src="{% static 'js/image-upload.js' %}"></script>
+
+<!-- EventStream -->
+<script src="{% static 'django_eventstream/eventsource.min.js' %}"></script>
+<script src="{% static 'django_eventstream/reconnecting-eventsource.js' %}"></script>

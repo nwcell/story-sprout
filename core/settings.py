@@ -37,6 +37,7 @@ ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 # Application definition
 
 INSTALLED_APPS = [
+    "daphne",  # ASGI server for WebSocket and SSE support - must be first
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -46,6 +47,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.sites",
     # Third party apps
+    "django_eventstream",  # Server-Sent Events
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
@@ -127,6 +129,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "core.wsgi.application"
+ASGI_APPLICATION = "core.asgi.application"
 
 
 # Database
@@ -261,4 +264,16 @@ STORAGES = {
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
+}
+
+# EventStream configuration for Server-Sent Events
+EVENTSTREAM_STORAGE_CLASS = "django_eventstream.storage.DjangoModelStorage"
+EVENTSTREAM_CHANNELMANAGER_CLASS = "apps.common.sse.ChannelManager"
+
+# Optional: Configure Redis for scaling across multiple instances
+# Uncomment these if you have Redis set up for production scaling
+EVENTSTREAM_REDIS = {
+    "host": os.getenv("REDIS_HOST", "localhost"),
+    "port": int(os.getenv("REDIS_PORT", 6379)),
+    "db": int(os.getenv("REDIS_DB", 0)),
 }

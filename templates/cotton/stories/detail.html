@@ -2,22 +2,18 @@
 
 <c-vars story />
 
-<div class="max-w-7xl mx-auto overflow-auto">
+<div id="story-{{ story.uuid }}"
+     hx-ext="sse"
+     sse-connect="{% url 'stories:events' story_uuid=story.uuid %}"
+     class="max-w-7xl mx-auto overflow-auto">
   <div class="flex items-center justify-between">
     <div class="flex items-center space-x-2">
       <c-button id="revise-story"
                  icon="wand-magic-sparkles"
                  class="hover:text-purple-600" />
 
-      <c-fields.input hx-patch="{% url 'api-1:update_story' story_uuid=story.uuid %}"
-                      hx-trigger="keyup changed delay:1s"
-                      hx-ext='json-enc'
-                      name="title"
-                      value="{{ story.title | default_if_none:'' }}"
-                      label="Title"
-                      placeholder="Enter story title"
-                      class="text-2xl font-medium"
-                      autocapitalize="on"/>
+      <c-htmx.sse hx-get="{% url 'api-1:get_story_title' story_uuid=story.uuid %}" event="get_story_title" />
+      <c-stories.title :story=story />
     </div>
 
     <c-button icon="arrow-left"

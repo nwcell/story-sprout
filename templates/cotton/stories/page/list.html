@@ -1,5 +1,6 @@
 <div id="story-pages" class="mt-4 space-y-6">
     {% for page in story.pages.all %}
+      <c-htmx.sse hx-get="{% url 'api-1:get_page' story_uuid=story.uuid page_uuid=page.uuid %}" event="get_page" key="{{ page.uuid }}" />
       <c-stories.page :page=page />
     {% endfor %}
 

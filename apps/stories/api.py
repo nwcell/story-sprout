@@ -15,15 +15,15 @@ router = Router()
 
 
 # Story
+class StoryIn(Schema):
+    title: str | None = None
+    description: str | None = None
+
+
 class StoryOut(ModelSchema):
     class Meta:
         model = Story
         fields = ["uuid", "title", "description", "user"]
-
-
-class StoryIn(Schema):
-    title: str | None = None
-    description: str | None = None
 
 
 class StoryTitleOut(Schema):
@@ -131,12 +131,59 @@ class PageOut(ModelSchema):
         fields = ["uuid", "content", "image_text", "image"]
 
 
+class PageContentOut(Schema):
+    content: str
+
+
+class PageImageTextOut(Schema):
+    image_text: str
+
+
+class PageImageOut(Schema):
+    image: str
+
+
 class PageIn(Schema):
     content: str | None = None
     image_text: str | None = None
 
 
-@router.post("/{story_uuid}/pages", response=PageOut)
+@router.get("/{story_uuid}/pages", response=list[PageOut], tags=["Pages"])
+def list_pages(request, story_uuid: UUID):
+    story = get_object_or_404(Story, uuid=story_uuid)
+    if request.htmx:
+        return render(request, "cotton/stories/page/list.html", {"story": story})
+    return story.pages.all()
+
+
+@router.get("/{story_uuid}/pages/{page_uuid}", response=PageOut, tags=["Pages"])
+def get_page(request, story_uuid: UUID, page_uuid: UUID):
+    story = get_object_or_404(Story, uuid=story_uuid)
+    page = get_object_or_404(Page, uuid=page_uuid, story=story)
+    if request.htmx:
+        return render(request, "cotton/stories/page/index.html", {"page": page, "story": story})
+    return page
+
+
+@router.get("/{story_uuid}/pages/{page_uuid}/content", response=PageContentOut, tags=["Pages"])
+def get_page_content(request, story_uuid: UUID, page_uuid: UUID):
+    story = get_object_or_404(Story, uuid=story_uuid)
+    page = get_object_or_404(Page, uuid=page_uuid, story=story)
+    if request.htmx:
+        return render(request, "cotton/stories/page/content.html", {"page": page, "story": story})
+    return page
+
+
+@router.get("/{story_uuid}/pages/{page_uuid}/image_text", response=PageImageTextOut, tags=["Pages"])
+def get_page_image_text(request, story_uuid: UUID, page_uuid: UUID):
+    story = get_object_or_404(Story, uuid=story_uuid)
+    page = get_object_or_404(Page, uuid=page_uuid, story=story)
+    if request.htmx:
+        return render(request, "cotton/stories/page/image_text.html", {"page": page, "story": story})
+    return page
+
+
+@router.post("/{story_uuid}/pages", response=PageOut, tags=["Pages"])
 def create_page(request, story_uuid: UUID, payload: PageIn):
     story = get_object_or_404(Story, uuid=story_uuid)
     page = Page.objects.create(story=story, **payload.dict())
@@ -159,7 +206,7 @@ def create_page(request, story_uuid: UUID, payload: PageIn):
     return page
 
 
-@router.patch("/{story_uuid}/pages/{page_uuid}", response=PageOut)
+@router.patch("/{story_uuid}/pages/{page_uuid}", response=PageOut, tags=["Pages"])
 def update_page(request, story_uuid: UUID, page_uuid: UUID, payload: PageIn):
     story = get_object_or_404(Story, uuid=story_uuid)
     page = get_object_or_404(Page, uuid=page_uuid, story=story)
@@ -177,7 +224,7 @@ def update_page(request, story_uuid: UUID, page_uuid: UUID, payload: PageIn):
     return page
 
 
-@router.delete("/{story_uuid}/pages/{page_uuid}")
+@router.delete("/{story_uuid}/pages/{page_uuid}", tags=["Pages"])
 def delete_page(request, story_uuid: UUID, page_uuid: UUID):
     story = get_object_or_404(Story, uuid=story_uuid)
     page = get_object_or_404(Page, uuid=page_uuid, story=story)
@@ -197,7 +244,7 @@ def delete_page(request, story_uuid: UUID, page_uuid: UUID):
     return HttpResponse(status=204)
 
 
-@router.post("/{story_uuid}/pages/{page_uuid}/move/{direction}", response=PageOut)
+@router.post("/{story_uuid}/pages/{page_uuid}/move/{direction}", response=PageOut, tags=["Pages"])
 def move_page(request, story_uuid: UUID, page_uuid: UUID, direction: Literal["up", "down"]):
     story = get_object_or_404(Story, uuid=story_uuid)
     page = get_object_or_404(Page, uuid=page_uuid, story=story)
@@ -212,7 +259,7 @@ def move_page(request, story_uuid: UUID, page_uuid: UUID, direction: Literal["up
     return page
 
 
-@router.post("/{story_uuid}/pages/{page_uuid}/image", response=PageOut)
+@router.post("/{story_uuid}/pages/{page_uuid}/image", response=PageOut, tags=["Pages"])
 def upload_page_image(request, story_uuid: UUID, page_uuid: UUID, file: File[UploadedFile]):
     story = get_object_or_404(Story, uuid=story_uuid)
     page = get_object_or_404(Page, uuid=page_uuid, story=story)
@@ -235,7 +282,7 @@ def upload_page_image(request, story_uuid: UUID, page_uuid: UUID, file: File[Upl
     return page
 
 
-@router.delete("/{story_uuid}/pages/{page_uuid}/image")
+@router.delete("/{story_uuid}/pages/{page_uuid}/image", tags=["Pages"])
 def delete_page_image(request, story_uuid: UUID, page_uuid: UUID):
     story = get_object_or_404(Story, uuid=story_uuid)
     page = get_object_or_404(Page, uuid=page_uuid, story=story)

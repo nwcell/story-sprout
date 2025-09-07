@@ -75,7 +75,7 @@ def ai_page_content_job(payload: PageJob) -> str:
 def ai_page_image_text_job(payload: PageJob) -> str:
     logger.info(f"page_image_text received: {payload} (type: {type(payload)})")
     page = Page.objects.get(uuid=payload.page_uuid)
-    out = ai.prompt_completion("page_content.md", {"page": page, "generation_type": "image"})
+    out = ai.prompt_completion("page_image_text.md", {"page": page})
 
     logger.info(f"page_image_text result: {out}")
     set_page_image_text_and_notify(page, out)

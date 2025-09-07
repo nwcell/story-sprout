@@ -41,11 +41,7 @@ class AIEngine:
         return self.completion(prompt, stream=stream)
 
     def generate_image(self, prompt: str) -> str | None:
-        """Generate an image using OpenAI's DALL-E model via litellm."""
-        # Use OpenAI's DALL-E for image generation
         response = litellm.image_generation(
-            model=self.image_model, prompt=prompt, size="1024x1024", quality="standard", n=1
+            model=self.image_model, prompt=prompt, size="1024x1024", quality="auto", n=1
         )
-
-        # Return the image URL - let Django handle efficient downloading
         return response.data[0].url

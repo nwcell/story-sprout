@@ -3,5 +3,6 @@ nav:
   - PRD: prd.md
   - Architecture: architecture
   - Development: development
+  - Brain: brain
   - Project TODO: TODO.md
   - ...

@@ -29,3 +29,10 @@ def set_page_image_text_and_notify(page: Page, image_text: str) -> None:
     page.image_text = image_text
     page.save()
     send_event(story.channel, f"get_page_image_text#{page.uuid}", "")
+
+
+def set_page_image_and_notify(page: Page, image_file) -> None:
+    """Update page image and send SSE notification."""
+    story = page.story
+    page.image.save(image_file.name, image_file, save=True)
+    send_event(story.channel, f"get_page_image#{page.uuid}", "")

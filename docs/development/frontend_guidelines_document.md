@@ -7,7 +7,7 @@ This document lays out how the StorySprout frontend is built, styled, and organi
 ### 1.1 Overview
 
 *   We use **Django templates** as our base. Pages are rendered server-side, and we sprinkle in bits of dynamic behavior with **HTMX** and **Alpine.js**.
-*   **Tailwind CSS** (via the Pegasus starter kit) handles all our styling with utility-first classes—no large custom CSS files.
+*   **Tailwind CSS** is loaded via a CDN and configured directly in the main template. This allows for rapid prototyping with utility-first classes without a local build step.
 
 ### 1.2 Scalability & Maintainability
 
@@ -37,14 +37,14 @@ This document lays out how the StorySprout frontend is built, styled, and organi
 ### 2.3 Responsiveness
 
 *   Mobile-first design. Layouts adapt from phone (single-column) to tablet and desktop (multi-column) using Tailwind breakpoints (`sm`, `md`, `lg`).
-*   Flipbook reader (StPageFlip JS) works on touch devices and desktop browsers alike.
+*   The flipbook reader works on touch devices and desktop browsers alike.
 
 ## 3. Styling and Theming
 
 ### 3.1 Styling Approach
 
 *   **Utility-first** with Tailwind CSS—no heavy custom CSS files or BEM conventions. Variants (`hover:`, `focus:`) live right in the class list.
-*   We configure the Tailwind config to purge unused classes and support our color palette and spacing scale.
+*   The Tailwind configuration is defined within a `<script>` tag in the main layout. This setup is simple for development but does not include purging of unused classes.
 
 ### 3.2 Theming
 
@@ -74,8 +74,7 @@ This document lays out how the StorySprout frontend is built, styled, and organi
 
 ### 4.1 Organization
 
-*   `templates/`** directory** is organized per feature: e.g., `books/`, `profiles/`, `notifications/`.
-*   Shared UI bits live in `templates/components/`. Examples: `button.html`, `modal.html`, `form_field.html`.
+*   Templates are organized by feature within the `templates` directory. Reusable components, such as those for `django-cotton`, are located in a shared `cotton` subdirectory.
 
 ### 4.2 Reuse & Consistency
 
@@ -107,11 +106,7 @@ This document lays out how the StorySprout frontend is built, styled, and organi
 
 ### 6.1 Server-Side Routing
 
-*   All URLs are defined in Django’s `urls.py`. Examples:
-
-    *   `GET /books/` – list user’s storybooks
-    *   `POST /books/<id>/generate/` – start AI pipeline
-    *   `GET /ws/progress/<book_id>/` – WebSocket endpoint for live progress
+*   All URLs are defined in Django’s `urls.py` files. The main `core/urls.py` file includes the URL configurations from each app, which are the source of truth for the application's routing.
 
 ### 6.2 HTMX-Enhanced Navigation
 
@@ -120,15 +115,15 @@ This document lays out how the StorySprout frontend is built, styled, and organi
 
 ### 6.3 Flipbook Reader
 
-*   StPageFlip JS initializes on a container with all pages preloaded or streamed in.
+*   The flipbook component initializes on a container with all pages preloaded or streamed in.
 *   Next/previous controls and keyboard arrows trigger page turns at 60fps.
 
 ## 7. Performance Optimization
 
 ### 7.1 Asset Optimization
 
-*   Tailwind CSS built in production mode: minified, purged.
-*   JavaScript bundles for Alpine and HTMX are loaded from a CDN or minified local build.
+*   Tailwind CSS is loaded from a CDN. For production, switching to a compiled and purged CSS file would be a key optimization.
+*   JavaScript libraries like Alpine.js and HTMX are served locally from the `static/vendor/` directory.
 
 ### 7.2 Lazy Loading & Streaming
 

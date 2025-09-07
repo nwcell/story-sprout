@@ -18,8 +18,8 @@ We’re building this to spark creativity, simplify personalized bookmaking, and
 *   Character Builder with single photo upload → style-ref image
 *   5-step Plot Composer Wizard (manual edits + AI autofill)
 *   AI pipeline: GPT-4o (fallback Claude 3.7), DALL·E 3 or self-hosted SD-XL+LoRA
-*   Real-time streaming via Django Channels + HTMX (text first, then images)
-*   Flipbook reader (StPageFlip JS, mobile-first, 60 fps, keyboard & screen-reader support)
+*   **Real-time streaming via Server-Sent Events (SSE) + HTMX (text first, then images)**
+*   Flipbook reader (mobile-first, 60 fps, keyboard & screen-reader support)
 *   Print-ready PDF export (WeasyPrint, 0.5″ margins, auto-title page; US-Letter & 8×10)
 *   Safety layer: text/image moderation (violence, profanity, sexual content, self-harm)
 *   Notifications: email (SendGrid) + optional SMS (Twilio)
@@ -57,10 +57,10 @@ Pages start streaming: text types in line by line, then placeholders swap into i
 *   **AI Generation Pipeline**\
     • Text: OpenAI GPT-4o (Anthropic Claude 3.7 fallback) via Celery tasks\
     • Images: DALL·E 3 (fixed seed & style-ref) or SD-XL+LoRA self-hosted\
-    • Prompt templates in `/prompts/` folder for easy tuning\
-    • Streaming updates via Django Channels + HTMX swaps
+    • AI prompt templates are stored in dedicated files for easy tuning.\
+    • **Streaming updates via Server-Sent Events (SSE) + HTMX swaps**
 *   **Flipbook Reader**\
-    • StPageFlip JS, mobile-first, 60 fps animations\
+    • A mobile-first flipbook component with 60 fps animations\
     • Keyboard navigation + ARIA labels + alt text for screen readers\
     • Hidden “read aloud” menu
 *   **PDF Export**\
@@ -83,12 +83,12 @@ Pages start streaming: text types in line by line, then placeholders swap into i
 Frontend
 
 *   Django templates + HTMX (partial page updates)
-*   Tailwind CSS (via Pegasus starter)
+*   Tailwind CSS
 *   Alpine.js for micro-interactions
 
 Backend & Ops
 
-*   Django 5 (Pegasus scaffold)
+*   Django 5
 *   PostgreSQL (DigitalOcean Managed)
 *   Redis (broker + pub/sub for websockets)
 *   Celery workers in Docker
@@ -104,7 +104,6 @@ AI & Images
 
 *   OpenAI GPT-4o + Anthropic Claude 3.7 Sonnet
 *   DALL·E 3 (2048×2048) or self-hosted Stable Diffusion XL + LoRA
-*   Prompt files: `story.md`, `image.txt`, `lora_tune.yaml`
 
 Notifications & Moderation
 

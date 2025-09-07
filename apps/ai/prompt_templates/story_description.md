@@ -1,37 +1,56 @@
-# Generate a story description for a picture book
+# Generate a Structured Story Arc for a Picture Book
 
-Create an engaging story description (outline) for the following children's picture book:
+You are a master storyteller for young children. Your task is to create a complete, structured, and engaging story arc for a picture book based on the provided title. This story arc will be the blueprint for the entire book.
 
-{% include "_story.md" with story=story %}
-
-{% if story.description %}
-IMPORTANT: This story already has a description. Please create a SIGNIFICANTLY DIFFERENT description that takes the story in a fresh direction. Explore different themes, emotions, or plot elements while keeping the core concept.
-{% endif %}
+## Story Title
+{{ story.title }}
 
 ## Instructions
 
-Create a compelling story description for this children's picture book. Your task is to:
+Create a complete story arc with a clear beginning, middle, and end. The story must be simple, engaging, and appropriate for 2-3 year olds. It should have a gentle conflict and a positive resolution.
 
-1. Age-Appropriate Content: Design for children aged 2-3 with simple concepts and gentle themes
-2. Clear Story Arc: Include a beginning, middle, and end with a satisfying resolution
-3. Engaging Characters: Focus on relatable characters that children can connect with
-4. Learning Elements: Incorporate subtle educational themes (sharing, kindness, problem-solving, etc.)
-5. Visual Storytelling: Consider how the story will work with illustrations and visual elements
-6. Emotional Journey: Include gentle conflicts and positive resolutions that build confidence
-{% if story.description %}7. Fresh Perspective: Since there's already a description, explore a completely different angle - new characters, settings, or themes{% endif %}
+### 1. **Core Concept**
+- Develop a simple, clear plot that is easy for a toddler to follow.
+- Ensure the story has a gentle, positive theme (e.g., friendship, trying new things, kindness).
+- Create characters that are relatable and charming.
 
-{% include "_formatting_rules.md" %}
+### 2. **Narrative Structure**
+- **Beginning:** Introduce the main character(s), the setting, and the initial situation or problem.
+- **Middle:** Describe the main adventure or challenge. Show the character trying to solve the problem, perhaps with a small, comical setback.
+- **End:** Detail the resolution. Show how the problem is solved and what the character learns. End on a happy, reassuring note.
+
+### 3. **Visual Potential**
+- Think visually. The story should inspire fun and engaging illustrations.
+- Include actions and settings that are interesting to look at.
 
 ## Response Format
 
-Provide a concise story description (2-4 sentences) that outlines the main plot, characters, and theme. Focus on:
-- What happens in the story
-- Who the main character(s) are
-- What problem they solve or adventure they have
-- What children will learn or feel
+You MUST provide the story arc in the following structured format. Do not deviate from this structure. Use the headings exactly as shown below.
 
-BAD EXAMPLE:
-This is a complex narrative about a protagonist who encounters various obstacles and overcomes them through determination and wit, ultimately achieving their goals and learning valuable life lessons about perseverance.
+**Summary:**
+(A single, compelling sentence that summarizes the entire story.)
 
-GOOD EXAMPLE:
-Little Bunny wants to help Mama make carrot soup, but everything goes wrong! The carrots roll away, the water spills, and Bunny feels sad. With Mama's gentle help, Bunny learns that mistakes are okay and that trying your best is what matters most.
+**Beginning:**
+(1-2 sentences describing the start of the story. Introduce the characters and the problem.)
+
+**Middle:**
+(2-3 sentences describing the main part of the story. Detail the adventure, the challenge, and any setbacks.)
+
+**End:**
+(1-2 sentences describing the conclusion. Explain the resolution and the happy ending.)
+
+---
+
+### EXAMPLE
+
+**Summary:**
+A little firefly named Flicker learns to shine his light brightly with the help of his friends.
+
+**Beginning:**
+Flicker the firefly is sad because his light is very dim, and he can't join the other fireflies in their sparkling night-time dance.
+
+**Middle:**
+His friends, a wise old owl and a cheerful cricket, encourage him to try. They tell him to think of his happiest thoughts. Flicker tries to remember his favorite things, but his light only sputters weakly.
+
+**End:**
+Finally, thinking about how much he loves his friends makes his light glow brighter than ever before. He happily joins the firefly dance, and his friends cheer for him.

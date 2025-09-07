@@ -10,7 +10,7 @@ Story Sprout is a sophisticated web application that combines traditional storyt
 
 - **AI-Powered Writing Assistant**: Advanced AI integration for story enhancement and suggestions
 - **Modern UI/UX**: Built with Tailwind CSS, Alpine.js, and HTMX for a responsive, interactive experience
-- **Real-time Collaboration**: Dynamic content updates and live editing capabilities
+- **Real-time Updates**: Server-Sent Events (SSE) for live progress streaming
 - **Secure Authentication**: Comprehensive user management with Django Allauth
 - **Scalable Architecture**: Designed for performance with Celery, Redis, and PostgreSQL
 

@@ -70,6 +70,18 @@ class Page(OrderedModel):
     def page_number(self):
         return self.order + 1
 
+    def get_previous_page(self):
+        """Return the previous page in the story, or None if this is the first page."""
+        if self.is_first:
+            return None
+        return self.story.pages.get(order=self.order - 1)
+
+    def get_next_page(self):
+        """Return the next page in the story, or None if this is the last page."""
+        if self.is_last:
+            return None
+        return self.story.pages.get(order=self.order + 1)
+
     def __str__(self):
         story_title = self.story.title or "Untitled Story"
         return f"Page {self.page_number} of {story_title}"

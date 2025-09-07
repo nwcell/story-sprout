@@ -1,6 +1,7 @@
 nav:
   - Overview: index.md
   - PRD: prd.md
-  - TODO: TODO.md
   - Architecture: architecture
   - Development: development
+  - Project TODO: TODO.md
+  - ...

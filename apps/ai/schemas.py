@@ -12,5 +12,9 @@ class StoryJob(BaseModel):
     story_uuid: UUID
 
 
+class PageJob(BaseModel):
+    page_uuid: UUID
+
+
 # class StoryTitleOut(BaseModel):
 #     title: str

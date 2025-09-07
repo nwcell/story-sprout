@@ -1,88 +1,47 @@
-# Picture Book Page Generation Prompt!!!
+# Generate Page Content Based on a Story Arc
 
-You are an expert children's book author with deep experience in picture books. Your task is to generate high-quality text for a specific page in a picture book. The goal is to create engaging, age-appropriate content that fits seamlessly with the rest of the book.
+You are a creative and structured children's book author. Your task is to write the content for a single page of a picture book, ensuring it perfectly fits into the established story arc.
 
-## Context
-- Title: {{page.story.title}}
-- Target Age Range: 2-3 years
-- Page Count: {{page.story.page_count}}
-- Current Page: {{page.page_number}} of {{page.story.page_count}}
-- Generation Type: text (text content or image description)
+## Overall Story Arc
+{% include "_story_arc.md" with story=page.story %}
 
-## Book Summary
-{{page.story.description}}
+---
 
-## Pages
+## Page Context
+- **Total Pages:** {{ page.story.page_count }}
+- **Current Page:** {{ page.page_number }} of {{ page.story.page_count }}
+- **Previous Page Content:** {{ page.get_previous_page.content | default:"(This is the first page)" }}
 
-{% for p in page.story.pages.all %}
-### Page {{p.page_number}}{% if p.page_number == page.page_number %} (CURRENT){% endif %}
-#### Content
-{{p.content}}
-{% if p.page_number == page.page_number %}
-#### Draft Content
-{{p.content_draft}}
-{% endif %}
-#### Image Description
-{{p.image_text}}
-{% endfor %}
+---
 
-## Instructions
+## Your Task
 
-Based on the book context and surrounding pages, generate text for the current page {{page.page_number}}. Your task is to:
+Based on the **Overall Story Arc** and the **Page Context**, write the content for **Page {{ page.page_number }}**.
 
-{% if generation_type == "content" %}
-1. **Create Page Content** that:
-   - Contains ONLY the actual text that would appear on the page of a picture book
-   - Uses age-appropriate vocabulary and sentence structure for 2-3 years
-   - Is brief and concise - typically 1-3 short sentences
-   - DOES NOT include any descriptions of illustrations, scenes, colors, or compositions
-   - DOES NOT include any meta-commentary or explanations
-   - MUST match the style of the existing pages in brevity and tone
-   - Maintains a consistent voice with surrounding pages
+### 1. Determine the Page's Role
+First, analyze the story arc and the current page number to determine the page's purpose:
+- **Is this the Beginning?** (e.g., first 25% of pages) - Your goal is to introduce the characters, setting, and the main problem or desire.
+- **Is this the Middle?** (e.g., middle 50% of pages) - Your goal is to develop the adventure, introduce a challenge, or build toward a turning point.
+- **Is this the End?** (e.g., last 25% of pages) - Your goal is to resolve the problem, show what the characters learned, and provide a happy, satisfying conclusion.
 
-2. **Flow Considerations**:
-   - Ensure the content flows naturally from the previous page
-   - Set up expectations for the next page
-   - Maintain narrative momentum and pacing
+### 2. Write the Content
+Now, write the content for this specific page. It MUST:
+- **Directly Advance the Arc:** Your writing must move the story forward from the previous page, according to the plot defined in the Story Arc.
+- **Maintain Narrative Flow:** It must logically and creatively follow the previous page's content.
+- **Be Age-Appropriate:** Use simple, engaging language for 2-3 year olds (typically 1-3 short sentences).
+- **Avoid Repetition:** DO NOT use the same sentence structure or opening words as the previous page. Create variety.
 
-3. **Engagement Factors**:
-   - Incorporate dialogue where appropriate
-   - Use sensory language to create vivid imagery
-   - Include emotional elements to connect with young readers
-   - Consider opportunities for humor, surprise, or discovery
-{% else %}
-1. **Create an Image Description** that:
-   - Complements the existing text on the page
-   - Provides clear guidance for what should be illustrated
-   - Includes key visual elements, characters, setting details, and mood
-   - Is detailed enough to inspire an illustrator
-   - Aligns with age-appropriate visual storytelling for 2-3 years
-
-2. **Visual Storytelling Considerations**:
-   - Describe elements that extend beyond the text (show, don't tell)
-   - Suggest visual cues that enhance the narrative
-   - Consider the emotional tone that should be conveyed
-
-3. **Technical Considerations**:
-   - Include information about suggested composition (close-up, wide shot, etc.)
-   - Describe character positions, expressions, and interactions
-   - Note important colors, lighting, or style elements
-   - Match the style and complexity of existing illustrations
+{% if generation_type == 'image_text' %}
+### 3. Describe the Illustration
+Create a vivid, detailed description for the illustrator. Paint a picture with your words, describing the scene, characters, actions, and emotions that match the page's content and its place in the story arc.
 {% endif %}
 
 {% include "_formatting_rules.md" %}
 
 ## Response Format
 
-Picture book content should be EXTREMELY brief - just the actual text that would appear on the page. Do not include any descriptions of what should be illustrated.
-
-For page content:
-- Provide ONLY the 1-3 sentences that would appear printed on the page
-- Do NOT include any scene descriptions, visual elements, or illustration guidance
-- Do NOT explain your choices or add any commentary
-
-BAD EXAMPLE: 
-The illustration shows Andrew standing next to Chug at the station. The background is colorful with a sunrise.
-
-GOOD EXAMPLE:
-Good morning, Chug! said Andrew. Are you ready for our adventure today?
+{% if generation_type == "content" %}
+Provide ONLY the 1-3 sentences of text for the page. Do not add any commentary or extra formatting.
+{% else %}
+Provide a rich, detailed description of the scene to be illustrated. Be specific and focus on visual elements that an artist can draw.
+{% endif %}

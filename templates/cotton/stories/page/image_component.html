@@ -1,0 +1,5 @@
+<c-vars story page />
+
+<c-fields.image :image=page.image
+                upload_url="{% url 'api-1:upload_page_image' story_uuid=story.uuid page_uuid=page.uuid %}"
+                delete_url="{% url 'api-1:delete_page_image' story_uuid=story.uuid page_uuid=page.uuid %}" />

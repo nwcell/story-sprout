@@ -81,3 +81,17 @@ def ai_page_image_text(request, payload: PageJob) -> JobStatus:
     if request.htmx:
         return HttpResponse(status=204)
     return {"job_uuid": str(job.uuid), "status": job.status}
+
+
+@router.post("/jobs/page/image/generate")
+def ai_page_image_generate(request, payload: PageJob) -> JobStatus:
+    # API validates via Pydantic (Ninja) here; Celery validates again at run time.
+    logger.info(f"ai_page_image_generate received: {payload} (type: {type(payload)})")
+    job = enqueue_job(
+        user=request.user,
+        workflow="ai.page_image",
+        payload=payload,
+    )
+    if request.htmx:
+        return HttpResponse(status=204)
+    return {"job_uuid": str(job.uuid), "status": job.status}

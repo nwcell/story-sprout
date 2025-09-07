@@ -12,6 +12,7 @@ from apps.ai.util.celery import JobTask
 from apps.stories.models import Page, Story
 from apps.stories.services import (
     set_page_content_and_notify,
+    set_page_image_and_notify,
     set_page_image_text_and_notify,
     set_story_description_and_notify,
     set_story_title_and_notify,
@@ -79,3 +80,23 @@ def ai_page_image_text_job(payload: PageJob) -> str:
     logger.info(f"page_image_text result: {out}")
     set_page_image_text_and_notify(page, out)
     return f"job:{page.story.channel}:ai_page_image_text_job"
+
+
+@shared_task(name="ai.page_image", base=JobTask)
+def ai_page_image_job(payload: PageJob) -> str:
+    logger.info(f"page_image received: {payload} (type: {type(payload)})")
+    page = Page.objects.get(uuid=payload.page_uuid)
+
+    # If no image_text, generate it first
+    if not page.image_text:
+        logger.info(f"No image_text for page {page.uuid}, generating image text first")
+        ai_page_image_text_job(payload)
+        # Refresh page to get the newly generated image_text
+        page.refresh_from_db()
+
+    out = ai.generate_image(page.image_text)
+
+    logger.info(f"page_image result: {out}")
+    if out:
+        set_page_image_and_notify(page, out)
+    return f"job:{page.story.channel}:ai_page_image_job"

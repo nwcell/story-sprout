@@ -1,3 +1,7 @@
+from datetime import datetime
+
+import requests
+from django.core.files.base import ContentFile
 from django_eventstream import send_event
 
 from apps.stories.models import Page, Story
@@ -31,8 +35,15 @@ def set_page_image_text_and_notify(page: Page, image_text: str) -> None:
     send_event(story.channel, f"get_page_image_text#{page.uuid}", "")
 
 
-def set_page_image_and_notify(page: Page, image_file) -> None:
-    """Update page image and send SSE notification."""
+def set_page_image_and_notify(page: Page, image_url: str) -> None:
     story = page.story
-    page.image.save(image_file.name, image_file, save=True)
+
+    # Download and save image from URL
+    response = requests.get(image_url, timeout=30)
+    response.raise_for_status()
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"generated_image_{timestamp}.png"
+
+    page.image.save(filename, ContentFile(response.content), save=True)
     send_event(story.channel, f"get_page_image#{page.uuid}", "")

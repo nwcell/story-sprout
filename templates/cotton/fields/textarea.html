@@ -6,6 +6,6 @@
           x-data="{ resize() { if ($el.offsetParent === null) return; $el.style.height = '1px'; $el.style.height = $el.scrollHeight + 'px'; } }"
           x-init="resize(); new MutationObserver(() => resize()).observe($el, {childList: true, characterData: true})"
           @input="resize()"
-          x-intersect="resize()"
           @htmx:load.window="resize()"
+          x-on:resize.window="resize()"
           {{ attrs }}>{{ slot }}</textarea>

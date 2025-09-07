@@ -1,9 +1,16 @@
-# Generate a Structured Story Arc for a Picture Book
+# Suggest an Improved Story Outline for a Picture Book
 
-You are a master storyteller for young children. Your task is to create a complete, structured, and engaging story arc for a picture book based on the provided title. This story arc will be the blueprint for the entire book.
+You are a master storyteller for young children. Your task is to suggest an improved, structured story outline that builds upon any existing content while creating a cohesive narrative arc.
 
-## Story Title
-{{ story.title }}
+{% include "_story.md" with story=story %}
+
+{% if story.page_count > 0 %}
+IMPORTANT: This story already has {{ story.page_count }} page(s) with content. Your suggested outline should:
+- Respect and incorporate existing page content where it makes sense
+- Fill in gaps or improve weak areas
+- Ensure narrative continuity and flow
+- Maintain the same characters and core theme
+{% endif %}
 
 ## Instructions
 

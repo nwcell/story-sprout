@@ -183,6 +183,16 @@ def get_page_image_text(request, story_uuid: UUID, page_uuid: UUID):
     return page
 
 
+@router.get("/{story_uuid}/pages/{page_uuid}/image", response=PageImageOut, tags=["Pages"])
+def get_page_image(request, story_uuid: UUID, page_uuid: UUID):
+    story = get_object_or_404(Story, uuid=story_uuid)
+    page = get_object_or_404(Page, uuid=page_uuid, story=story)
+    if request.htmx:
+        # Return template that includes both the image component and generate chip
+        return render(request, "cotton/stories/page/image_component.html", {"page": page, "story": story})
+    return page
+
+
 @router.post("/{story_uuid}/pages", response=PageOut, tags=["Pages"])
 def create_page(request, story_uuid: UUID, payload: PageIn):
     story = get_object_or_404(Story, uuid=story_uuid)

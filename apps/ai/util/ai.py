@@ -1,8 +1,10 @@
 import os
+from dataclasses import dataclass
 
 import litellm
 from django.conf import settings
 from django.template import Context, Template
+from pydantic_ai import Agent
 
 
 def render_prompt(template_name: str, context: dict):
@@ -16,6 +18,19 @@ def render_prompt(template_name: str, context: dict):
     # Manually create and render template
     template = Template(template_content)
     return template.render(Context(context))
+
+
+@dataclass
+class WriterDeps:
+    api_key: str
+
+
+writer_agent = Agent(
+    "openai:gpt-4o",
+    deps_type=int,
+    output_type=bool,
+    system_prompt=("You are a childrens book ghost author.  You are helping ghostwrite childrens stories."),
+)
 
 
 class AIEngine:

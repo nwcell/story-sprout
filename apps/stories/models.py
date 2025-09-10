@@ -26,6 +26,10 @@ class Story(models.Model):
     def channel(self):
         return f"story-{self.uuid}"
 
+    def get_page_by_num(self, num):
+        """Get a page by it's page number in the book (1-indexed)"""
+        return self.pages.get(order=num - 1)
+
     class Meta:
         verbose_name = "Story"
         verbose_name_plural = "Stories"
@@ -81,6 +85,14 @@ class Page(OrderedModel):
         if self.is_last:
             return None
         return self.story.pages.get(order=self.order + 1)
+
+    @property
+    def image_binary(self):
+        """Return the binary data of the page image, or None if no image."""
+        if not self.image:
+            return None
+        with self.image.open("rb") as f:
+            return f.read()
 
     def __str__(self):
         story_title = self.story.title or "Untitled Story"

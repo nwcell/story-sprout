@@ -29,6 +29,18 @@
 			"editor.tabSize": 2,
 			"editor.insertSpaces": true
 		},
+		"[jupyter]": {
+			"editor.formatOnSave": true,
+			"editor.codeActionsOnSave": {
+				"source.fixAll.ruff": "explicit",
+				"source.organizeImports.ruff": "explicit"
+			}
+		},
+		"notebook.formatOnSave.enabled": true,
+		"notebook.codeActionsOnSave": {
+			"source.fixAll.ruff": "explicit",
+			"source.organizeImports.ruff": "explicit"
+		},
 		"ruff.enable": true,
 		"ruff.fixAll": true,
 		"ruff.organizeImports": true,

@@ -1,0 +1,10 @@
+flatten_single_child_sections: true
+append_unmatched: true
+nav:
+  - Overview: index.md
+  - PRD: prd.md
+  - Architecture: architecture
+  - Development: development
+  - LLMs: llms
+  - Brains: brain
+  # - "*"

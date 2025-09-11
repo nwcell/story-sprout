@@ -3,17 +3,17 @@
 .PHONY: manage runserver tasks makemigrations migrate db-sync kill-celery
 
 manage:
-	@uv run manage.py $*
+	@uv run --project services/web python services/web/manage.py $*
 
-dev:
+web:
 	@echo "Starting Django development server..."
-	@uv run manage.py runserver
+	@uv run --project services/web python services/web/manage.py runserver
 
 tasks:
 	@echo "Starting single Celery worker (killing any existing workers)..."
 	@echo "Clearing Redis queues to prevent stale tasks..."
 	@redis-cli DEL celery > /dev/null 2>&1 || echo "Warning: Could not clear Redis (not running?)"
-	@uv run manage.py runworker
+	@uv run --project services/web python services/web/manage.py runworker
 
 kill-celery:
 	@echo "Killing all Celery workers..."
@@ -21,13 +21,16 @@ kill-celery:
 
 makemigrations:
 	@echo "Creating database migrations..."
-	@uv run manage.py makemigrations
+	@uv run --project services/web python services/web/manage.py makemigrations
 
 migrate:
 	@echo "Applying database migrations..."
-	@uv run manage.py migrate
+	@uv run --project services/web python services/web/manage.py migrate
 
 db-sync: makemigrations migrate
 
-serve-docs:
-	@uv run mkdocs serve --dev-addr=127.0.0.1:8001
+docs-server:
+	@uv run --project services/docs_server mkdocs serve -f services/docs_server/mkdocs.yml -a localhost:8001 -w docs
+
+lab:
+	@uv run --project services/lab marimo edit services/lab/apps --watch --host 0.0.0.0 --allow-origins * --proxy travis.local:2718 --headless

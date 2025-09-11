@@ -1,0 +1,11 @@
+<c-vars story />
+
+<c-fields.input hx-patch="{% url 'api-1:update_story' story_uuid=story.uuid %}"
+                hx-trigger="keyup changed delay:1s"
+                hx-ext='json-enc'
+                name="title"
+                value="{{ story.title | default_if_none:'' }}"
+                label="Title"
+                placeholder="Enter story title"
+                class="text-2xl font-medium"
+                autocapitalize="on"/>

@@ -1,8 +1,0 @@
-<c-vars story page />
-
-<c-fields.textarea  hx-patch="{% url 'api-1:update_page' story_uuid=story.uuid page_uuid=page.uuid %}"
-                    hx-trigger="keyup changed delay:1s"
-                    hx-ext='json-enc'
-                    name="image_text"
-                    label="Image Description"
-                    placeholder="Click to add image description">{{ page.image_text|default_if_none:"" }}</c-fields.textarea>

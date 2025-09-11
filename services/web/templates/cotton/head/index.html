@@ -1,0 +1,53 @@
+{% load static %}
+{% load django_htmx %}
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Favicon Stuff -->
+<link rel="icon" type="image/png" href="{% static 'images/favicon-96x96.png' %}" sizes="96x96" />
+<link rel="icon" type="image/svg+xml" href="{% static 'images/favicon.svg' %}" />
+<link rel="shortcut icon" href="{% static 'images/favicon.ico' %}" />
+<link rel="apple-touch-icon" sizes="180x180" href="{% static 'images/apple-touch-icon.png' %}" />
+<meta name="apple-mobile-web-app-title" content="Story Sprout" />
+<link rel="manifest" href="{% static 'images/site.webmanifest' %}" />
+
+<!-- Font Preload -->
+<link rel="preload" as="font" type="font/ttf" href="{% static 'vendor/google/Space_Grotesk/SpaceGrotesk-VariableFont_wght.ttf' %}" crossorigin>
+<link rel="preload" as="style" href="{% static 'vendor/fontawesome/css/all.min.css' %}">
+
+<!-- Font Face Definition -->
+<style>
+@font-face {
+    font-family: 'Space Grotesk';
+    src: url('{% static "vendor/google/Space_Grotesk/SpaceGrotesk-VariableFont_wght.ttf" %}') format('truetype-variations');
+    font-weight: 1 999;
+    font-display: swap;
+}
+</style>
+
+{% comment %} {% include "components/tailwind_config.html" %} {% endcomment %}
+<c-head.tailwind />
+
+<!-- Custom Design System -->
+<link rel="stylesheet" href="{% static 'css/design-system.css' %}">
+<link rel="stylesheet" href="{% static 'css/components.css' %}">
+
+<!-- Font Awesome -->
+<link href="{% static 'vendor/fontawesome/css/all.min.css' %}" rel="stylesheet" />
+
+<!-- HTMX + django-htmx -->
+{% htmx_script %}
+<script defer src="{% static 'vendor/htmx/json-enc.js' %}"></script>
+<script defer src="{% static 'vendor/htmx/htmx-ext-sse.js' %}"></script>
+
+<!-- Alpine.js -->
+<script defer src="{% static 'vendor/alpine/alpine-intersect.js' %}"></script>
+<script defer src="{% static 'vendor/alpine/alpine.min.js' %}"></script>
+
+<!-- Component Scripts -->
+<script defer src="{% static 'js/image-upload.js' %}"></script>
+
+<!-- EventStream -->
+<script src="{% static 'django_eventstream/eventsource.min.js' %}"></script>
+<script src="{% static 'django_eventstream/reconnecting-eventsource.js' %}"></script>

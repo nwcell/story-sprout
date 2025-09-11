@@ -1,0 +1,93 @@
+{% comment %}
+  tailwind_config.html - Shared Tailwind CSS configuration
+  Used by all base templates to ensure consistent styling
+{% endcomment %}
+
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    black: '#121212',
+                    'dark-gray': '#292929',
+                    gray: '#4a4a4a',
+                    'light-gray': '#e0e0e0',
+                    white: '#ffffff'
+                },
+                fontFamily: {
+                    sans: ['Space Grotesk', 'sans-serif'],
+                },
+            }
+        },
+        plugins: [
+            function({ addUtilities, addBase }) {
+                addBase({
+                    '@keyframes rainbow-shift': {
+                        '0%': { 'background-position': '0% 50%' },
+                        '50%': { 'background-position': '100% 50%' },
+                        '100%': { 'background-position': '0% 50%' }
+                    }
+                });
+                
+                // Define color variants
+                const chipColors = [
+                    'pink', 'rose', 'purple', 'violet', 'indigo', 'blue', 'sky', 'cyan',
+                    'teal', 'emerald', 'green', 'lime', 'yellow', 'amber', 'orange', 
+                    'red', 'neutral', 'slate'
+                ];
+                
+                // Base utilities
+                let utilities = {
+                    '.field-sizing-content': {
+                        'field-sizing': 'content'
+                    },
+                    '.chip': {
+                        '@apply inline-flex items-center px-3 py-1.5 border rounded-full text-sm font-medium transition-all duration-200 ease-in-out hover:shadow-lg hover:scale-105 active:scale-95 cursor-pointer select-none font-sans': {},
+                        'text-transform': 'none',
+                        'font-family': 'Space Grotesk, sans-serif'
+                    },
+                    'input[type="radio"]:checked + .chip': {
+                        '@apply ring-2 ring-offset-2 shadow-lg scale-105': {}
+                    }
+                };
+                
+                // Generate chip color variants dynamically
+                chipColors.forEach(color => {
+                    utilities[`.chip-${color}`] = {
+                        [`@apply chip bg-${color}-100 border-${color}-200 text-${color}-700 hover:bg-${color}-200 hover:border-${color}-300 hover:shadow-${color}-200/50`]: {}
+                    };
+                    utilities[`input[type="radio"]:checked + .chip-${color}`] = {
+                        [`@apply ring-${color}-400`]: {}
+                    };
+                });
+                
+                // Special rainbow variant
+                utilities['.chip-rainbow'] = {
+                    '@apply chip': {},
+                    'background': 'linear-gradient(135deg, #f8d7da, #fff3cd, #d1ecf1, #d4edda, #e2d3f5, #f2d7dd)',
+                    'background-size': '300% 300%',
+                    'animation': 'rainbow-shift 6s ease-in-out infinite',
+                    'border': '1px solid #d1d5db',
+                    'color': '#6b7280'
+                };
+                utilities['input[type="radio"]:checked + .chip-rainbow'] = {
+                    '@apply ring-purple-400': {}
+                };
+                
+                addUtilities(utilities);
+            }
+        ],
+        variants: {
+            extend: {
+                // Add HTMX state variants for interactive UI feedback
+                opacity: ['htmx-requesting', 'htmx-indicator', 'htmx-settling'],
+                backgroundColor: ['htmx-requesting', 'htmx-settling'],
+                cursor: ['htmx-requesting', 'htmx-settling'],
+                display: ['htmx-indicator', 'htmx-requesting', 'htmx-settling', 'group-hover'],
+                scale: ['htmx-settling']
+            }
+        }
+    }
+</script>

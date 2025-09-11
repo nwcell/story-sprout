@@ -1,0 +1,8 @@
+title: Development
+nav:
+  - Scaffolding: scaffolding.md
+  - Frontend: frontend_guidelines_document.md
+  - Backend: backend_structure_document.md
+  - UI Patterns: ui_patterns.md
+  - HTMX Patterns: htmx_patterns.md
+  - Ruff Usage: ruff-usage.md

@@ -1,0 +1,29 @@
+<c-vars name="ai-chip" emoji="🖋" color="neutral" value="" type="radio" />
+
+{% comment %}
+  Valid chip colors:
+  pink, rose, purple, violet, indigo, blue, sky, cyan,
+  teal, emerald, green, lime, yellow, amber, orange,
+  red, neutral, slate, rainbow
+{% endcomment %}
+
+{% if type == 'radio' %}
+<input type="radio"
+       id="{{ name }}-{{ slot|default:'Do something'|slugify }}"
+       name="{{ name }}"
+       value={% if value %}"{{ value }}"{% else %}"{{ slot|default:'Do something' }}"{% endif %}
+       class="sr-only"
+       {{ attrs }}>
+<label for="{{ name }}-{{ slot|default:'Do something'|slugify }}"
+       class="chip-{{ color|default:'neutral' }}">
+  {% if emoji %}<span class="mr-1">{{emoji}}</span>{% endif %}
+  <span>{{ slot|default:"Do something" }}</span>
+</label>
+{% elif type == 'button' %}
+<button type="button"
+        class="chip-{{ color|default:'neutral' }} m-2"
+        {{ attrs }}>
+  {% if emoji %}<span class="mr-1">{{emoji}}</span>{% endif %}
+  <span>{{ slot|default:"Do something" }}</span>
+</button>
+{% endif %}

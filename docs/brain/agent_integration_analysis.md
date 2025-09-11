@@ -57,25 +57,24 @@ To refine the integration strategy, let's explore some critical questions.
 
 ## 3. Checklist for Optimizing `agent_01.py`
 
-This checklist focuses on refactoring the notebook code to follow best practices before integrating it.
+This checklist focuses on refactoring the notebook code to follow pydantic-ai best practices before integrating it.
 
-- [ ] **Convert Dataclasses to Pydantic Models**
-    - [ ] Change `Dependencies` from `@dataclass` to `pydantic.BaseModel`.
-    - [ ] Change `ImageDependencies` from `@dataclass` to `pydantic.BaseModel`.
-    - [ ] Remove the `Page` dataclass, as `PageSchema` already serves this purpose.
+- [x] **Use Correct Data Structures**
+    - [x] Keep `@dataclass` for `Dependencies` and `ImageDependencies` (per [pydantic-ai dependencies docs](https://ai.pydantic.dev/dependencies/#defining-dependencies))
+    - [x] Remove the `Page` dataclass, as `PageSchema` already serves this purpose.
 
-- [ ] **Refactor Tool Functions**
-    - [ ] Remove all Django ORM calls (`.objects.get()`) from the tool functions.
-    - [ ] Modify tool functions to accept specific IDs or parameters, not a `RunContext` that encourages direct dependency access.
-    - [ ] Ensure all I/O-bound tool functions are `async`.
+- [ ] **Follow Tool Function Patterns**
+    - [ ] Ensure all tools use `@agent.tool` decorator and accept `RunContext[Dependencies]` as first parameter (per [tools documentation](https://ai.pydantic.dev/tools/#registering-via-decorator))
+    - [ ] Keep Django ORM calls in tool functions - tools are meant to perform I/O operations directly (see [weather agent example](https://ai.pydantic.dev/examples/weather-agent/))
+    - [ ] Ensure all I/O-bound tool functions are `async`
 
-- [ ] **Decouple Dependencies**
-    - [ ] The `Dependencies` model should contain only simple, serializable data (like `story_uuid`), not instantiated clients like `GoogleClient`.
-    - [ ] Clients and other heavy objects should be initialized within the context where the agent runs (e.g., inside the Celery task), not passed as dependencies.
+- [ ] **Proper Dependency Management**
+    - [ ] Dependencies can contain runtime objects like `GoogleClient` - this is the intended pattern (see [weather agent with AsyncClient](https://ai.pydantic.dev/examples/weather-agent/))
+    - [ ] Initialize clients once and pass them through dependencies for efficiency
 
-- [ ] **Centralize Agent Configuration**
-    - [ ] Move the agent's definition (`Agent(...)`) into a dedicated factory function or class.
-    - [ ] Externalize the `system_prompt` and `model` name into Django settings or a database model.
+- [ ] **Agent Configuration**
+    - [ ] Move the agent's definition (`Agent(...)`) into a dedicated factory function or class for reusability
+    - [ ] Externalize the `system_prompt` and `model` name into Django settings or a database model
 
 ## 4. Action Plan for Application Integration
 

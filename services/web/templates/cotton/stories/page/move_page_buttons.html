@@ -1,0 +1,20 @@
+<div id="move-page-buttons-{{ page.uuid }}" {% if oob %}hx-swap-oob="true"{% endif %}>
+  {% if not page.is_first %}
+    <button type="button"
+            hx-post="{% url 'api-1:move_page' story_uuid=story.uuid page_uuid=page.uuid direction='up' %}"
+            hx-target="#story-pages"
+            hx-swap="outerHTML"
+            class="p-1 rounded-full text-gray-400 transition-colors hover:text-blue-500">
+      <i class="fa-solid fa-arrow-up"></i>
+    </button>
+  {% endif %}
+  {% if not page.is_last %}
+    <button type="button"
+            hx-post="{% url 'api-1:move_page' story_uuid=story.uuid page_uuid=page.uuid direction='down' %}"
+            hx-target="#story-pages"
+            hx-swap="outerHTML"
+            class="p-1 rounded-full text-gray-400 transition-colors hover:text-blue-500">
+      <i class="fa-solid fa-arrow-down"></i>
+    </button>
+  {% endif %}
+</div>

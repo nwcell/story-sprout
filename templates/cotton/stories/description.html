@@ -1,8 +1,0 @@
-<c-vars story />
-
-<c-fields.textarea  hx-patch="{% url 'api-1:update_story' story_uuid=story.uuid %}"
-                    hx-trigger="keyup changed delay:1s"
-                    hx-ext='json-enc'
-                    name="description"
-                    label="Description"
-                    placeholder="Click to add a description">{{ story.description | default_if_none:'' }}</c-fields.textarea>

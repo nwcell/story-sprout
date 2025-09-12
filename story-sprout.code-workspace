@@ -56,10 +56,10 @@
 		"python.testing.pytestEnabled": true,
 		"python.testing.unittestEnabled": false,
 		"python.testing.pytestArgs": [
-			"libs/pydantic-ai-stash/tests"
+			"."
 		],
 		"python.testing.cwd": "${workspaceFolder}",
-		"python.testing.pytestPath": "${workspaceFolder}/libs/pydantic-ai-stash/.venv/bin/python",
+		"python.testing.pytestPath": "${workspaceFolder}/.venv/bin/python",
 		"python.testing.autoTestDiscoverOnSaveEnabled": true,
 		"makefile.configureOnOpen": false
 	}

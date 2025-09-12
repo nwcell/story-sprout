@@ -39,9 +39,9 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/celery-typed"
-Repository = "https://github.com/yourusername/celery-typed"
-Issues = "https://github.com/yourusername/celery-typed/issues"
+Homepage = "https://github.com/nwcell/celery-typed"
+Repository = "https://github.com/nwcell/celery-typed"
+Issues = "https://github.com/nwcell/celery-typed/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/celery_typed"]

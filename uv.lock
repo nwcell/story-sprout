@@ -3554,13 +3554,19 @@ dev = [
     { name = "pydantic-ai" },
     { name = "pytest" },
     { name = "pytest-cov" },
+    { name = "pytest-django" },
     { name = "pytest-xdist" },
     { name = "ruff" },
 ]
 
 [package.dev-dependencies]
 dev = [
+    { name = "celery-typed" },
     { name = "pydantic-ai-stash" },
+    { name = "pytest" },
+    { name = "pytest-cov" },
+    { name = "pytest-django" },
+    { name = "pytest-xdist" },
 ]
 
 [package.metadata]
@@ -3569,12 +3575,20 @@ requires-dist = [
     { name = "pydantic-ai", marker = "extra == 'dev'", specifier = ">=1.0.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0.0" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=4.0.0" },
+    { name = "pytest-django", marker = "extra == 'dev'", specifier = ">=4.0.0" },
     { name = "pytest-xdist", marker = "extra == 'dev'", specifier = ">=3.0.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.12.9" },
 ]
 
 [package.metadata.requires-dev]
-dev = [{ name = "pydantic-ai-stash", editable = "libs/pydantic-ai-stash" }]
+dev = [
+    { name = "celery-typed", editable = "libs/celery-typed" },
+    { name = "pydantic-ai-stash", editable = "libs/pydantic-ai-stash" },
+    { name = "pytest", specifier = ">=8.4.2" },
+    { name = "pytest-cov", specifier = ">=7.0.0" },
+    { name = "pytest-django", specifier = ">=4.11.1" },
+    { name = "pytest-xdist", specifier = ">=3.8.0" },
+]
 
 [[package]]
 name = "story-sprout-web"

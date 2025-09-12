@@ -13,6 +13,7 @@ members = [
     "services/web",
     "services/docs_server",
     "services/lab",
+    "services/mcp",
     "libs/celery-typed",
     "libs/pydantic-ai-stash",
 ]

@@ -940,6 +940,22 @@ wheels = [
 ]
 
 [[package]]
+name = "django-mcp-server"
+version = "0.5.6"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+    { name = "djangorestframework" },
+    { name = "inflection" },
+    { name = "mcp" },
+    { name = "uritemplate" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/f6/90/6b828a731dd5f2247022f355de2a0deb95edb578d6d8307b7a3910559df0/django_mcp_server-0.5.6.tar.gz", hash = "sha256:d3467b7e7b24627ca0aa6b8a09a35e370523f3a8b2da7d91200c3e394e39aeb1", size = 23734 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b0/d7/57c5d7049635300bed2abb9a060d1873be94d6e95b15d9ba59c7b6f666d3/django_mcp_server-0.5.6-py3-none-any.whl", hash = "sha256:27bc058dfe583bd167a1955e7433fdc1c7efabe70ca0cce587c8880caca7d369", size = 26200 },
+]
+
+[[package]]
 name = "django-ninja"
 version = "1.4.3"
 source = { registry = "https://pypi.org/simple" }
@@ -995,6 +1011,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/24/91/08f3278cc7402499c73ac655e64d73cdf31e820180dc5701a6f04e0c142a/django_template_partials-25.1.tar.gz", hash = "sha256:200c3b395dc6d0d89d17baf2d7f9afee88a6ba9633ebf593b61317b35fafed1f", size = 17272 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/bf/7b/f9939d5b8d8c5613e7e14293756f655b7153520285bde966ea360167b010/django_template_partials-25.1-py2.py3-none-any.whl", hash = "sha256:c32137a972a8e4d5102422f5cd6176bea33df5b84745e9ceb3ede9aa004bd6ea", size = 9398 },
+]
+
+[[package]]
+name = "djangorestframework"
+version = "3.16.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/8a/95/5376fe618646fde6899b3cdc85fd959716bb67542e273a76a80d9f326f27/djangorestframework-3.16.1.tar.gz", hash = "sha256:166809528b1aced0a17dc66c24492af18049f2c9420dbd0be29422029cfc3ff7", size = 1089735 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b0/ce/bf8b9d3f415be4ac5588545b5fcdbbb841977db1c1d923f7568eeabe1689/djangorestframework-3.16.1-py3-none-any.whl", hash = "sha256:33a59f47fb9c85ede792cbf88bde71893bcda0667bc573f784649521f1102cec", size = 1080442 },
 ]
 
 [[package]]
@@ -1540,6 +1568,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/27/87/156b374ff6578062965afe30cc57627d35234369b3336cf244b240c8d8e6/incremental-24.7.2.tar.gz", hash = "sha256:fb4f1d47ee60efe87d4f6f0ebb5f70b9760db2b2574c59c8e8912be4ebd464c9", size = 28157 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/0d/38/221e5b2ae676a3938c2c1919131410c342b6efc2baffeda395dd66eeca8f/incremental-24.7.2-py3-none-any.whl", hash = "sha256:8cb2c3431530bec48ad70513931a760f446ad6c25e8333ca5d95e24b0ed7b8fe", size = 20516 },
+]
+
+[[package]]
+name = "inflection"
+version = "0.5.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/e1/7e/691d061b7329bc8d54edbf0ec22fbfb2afe61facb681f9aaa9bff7a27d04/inflection-0.5.1.tar.gz", hash = "sha256:1a29730d366e996aaacffb2f1f1cb9593dc38e2ddd30c91250c6dde09ea9b417", size = 15091 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/59/91/aa6bde563e0085a02a435aa99b49ef75b0a4b062635e606dab23ce18d720/inflection-0.5.1-py2.py3-none-any.whl", hash = "sha256:f38b2b640938a4f35ade69ac3d053042959b62a0f1076a5bbaa1b9526605a8a2", size = 9454 },
 ]
 
 [[package]]
@@ -3885,6 +3922,7 @@ dependencies = [
     { name = "django-eventstream" },
     { name = "django-htmx" },
     { name = "django-markdownx" },
+    { name = "django-mcp-server" },
     { name = "django-ninja" },
     { name = "django-ordered-model" },
     { name = "django-render-block" },
@@ -3931,6 +3969,7 @@ requires-dist = [
     { name = "django-eventstream", specifier = ">=5.3.2" },
     { name = "django-htmx", specifier = ">=1.23.2" },
     { name = "django-markdownx", specifier = ">=4.0.9" },
+    { name = "django-mcp-server", specifier = ">=0.5.6" },
     { name = "django-ninja", specifier = ">=1.4.3" },
     { name = "django-ordered-model", specifier = ">=3.7.4" },
     { name = "django-render-block", specifier = ">=0.11" },
@@ -4251,6 +4290,15 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/30/ed/5a057199fb0a5deabe0957073a1c1c1c02a3e99476cd03daee98ea21fa57/ujson-5.11.0-cp314-cp314t-win32.whl", hash = "sha256:aa6d7a5e09217ff93234e050e3e380da62b084e26b9f2e277d2606406a2fc2e5", size = 41859 },
     { url = "https://files.pythonhosted.org/packages/aa/03/b19c6176bdf1dc13ed84b886e99677a52764861b6cc023d5e7b6ebda249d/ujson-5.11.0-cp314-cp314t-win_amd64.whl", hash = "sha256:48055e1061c1bb1f79e75b4ac39e821f3f35a9b82de17fce92c3140149009bec", size = 46183 },
     { url = "https://files.pythonhosted.org/packages/5d/ca/a0413a3874b2dc1708b8796ca895bf363292f9c70b2e8ca482b7dbc0259d/ujson-5.11.0-cp314-cp314t-win_arm64.whl", hash = "sha256:1194b943e951092db611011cb8dbdb6cf94a3b816ed07906e14d3bc6ce0e90ab", size = 40264 },
+]
+
+[[package]]
+name = "uritemplate"
+version = "4.2.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/98/60/f174043244c5306c9988380d2cb10009f91563fc4b31293d27e17201af56/uritemplate-4.2.0.tar.gz", hash = "sha256:480c2ed180878955863323eea31b0ede668795de182617fef9c6ca09e6ec9d0e", size = 33267 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a9/99/3ae339466c9183ea5b8ae87b34c0b897eda475d2aec2307cae60e5cd4f29/uritemplate-4.2.0-py3-none-any.whl", hash = "sha256:962201ba1c4edcab02e60f9a0d3821e82dfc5d2d6662a21abd533879bdb8a686", size = 11488 },
 ]
 
 [[package]]

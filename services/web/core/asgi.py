@@ -1,16 +1,37 @@
 """
 ASGI config for core project.
 
-It exposes the ASGI callable as a module-level variable named ``application``.
+Co-hosts Django and the MCP server in the same runtime:
+  - Django at `/`
+  - MCP at `/mcp`
 
-For more information on this file, see
-https://docs.djangoproject.com/en/5.2/howto/deployment/asgi/
+Run with your normal ASGI server (uvicorn/daphne/gunicorn+uvicorn worker).
 """
 
 import os
 
 from django.core.asgi import get_asgi_application
+from starlette.applications import Starlette
+from starlette.routing import Mount
+
+from mcp_service.server import mcp
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "core.settings")
 
-application = get_asgi_application()
+import django
+
+django.setup()
+
+
+# Django ASGI app
+django_asgi = get_asgi_application()
+
+# MCP ASGI app (defined in services/web/mcp/app.py)
+
+# Compose: Starlette routes `/mcp` to MCP, everything else to Django
+application = Starlette(
+    routes=[
+        Mount("/mcp", app=mcp.streamable_http_app()),
+        Mount("/", app=django_asgi),
+    ]
+)

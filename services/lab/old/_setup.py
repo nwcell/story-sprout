@@ -11,9 +11,14 @@ from pathlib import Path
 
 
 def setup():
-    # Add the project root to Python path
-    project_root = Path(__file__).parent.parent
-    sys.path.insert(0, str(project_root))
+    # Add the web service root to Python path (where Django core is located)
+    web_service_root = Path(__file__).parent.parent.parent / "web"
+    print(f"🔍 Calculated web service root: {web_service_root}")
+    print(f"🔍 Path exists: {web_service_root.exists()}")
+    print(f"🔍 Core directory exists: {(web_service_root / 'core').exists()}")
+
+    sys.path.insert(0, str(web_service_root))
+    print(f"🔍 Python path now includes: {str(web_service_root)}")
 
     # Set Django Environment Settings
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "core.settings")
@@ -25,7 +30,7 @@ def setup():
     django.setup()
 
     print("✅ Django environment loaded successfully!")
-    print(f"📁 Project root: {project_root}")
+    print(f"📁 Web service root: {web_service_root}")
     print("🚀 Ready to use Django models and services")
 
 

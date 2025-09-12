@@ -7,6 +7,7 @@ requires-python = ">=3.13"
 dependencies = [
     "marimo[recommended]>=0.15.3",
     "python-lsp-server>=1.13.1",
+    "pydantic-ai-stash",
     "story-sprout-web",
 ]
 
@@ -17,4 +18,5 @@ py-modules = ["web_setup"]
 
 [tool.uv.sources]
 celery-typed = { workspace = true }
+pydantic-ai-stash = { workspace = true }
 story-sprout-web = { workspace = true }

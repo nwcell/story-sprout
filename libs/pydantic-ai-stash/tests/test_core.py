@@ -256,7 +256,7 @@ class TestBinaryStash:
                 return BinaryContent(data=item.data * 2, media_type=item.media_type)
             return None
 
-        stash._transform_message_content(msg, [BinaryContent], transform_fn)
+        stash._transform_message_content(msg, stash.storage.stash_filter, transform_fn)
 
         # Check that BinaryContent was transformed
         content = msg.parts[0].content
@@ -276,7 +276,7 @@ class TestBinaryStash:
                 return BinaryContent(data=item.data.upper(), media_type=item.media_type)
             return None
 
-        stash._transform_message_content(msg, [BinaryContent], transform_fn)
+        stash._transform_message_content(msg, stash.storage.stash_filter, transform_fn)
 
         # Check that BinaryContent was transformed
         assert isinstance(msg.parts[0].content, BinaryContent)
@@ -296,7 +296,7 @@ class TestBinaryStash:
         def transform_fn(item):
             return BinaryContent(data=b"transformed")
 
-        stash._transform_message_content(msg, [BinaryContent], transform_fn)
+        stash._transform_message_content(msg, stash.storage.stash_filter, transform_fn)
 
         # Content should be unchanged
         assert msg.parts[0].content == original_content
@@ -313,7 +313,7 @@ class TestBinaryStash:
         def transform_fn(item):
             return None  # Always return None
 
-        stash._transform_message_content(msg, [BinaryContent], transform_fn)
+        stash._transform_message_content(msg, stash.storage.stash_filter, transform_fn)
 
         # Content should be unchanged when transform returns None
         assert msg.parts[0].content[0] == original_bc

@@ -18,8 +18,10 @@ class TestBaseStorageAdapter:
 
         key = adapter.key_for(bc)
 
-        # Should be a valid UUID string
-        assert uuid.UUID(key)  # Will raise ValueError if not a valid UUID
+        # Should be a UUID with file extension
+        assert key.endswith(".jpg")
+        base_key = key.removesuffix(".jpg")
+        assert uuid.UUID(base_key)  # Will raise ValueError if not a valid UUID
 
     def test_key_for_content_without_media_type(self):
         """Test key generation when media_type is None."""
@@ -36,12 +38,12 @@ class TestBaseStorageAdapter:
         adapter = MockStorageAdapter()
         bc = BinaryContent(
             data=b"test data",
-            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            media_type="application/vnd.api+json; charset=utf-8",
         )
 
         key = adapter.key_for(bc)
 
-        # Should be a valid UUID string
+        # Should be a plain UUID (no extension for unknown media type)
         assert uuid.UUID(key)  # Will raise ValueError if not a valid UUID
 
     @pytest.mark.parametrize(
@@ -61,8 +63,15 @@ class TestBaseStorageAdapter:
 
         key = adapter.key_for(bc)
 
-        # Should be a valid UUID string
-        assert uuid.UUID(key)  # Will raise ValueError if not a valid UUID
+        # Should be a UUID with possible file extension
+        if media_type in ("image/png", "video/mp4"):
+            # Known media types that have extensions
+            assert "." in key
+            base_key = key.split(".")[0]
+            assert uuid.UUID(base_key)
+        else:
+            # Unknown, unsupported, or None media types get plain UUID
+            assert uuid.UUID(key)
 
     def test_key_for_uniqueness(self):
         """Test that key generation produces unique keys."""
@@ -75,8 +84,12 @@ class TestBaseStorageAdapter:
         key2 = adapter.key_for(bc2)
 
         # Keys should be different UUIDs even for identical content
-        assert uuid.UUID(key1)
-        assert uuid.UUID(key2)
+        assert key1.endswith(".jpg")
+        assert key2.endswith(".jpg")
+        base_key1 = key1.removesuffix(".jpg")
+        base_key2 = key2.removesuffix(".jpg")
+        assert uuid.UUID(base_key1)
+        assert uuid.UUID(base_key2)
         assert key1 != key2
 
     def test_key_for_different_data_different_keys(self):
@@ -89,9 +102,13 @@ class TestBaseStorageAdapter:
         key1 = adapter.key_for(bc1)
         key2 = adapter.key_for(bc2)
 
-        # Should be different UUIDs
-        assert uuid.UUID(key1)
-        assert uuid.UUID(key2)
+        # Should be different UUIDs with extensions
+        assert key1.endswith(".jpg")
+        assert key2.endswith(".jpg")
+        base_key1 = key1.removesuffix(".jpg")
+        base_key2 = key2.removesuffix(".jpg")
+        assert uuid.UUID(base_key1)
+        assert uuid.UUID(base_key2)
         assert key1 != key2
 
 
@@ -156,8 +173,9 @@ class TestFSAdapter:
         with pytest.raises(RuntimeError, match="Failed to store data for key"):
             adapter.put("test-key", b"data")
 
-        # Cleanup
+        # Cleanup - restore permissions and remove directory
         invalid_path.chmod(0o755)
+        invalid_path.rmdir()
 
     def test_exists_os_error_handling(self, temp_storage_dir):
         """Test exists handles OS errors gracefully."""

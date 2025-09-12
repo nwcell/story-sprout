@@ -1,6 +1,5 @@
 """Test configuration and fixtures for pydantic-ai-stash."""
 
-import tempfile
 from collections.abc import Iterator
 from pathlib import Path
 
@@ -12,9 +11,14 @@ from pydantic_ai_stash.adapters import FSAdapter
 
 @pytest.fixture
 def temp_storage_dir() -> Iterator[Path]:
-    """Provide a temporary directory for testing storage."""
-    with tempfile.TemporaryDirectory() as temp_dir:
-        yield Path(temp_dir)
+    """Provide a directory for testing storage."""
+    storage_dir = Path(__file__).parent / "test_stash"
+
+    # Create directory if it doesn't exist
+    storage_dir.mkdir(exist_ok=True)
+
+    # Do NOT clean directory - let binaries persist for viewing
+    yield storage_dir
 
 
 @pytest.fixture

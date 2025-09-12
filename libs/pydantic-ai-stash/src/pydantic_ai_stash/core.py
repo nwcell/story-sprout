@@ -87,18 +87,26 @@ class BinaryStash:
             raise RuntimeError(f"Failed to load binary content: {e}") from e
 
     def _transform_message_content(
-        self, msg: ModelMessage, target_types: list[type], transform_fn: Callable[[object], object]
+        self,
+        msg: ModelMessage,
+        filter_fn: Callable[[object], bool],
+        transform_fn: Callable[[object], object],
     ) -> None:
-        """Traverse message content and apply transform_fn to items matching target_types."""
-        for part in msg.parts:
-            if hasattr(part, "content"):
+        """Traverse message content and apply transform_fn to items matching filter_fn."""
+        # Handle parts that are directly filterable (e.g., BinaryContent as parts)
+        for i, part in enumerate(msg.parts):
+            if filter_fn(part):
+                result = transform_fn(part)
+                if result is not None:
+                    msg.parts[i] = result
+            elif hasattr(part, "content"):
                 if isinstance(part.content, list):
-                    for i, item in enumerate(part.content):
-                        if any(isinstance(item, t) for t in target_types):
+                    for j, item in enumerate(part.content):
+                        if filter_fn(item):
                             result = transform_fn(item)
                             if result is not None:
-                                part.content[i] = result
-                elif any(isinstance(part.content, t) for t in target_types):
+                                part.content[j] = result
+                elif filter_fn(part.content):
                     result = transform_fn(part.content)
                     if result is not None:
                         part.content = result
@@ -107,17 +115,20 @@ class BinaryStash:
         """Replace all BinaryContent in messages with media:// URLs."""
         if isinstance(messages, ModelRequest | ModelResponse):
             messages = [messages]
+        result = []
         for msg in messages:
             new_msg = copy.deepcopy(msg)
-            self._transform_message_content(new_msg, [BinaryContent], self.stash_binary)
-            yield new_msg
+            self._transform_message_content(new_msg, self.storage.stash_filter, self.stash_binary)
+            result.append(new_msg)
+        return result
 
     def load_binaries_in_messages(self, messages: ModelMessage | Iterable[ModelMessage]):
         """Replace media:// URLs with BinaryContent."""
-        url_types = [AudioUrl, DocumentUrl, ImageUrl, VideoUrl]
         if isinstance(messages, ModelRequest | ModelResponse):
             messages = [messages]
+        result = []
         for msg in messages:
             new_msg = copy.deepcopy(msg)
-            self._transform_message_content(new_msg, url_types, self.load_binary)
-            yield new_msg
+            self._transform_message_content(new_msg, self.storage.load_filter, self.load_binary)
+            result.append(new_msg)
+        return result

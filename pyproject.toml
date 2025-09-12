@@ -13,14 +13,8 @@ members = [
     "services/web",
     "services/docs_server",
     "services/lab",
-    "services/mcp",
-    "libs/celery-typed",
-    "libs/pydantic-ai-stash",
 ]
 
-[tool.uv.sources]
-pydantic-ai-stash = { workspace = true }
-celery-typed = { workspace = true }
 
 [project.optional-dependencies]
 dev = [
@@ -55,8 +49,6 @@ docstring-code-line-length = 79
 [tool.pytest.ini_options]
 addopts = "-q --maxfail=1"
 testpaths = [
-    "libs/pydantic-ai-stash/tests",
-    "libs/celery-typed/tests",
     "services/web/tests"
 ]
 # Exclude patterns for workspace-level discovery
@@ -70,8 +62,6 @@ norecursedirs = [
 
 [dependency-groups]
 dev = [
-    "celery-typed",
-    "pydantic-ai-stash",
     "pytest>=8.4.2",
     "pytest-cov>=7.0.0",
     "pytest-django>=4.11.1",

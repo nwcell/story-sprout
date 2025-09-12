@@ -1,7 +1,16 @@
 {
 	"folders": [
 		{
-			"path": "."
+			"path": ".",
+			"name": "Story Sprout"
+		},
+		{
+			"path": "../_libs/pydantic-ai-stash/",
+			"name": "Pydantic AI Stash"
+		},
+		{
+			"path": "../_libs/celery-typed/",
+			"name": "Celery Typed"
 		}
 	],
 	"settings": {

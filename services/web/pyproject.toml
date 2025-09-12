@@ -35,6 +35,7 @@ dependencies = [
     "psutil>=7.0.0",
     "psycopg[binary]>=3.2.9",
     "pydantic-ai>=1.0.1",
+    "pydantic-ai-stash",
     "python-dotenv>=1.1.1",
     "redis>=6.2.0",
     "requests>=2.32.4",
@@ -72,9 +73,6 @@ quote-style = "double"
 skip-magic-trailing-comma = false
 docstring-code-line-length = 79
 
-[tool.uv.sources]
-celery-typed = { workspace = true }
-
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "core.settings"
 python_files = ["tests.py", "test_*.py", "*_test.py"]
@@ -86,3 +84,7 @@ addopts = [
     "--reuse-db",
     "-v",
 ]
+
+[tool.uv.sources]
+pydantic-ai-stash = { path = "../../../_libs/pydantic-ai-stash", editable = true }
+celery-typed = { path = "../../../_libs/celery-typed", editable = true }

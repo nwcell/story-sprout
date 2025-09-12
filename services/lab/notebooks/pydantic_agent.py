@@ -2,8 +2,6 @@ import mimetypes
 from dataclasses import dataclass, field
 from uuid import UUID
 
-from apps.stories.models import Story
-
 # from apps.stories.schema import PageSchema, StorySchema
 from google.genai import Client as GoogleClient
 from pydantic import Schema
@@ -43,8 +41,8 @@ class StorySchema(Schema):
 
 @dataclass
 class Dependencies:
-    # story_uuid: UUID
-    story: Story
+    story_uuid: UUID
+    # story: Story
     image: ImageDependencies = field(default_factory=lambda: ImageDependencies())
 
 

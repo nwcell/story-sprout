@@ -5,10 +5,10 @@ description = "Lab for Story Sprout"
 # readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "celery-typed",
     "marimo[recommended]>=0.15.3",
-    "python-lsp-server>=1.13.1",
     "pydantic-ai-stash",
-    "story-sprout-web",
+    "python-lsp-server>=1.13.1",
 ]
 
 [tool.setuptools]
@@ -17,6 +17,6 @@ py-modules = ["web_setup"]
 # packages = []
 
 [tool.uv.sources]
-celery-typed = { workspace = true }
-pydantic-ai-stash = { workspace = true }
 story-sprout-web = { workspace = true }
+pydantic-ai-stash = { path = "../../../_libs/pydantic-ai-stash", editable = true }
+celery-typed = { path = "../../../_libs/celery-typed", editable = true }

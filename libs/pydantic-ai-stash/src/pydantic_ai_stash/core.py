@@ -10,6 +10,8 @@ from pydantic_ai.messages import (
     DocumentUrl,
     ImageUrl,
     ModelMessage,
+    ModelRequest,
+    ModelResponse,
     VideoUrl,
 )
 
@@ -99,16 +101,20 @@ class BinaryStash:
                     if result is not None:
                         part.content = result
 
-    def stash_binaries_in_messages(self, messages: Iterable[ModelMessage]):
+    def stash_binaries_in_messages(self, messages: ModelMessage | Iterable[ModelMessage]):
         """Replace all BinaryContent in messages with media:// URLs."""
+        if isinstance(messages, ModelRequest | ModelResponse):
+            messages = [messages]
         for msg in messages:
             new_msg = copy.deepcopy(msg)
             self._transform_message_content(new_msg, [BinaryContent], self.stash_binary)
             yield new_msg
 
-    def load_binaries_in_messages(self, messages: Iterable[ModelMessage]):
+    def load_binaries_in_messages(self, messages: ModelMessage | Iterable[ModelMessage]):
         """Replace media:// URLs with BinaryContent."""
         url_types = [AudioUrl, DocumentUrl, ImageUrl, VideoUrl]
+        if isinstance(messages, ModelRequest | ModelResponse):
+            messages = [messages]
         for msg in messages:
             new_msg = copy.deepcopy(msg)
             self._transform_message_content(new_msg, url_types, self.load_binary)

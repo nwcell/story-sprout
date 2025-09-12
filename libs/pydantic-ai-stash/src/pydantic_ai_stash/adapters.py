@@ -1,5 +1,5 @@
-import hashlib
 import pathlib
+import uuid
 from abc import ABC, abstractmethod
 from typing import BinaryIO, Protocol
 
@@ -18,18 +18,8 @@ class BaseStorageAdapter(StorageAdapter, ABC):
         pass
 
     def key_for(self, bc: BinaryContent) -> str:
-        """Generate a stable content-based key for deduplication."""
-        # Create hash from binary data for deduplication
-        content_hash = hashlib.sha256(bc.data).hexdigest()
-
-        # Include media_type and identifier if available for uniqueness
-        key_parts = [content_hash]
-        if bc.media_type:
-            key_parts.append(bc.media_type.replace("/", "_"))
-        if bc.identifier:
-            key_parts.append(str(bc.identifier))
-
-        return "_".join(key_parts)
+        """Generate a unique key for binary content using UUID."""
+        return str(uuid.uuid4())
 
     # I/O to be provided by concrete adapters
     @abstractmethod

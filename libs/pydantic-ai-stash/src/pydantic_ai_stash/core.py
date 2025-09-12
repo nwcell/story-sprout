@@ -54,9 +54,7 @@ class BinaryStash:
     def stash_binary(self, bc: BinaryContent) -> UrlPart:
         """Stash a single BinaryContent object and return the typed URL."""
         try:
-            key = self.storage.key_for(bc)
-            if not self.storage.exists(key):
-                self.storage.put(key, bc.data)
+            key = self.storage.stash_content(bc)
             return self._bc_to_typed_url(bc, f"media://{key}")
         except Exception as e:
             raise RuntimeError(f"Failed to stash binary content: {e}") from e
@@ -72,12 +70,16 @@ class BinaryStash:
             with self.storage.open(key) as f:
                 data = f.read()
 
-            # Reconstruct BinaryContent with preserved metadata
+            # Preserve existing vendor_metadata and add the UUID for future stashing
+            vendor_metadata = dict(url_part.vendor_metadata) if url_part.vendor_metadata else {}
+            vendor_metadata["_stash_uuid"] = key
+
+            # Reconstruct BinaryContent with preserved metadata + stored UUID
             return BinaryContent(
                 data=data,
                 media_type=url_part.media_type,
                 identifier=url_part.identifier,
-                vendor_metadata=url_part.vendor_metadata,
+                vendor_metadata=vendor_metadata,
             )
         except FileNotFoundError as e:
             raise RuntimeError(f"Binary content not found for key '{key}': {e}") from e

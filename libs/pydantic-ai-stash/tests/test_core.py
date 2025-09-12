@@ -187,7 +187,14 @@ class TestBinaryStash:
         assert result.data == sample_binary_with_metadata.data
         assert result.media_type == sample_binary_with_metadata.media_type
         assert result.identifier == sample_binary_with_metadata.identifier
-        assert result.vendor_metadata == sample_binary_with_metadata.vendor_metadata
+        # Vendor metadata should include original data plus the stash UUID
+        expected_metadata = (
+            dict(sample_binary_with_metadata.vendor_metadata)
+            if sample_binary_with_metadata.vendor_metadata
+            else {}
+        )
+        expected_metadata["_stash_uuid"] = stashed_url.url.removeprefix("media://")
+        assert result.vendor_metadata == expected_metadata
 
     def test_load_binary_non_media_url(self, fs_adapter):
         """Test load_binary returns None for non-media URLs."""
@@ -405,7 +412,9 @@ class TestBinaryStash:
         assert loaded_content[1].data == original_bc.data
         assert loaded_content[1].media_type == original_bc.media_type
         assert loaded_content[1].identifier == original_bc.identifier
-        assert loaded_content[1].vendor_metadata == original_bc.vendor_metadata
+        # Vendor metadata should include original data plus the stash UUID
+        assert "_stash_uuid" in loaded_content[1].vendor_metadata
+        assert loaded_content[1].vendor_metadata["source"] == "test"
 
         assert isinstance(loaded_content[2], TextPart)
         assert loaded_content[2].content == "Text after"

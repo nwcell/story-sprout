@@ -51,7 +51,16 @@
 		"ruff.interpreter": [
 			"/Users/travis/Projects/story-sprout/.venv/bin/python"
 		],
-		"python.defaultInterpreterPath": "/Users/travis/Projects/story-sprout/.venv/bin/python"
-		// "python.languageServer": "None"
+		"python.defaultInterpreterPath": "/Users/travis/Projects/story-sprout/.venv/bin/python",
+		// "python.languageServer": "None",
+		"python.testing.pytestEnabled": true,
+		"python.testing.unittestEnabled": false,
+		"python.testing.pytestArgs": [
+			"libs/pydantic-ai-stash/tests"
+		],
+		"python.testing.cwd": "${workspaceFolder}",
+		"python.testing.pytestPath": "${workspaceFolder}/libs/pydantic-ai-stash/.venv/bin/python",
+		"python.testing.autoTestDiscoverOnSaveEnabled": true,
+		"makefile.configureOnOpen": false
 	}
 }

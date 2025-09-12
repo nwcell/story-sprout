@@ -11,6 +11,7 @@ class StorageAdapter(Protocol):
     def put(self, key: str, data: bytes) -> None: ...
     def open(self, key: str) -> BinaryIO: ...
     def key_for(self, bc: BinaryContent) -> str: ...
+    def stash_content(self, bc: BinaryContent) -> str: ...
 
 
 class BaseStorageAdapter(StorageAdapter, ABC):
@@ -20,6 +21,22 @@ class BaseStorageAdapter(StorageAdapter, ABC):
     def key_for(self, bc: BinaryContent) -> str:
         """Generate a unique key for binary content using UUID."""
         return str(uuid.uuid4())
+
+    def stash_content(self, bc: BinaryContent) -> str:
+        """Stash binary content and return the storage key, handling UUID reuse."""
+        # Check if BinaryContent has a previously stashed UUID
+        existing_uuid = None
+        if bc.vendor_metadata:
+            existing_uuid = bc.vendor_metadata.get("_stash_uuid")
+        # If we have an existing UUID, check if the file still exists
+        if existing_uuid and self.exists(existing_uuid):
+            return existing_uuid
+
+        # Generate new key and store if needed
+        key = self.key_for(bc)
+        if not self.exists(key):
+            self.put(key, bc.data)
+        return key
 
     # I/O to be provided by concrete adapters
     @abstractmethod

@@ -92,10 +92,10 @@ class TestIntegration:
         assert loaded_content[1].data == image_data
         assert loaded_content[1].media_type == "image/png"
         assert loaded_content[1].identifier == "screenshot-1"
-        assert loaded_content[1].vendor_metadata == {
-            "source": "user_upload",
-            "size": len(image_data),
-        }
+        # Vendor metadata should include original data plus the stash UUID
+        assert "_stash_uuid" in loaded_content[1].vendor_metadata
+        assert loaded_content[1].vendor_metadata["source"] == "user_upload"
+        assert loaded_content[1].vendor_metadata["size"] == len(image_data)
 
         assert isinstance(loaded_content[3], BinaryContent)
         assert loaded_content[3].data == audio_data

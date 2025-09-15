@@ -308,3 +308,5 @@ LOGGING = {
         "asyncio": {"level": "WARNING", "propagate": True},
     },
 }
+
+SNAPSHOTS_DIR = BASE_DIR / "config" / "snapshots"

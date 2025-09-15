@@ -1,5 +1,6 @@
 import shlex
 import subprocess
+from pathlib import Path
 
 import psutil
 from django.core.management.base import BaseCommand
@@ -35,7 +36,9 @@ def run_worker():
     kill_existing_workers()
 
     print(f"Starting single Celery worker: {CELERY_CMD}")
-    return subprocess.call(shlex.split(CELERY_CMD))
+    # Run from services/web directory where core module exists
+    web_dir = Path(__file__).resolve().parents[4]  # Go up 5 levels from runworker.py to services/web
+    return subprocess.call(shlex.split(CELERY_CMD), cwd=str(web_dir))
 
 
 class Command(BaseCommand):

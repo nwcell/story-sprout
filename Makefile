@@ -30,7 +30,16 @@ migrate:
 db-sync: makemigrations migrate
 
 docs-server:
-	@uv run mkdocs serve -f services/docs_server/mkdocs.yml -a localhost:8001 -w docs
+	@uv run mkdocs serve -f docs/mkdocs.yml -a localhost:8001 -w docs
 
-lab:
-	@uv run marimo edit services/lab/apps --watch --host 0.0.0.0 --allow-origins * --proxy travis.local:2718 --headless
+.PHONY: kernel
+kernel:
+	@uv run python -m ipykernel install --name=story-sprout --display-name "Python (story-sprout)" --prefix .venv
+	@echo "✅ kernel installed at .venv/share/jupyter/kernels/story-sprout"
+
+.PHONY: notebooks
+notebooks: kernel
+	@uv run jupyter lab notebooks
+
+.PHONY: nb
+nb: notebooks

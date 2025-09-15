@@ -26,8 +26,7 @@ story-sprout/
 │   │   ├── templates/       # HTML templates with HTMX and Alpine.js
 │   │   └── manage.py        # Django management script
 │   ├── docs_server/         # MkDocs documentation server
-│   └── lab/                 # Marimo notebooks for experiments
-├── docs/                    # Project documentation
+│ ├── docs/                    # Project documentation
 │   ├── architecture/        # System architecture docs
 │   ├── brain/              # Development notes and TODOs
 │   ├── development/        # Development guidelines
@@ -64,8 +63,6 @@ uv run --project services/web python services/web/manage.py runworker
 # Start documentation server
 make docs-server
 
-# Start Marimo lab environment
-make lab
 ```
 
 ### Database Management

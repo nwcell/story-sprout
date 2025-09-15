@@ -54,9 +54,9 @@ dependencies = [
     "mkdocs-git-revision-date-localized-plugin>=1.4.7",
     "mkdocs-material>=9.6.18",
     "mkdocs-minify-plugin>=0.8.0",
-    # Lab & Notebooks
-    "marimo[recommended]>=0.15.3",
+    # Development Tools
     "python-lsp-server>=1.13.1",
+    "jupyterlab>=4.3.6",
     "loguru>=0.7.3",
     "django-environ>=0.12.0",
 ]
@@ -123,6 +123,5 @@ norecursedirs = [
     "*.egg-info",
     ".venv",
     "services/docs_server",
-    "services/lab",
 ]
 

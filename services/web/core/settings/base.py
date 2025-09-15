@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 from pathlib import Path
 
+from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
 from core.logging import InterceptHandler, setup_logger
@@ -20,8 +21,13 @@ from core.logging import InterceptHandler, setup_logger
 # Initialize loguru
 setup_logger()
 
-# Load environment variables
-load_dotenv()
+# Load environment variables (don't override host/CI env vars)
+load_dotenv(override=False)
+
+# Helper function for CSV environment variables
+def _csv(name: str) -> list[str]:
+    v = os.getenv(name)
+    return [s.strip() for s in v.split(",")] if v else []
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -31,12 +37,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-default-key-change-me")
+SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY:
+    raise ImproperlyConfigured("SECRET_KEY env var is required")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG", "True").lower() == "true"
+DEBUG = os.getenv("DEBUG", "").lower() in {"1", "true", "yes"}
 
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+ALLOWED_HOSTS = _csv("ALLOWED_HOSTS")
+CSRF_TRUSTED_ORIGINS = _csv("CSRF_TRUSTED_ORIGINS")
 
 
 # Application definition
@@ -87,7 +96,6 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django_htmx.middleware.HtmxMiddleware",
     "allauth.account.middleware.AccountMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
 ]
 
 if DEBUG:
@@ -223,44 +231,41 @@ AUTHENTICATION_BACKENDS = [
     "allauth.account.auth_backends.AuthenticationBackend",
 ]
 
-SITE_ID = 1
+SITE_ID = int(os.getenv("SITE_ID", "1"))
 ACCOUNT_LOGIN_METHODS = {"email"}
 ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
-ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+ACCOUNT_EMAIL_VERIFICATION = os.getenv("ACCOUNT_EMAIL_VERIFICATION") or "mandatory"
 ACCOUNT_UNIQUE_EMAIL = True
 
-# Email configuration
-EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
-EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
-EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
-EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True").lower() == "true"
-EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
-EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
+# Email configuration (env-driven; rely on Django defaults if unset)
+EMAIL_BACKEND = os.getenv("EMAIL_BACKEND")  # None -> Django default
+EMAIL_HOST = os.getenv("EMAIL_HOST")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT")) if os.getenv("EMAIL_PORT") else None
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "").lower() in {"1", "true", "yes"}
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 
 # Login/Logout URLs
 LOGIN_REDIRECT_URL = "/dashboard"
 LOGOUT_REDIRECT_URL = "/"
 LOGIN_URL = "account_login"
 
-# Stripe settings
-STRIPE_PUBLIC_KEY = os.getenv("STRIPE_PUBLIC_KEY", "")
-STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
-STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
-STRIPE_PRICE_ID = os.getenv("STRIPE_PRICE_ID", "")
+# Stripe settings (env-only; no defaults)
+STRIPE_PUBLIC_KEY = os.getenv("STRIPE_PUBLIC_KEY")
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
+STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
+STRIPE_PRICE_ID = os.getenv("STRIPE_PRICE_ID")
 
-# AI settings
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+# AI settings (env-only; no defaults)
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-# Celery settings
-CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")
-CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://localhost:6379/0")
+# Celery settings (env-only; remove conflicting defaults)
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL")
+CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND")
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = TIME_ZONE
-
-CELERY_RESULT_BACKEND = "django-db"
-CELERY_CACHE_BACKEND = "django-cache"
 
 STORAGES = {
     "default": {
@@ -275,13 +280,19 @@ STORAGES = {
 EVENTSTREAM_STORAGE_CLASS = "django_eventstream.storage.DjangoModelStorage"
 EVENTSTREAM_CHANNELMANAGER_CLASS = "apps.common.sse.ChannelManager"
 
-# Optional: Configure Redis for scaling across multiple instances
-# Uncomment these if you have Redis set up for production scaling
-EVENTSTREAM_REDIS = {
-    "host": os.getenv("REDIS_HOST", "localhost"),
-    "port": int(os.getenv("REDIS_PORT", 6379)),
-    "db": int(os.getenv("REDIS_DB", 0)),
-}
+# EventStream Redis configuration (only if provided)
+_event_redis_url = os.getenv("EVENTSTREAM_REDIS_URL") or os.getenv("REDIS_URL")
+if _event_redis_url:
+    EVENTSTREAM_REDIS = {"url": _event_redis_url}
+else:
+    _host = os.getenv("REDIS_HOST")
+    if _host:
+        EVENTSTREAM_REDIS = {
+            "host": _host,
+            "port": int(os.getenv("REDIS_PORT", 6379)),
+            "db": int(os.getenv("REDIS_DB", 0)),
+        }
+    # else: don't define EVENTSTREAM_REDIS in base
 
 
 LOGGING = {

@@ -1,5 +1,7 @@
 """Production-only security hardening and optimizations."""
 
+import os
+
 # Security: Enforce HTTPS and security headers
 SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True
@@ -10,11 +12,11 @@ SECURE_HSTS_PRELOAD = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
 
-# Cache: Redis cache for production
+# Cache: Redis cache for production (environment-driven)
 CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.redis.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/1",
+        "LOCATION": os.environ.get("REDIS_CACHE_URL", "redis://127.0.0.1:6379/1"),
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }

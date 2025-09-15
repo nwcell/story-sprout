@@ -18,19 +18,33 @@ from dotenv import load_dotenv
 
 from core.logging import InterceptHandler, setup_logger
 
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+
 # Initialize loguru
 setup_logger()
 
-# Load environment variables (don't override host/CI env vars)
-load_dotenv(override=False)
+# Load environment variables with environment-specific precedence
+# 1. .env.{DJANGO_ENV} (highest priority)
+# 2. .env (fallback)
+# 3. Host/CI environment variables (don't override)
+
+_env_name = os.getenv("DJANGO_ENV", "dev")
+_env_files = [
+    f".env.{_env_name}",  # Environment-specific file
+    ".env",               # General file
+]
+
+for env_file in _env_files:
+    env_path = BASE_DIR / env_file
+    if env_path.exists():
+        load_dotenv(env_path, override=False)
+        break  # Use the first file found
 
 # Helper function for CSV environment variables
 def _csv(name: str) -> list[str]:
     v = os.getenv(name)
     return [s.strip() for s in v.split(",")] if v else []
-
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 
 # Quick-start development settings - unsuitable for production

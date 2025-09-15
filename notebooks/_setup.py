@@ -11,18 +11,18 @@ from pathlib import Path
 
 
 def setup():
-    # Add the web service root to Python path (where Django core is located)
+    # Add the web service root to Python path (where Django config is located)
     web_service_root = Path(__file__).parent.parent / "services" / "web"
     print(f"🔍 Calculated web service root: {web_service_root}")
     print(f"🔍 Path exists: {web_service_root.exists()}")
-    print(f"🔍 Core directory exists: {(web_service_root / 'core').exists()}")
+    print(f"🔍 Config directory exists: {(web_service_root / 'config').exists()}")
 
     sys.path.insert(0, str(web_service_root))
     print(f"🔍 Python path now includes: {str(web_service_root)}")
 
     # Set Django Environment Settings
     os.environ.setdefault("DJANGO_ENV", "dev")
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "core.settings")
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
     os.environ.setdefault("DJANGO_ALLOW_ASYNC_UNSAFE", "true")
 
     # Setup Django

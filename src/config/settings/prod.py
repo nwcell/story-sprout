@@ -30,7 +30,7 @@ CACHES = {
         "LOCATION": env("REDIS_CACHE_URL", default="redis://127.0.0.1:6379/1"),
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-        }
+        },
     }
 }
 
@@ -39,7 +39,7 @@ LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "handlers": {
-        "loguru": {"()": "core.logging.InterceptHandler"},
+        "loguru": {"()": "config.logging.InterceptHandler"},
     },
     "root": {"handlers": ["loguru"], "level": "WARNING"},  # Less verbose in prod
     "loggers": {

@@ -1,9 +1,9 @@
 # Makefile for Story Sprout project
 
 # Variables
-web_dir = services/web
-manage_cmd = uv run $(web_dir)/manage.py
+web_dir = src
 uv_cmd = uv run
+manage_cmd = uv run $(uv_cmd) manage.py
 docs_port = 8001
 web_port = 8000
 

@@ -15,6 +15,11 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+from core.logging import InterceptHandler, setup_logger
+
+# Initialize loguru
+setup_logger()
+
 # Load environment variables
 load_dotenv()
 
@@ -276,4 +281,27 @@ EVENTSTREAM_REDIS = {
     "host": os.getenv("REDIS_HOST", "localhost"),
     "port": int(os.getenv("REDIS_PORT", 6379)),
     "db": int(os.getenv("REDIS_DB", 0)),
+}
+
+
+LOGGING = {
+    "version": 1,
+    # IMPORTANT: drop Django's built-in handlers so you don't get duplicates
+    "disable_existing_loggers": True,
+    "handlers": {
+        "loguru": {"()": InterceptHandler},  # your InterceptHandler
+    },
+    # Single sink: everything bubbles to root -> InterceptHandler -> Loguru
+    "root": {"handlers": ["loguru"], "level": "INFO"},
+    "loggers": {
+        # Let these bubble up to root; DO NOT attach their own handlers
+        "django": {"level": "INFO", "propagate": True},
+        "django.server": {"level": "WARNING", "propagate": True},  # or INFO if you want access logs
+        "django.request": {"level": "INFO", "propagate": True},
+        "daphne": {"level": "INFO", "propagate": True},
+        "daphne.server": {"level": "INFO", "propagate": True},
+        "daphne.http_protocol": {"level": "INFO", "propagate": True},
+        # If you see asyncio duplicates/noise:
+        "asyncio": {"level": "WARNING", "propagate": True},
+    },
 }

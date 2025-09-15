@@ -25,8 +25,7 @@ story-sprout/
 │   │   ├── static/          # Static assets (CSS, JS, images)
 │   │   ├── templates/       # HTML templates with HTMX and Alpine.js
 │   │   └── manage.py        # Django management script
-│   ├── docs_server/         # MkDocs documentation server
-│ ├── docs/                    # Project documentation
+├── docs/                    # Project documentation
 │   ├── architecture/        # System architecture docs
 │   ├── brain/              # Development notes and TODOs
 │   ├── development/        # Development guidelines
@@ -62,6 +61,9 @@ uv run --project services/web python services/web/manage.py runworker
 
 # Start documentation server
 make docs-server
+
+# Start Jupyter Lab environment
+make notebooks
 
 ```
 
@@ -185,7 +187,7 @@ uv run python manage.py startapp <app_name> apps/<app_name>
 ### Working with HTMX
 - Add `hx-*` attributes to trigger requests
 - Return partial templates from views
-- Use `django-template-partials` for template fragments
+- Use Cotton components for reusable UI elements
 
 ## Troubleshooting
 

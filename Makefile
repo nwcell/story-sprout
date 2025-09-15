@@ -1,7 +1,8 @@
 # Makefile for Story Sprout project commands
 
-.PHONY: manage runserver tasks makemigrations migrate db-sync kill-celery
+.PHONY: runserver tasks makemigrations migrate db-sync kill-celery
 
+.PHONY: manage
 manage:
 	@uv run services/web/manage.py $*
 

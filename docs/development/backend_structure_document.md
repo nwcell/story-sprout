@@ -22,7 +22,7 @@ To ensure type safety and a seamless developer experience when working with Cele
 
 The preserializer is registered in the main Celery application file, making it available globally for all tasks.
 
-*   **Real-Time Updates**: We use `django-eventstream` to provide Server-Sent Events (SSE), streaming progress updates back to the browser as each illustration or text segment completes.
+*   **Real-Time Updates**: We use `django-eventstream` to provide Server-Sent Events (SSE), streaming progress updates back to the browser as AI jobs complete.
 
 How this supports our goals:
 
@@ -34,11 +34,11 @@ How this supports our goals:
 
 For our database, we use SQLite for local development to ensure a simple setup, and DigitalOcean Managed PostgreSQL in production for robust, structured data storage. Redis is used for fast caching and as a task broker for Celery.
 
-*   **Relational Data (PostgreSQL)**
+*   **Relational Data (PostgreSQL/SQLite)**
 
-    *   Users, teams, books, pages, characters, subscriptions, moderation settings, and version history.
-    *   Enforces data integrity with foreign keys (e.g., a Page always belongs to one Book).
-    *   Managed backups and high-availability provided by DigitalOcean.
+    *   Users, stories, pages, AI jobs, conversations, and subscription data.
+    *   Enforces data integrity with foreign keys (e.g., a Page always belongs to one Story).
+    *   PostgreSQL in production with managed backups; SQLite for development simplicity.
 
 *   **Caching & Task Queue (Redis)**
 

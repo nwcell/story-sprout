@@ -6,16 +6,16 @@ This document explains, in everyday language, the technology choices behind Stor
 
 These are the tools that run in your browser and shape what you see and interact with:
 
-*   **Django Templates**\
-    Provides server-generated HTML pages, keeping the interface simple and fast to develop.
+*   **Django Templates with Cotton Components**\
+    Provides server-generated HTML pages with reusable component system for clean, maintainable templates.
 *   **HTMX**\
     Lets the page update small parts (like new story text or images) without a full reload—this makes the real-time storytelling feel smooth.
 *   **Tailwind CSS**\
-    A utility-first styling toolkit that powers our pastel-themed look (rounded cards, drop shadows) with minimal custom CSS.
+    A utility-first styling toolkit that powers our clean, modern interface with minimal custom CSS.
 *   **Alpine.js**\
-    Handles tiny bits of interactivity (menus, toggles) without pulling in a large JavaScript framework.
-*   **StPageFlip JS**\
-    Creates the mobile-first, 60 fps page-turning flipbook animation, complete with keyboard and touch controls, plus accessibility support (ARIA labels).
+    Handles client-side interactivity (menus, toggles, form handling) without pulling in a large JavaScript framework.
+*   **Django Cotton**\
+    Component-based templating system that allows building reusable UI components with slots and props, making templates more maintainable.
 
 How these improve your experience:
 
@@ -27,14 +27,14 @@ How these improve your experience:
 
 These power the behind-the-scenes work: storing your data, running AI, and generating images.
 
-*   **Django 5 (Pegasus scaffold)**\
+*   **Django 5.2**\
     A mature web framework that organizes code clearly, with built-in admin pages for quick setup.
-*   **Django Channels**\
-    Enables live WebSocket connections so we can stream text and images to your browser as soon as they’re ready.
+*   **Django EventStream**\
+    Enables Server-Sent Events (SSE) for real-time updates, streaming progress to your browser as AI generates content.
 *   **Celery (in Docker containers)**\
     Manages background jobs—like calling AI models to write text or make images—so the web server stays responsive.
-*   **PostgreSQL (DigitalOcean Managed)**\
-    A reliable database for storing users, books, character traits, and settings.
+*   **PostgreSQL (Production) / SQLite (Development)**\
+    A reliable database for storing users, stories, pages, and AI job tracking.
 *   **Redis**\
     Acts as both a message broker for Celery and a real-time data store to power live progress updates.
 *   **DigitalOcean Spaces**\
@@ -73,10 +73,11 @@ Benefits:
 
 We rely on specialized services to power AI, payments, and notifications:
 
-*   **AI Text & Image Providers**
+*   **AI Integration**
 
-    *   OpenAI GPT-4o (primary) and Anthropic Claude 3.7 Sonnet (fallback) for story text.
-    *   DALL·E 3 (primary) and self-hosted Stable Diffusion XL + LoRA (fallback) for illustrations.
+    *   Pydantic AI framework for type-safe AI interactions
+    *   Google GenAI and LiteLLM for model access
+    *   Job-based workflow system for async AI processing
     *   All AI calls are wrapped in our own service layer, so we can switch providers easily.
 
 *   **Stripe**\
@@ -110,7 +111,7 @@ Security Measures:
 Performance Optimizations:
 
 *   **Streaming Updates**\
-    Text appears immediately; images load as soon as they’re ready through WebSockets and HTMX swaps.
+    Text appears immediately; images load as soon as they're ready through Server-Sent Events and HTMX swaps.
 *   **Aggressive Caching**\
     Recently-generated images are cached; if costs rise on DALL·E, we switch to our local Stable Diffusion model automatically.
 *   **Lightweight Frontend**\
@@ -137,10 +138,10 @@ These tools accelerate feature development, help catch issues early, and keep ou
 
 StorySprout’s tech stack was chosen to meet a tight 14-day MVP launch, run cheaply on DigitalOcean, and avoid vendor lock-in, while delivering a magical experience for families:
 
-*   We use **Django, HTMX, Tailwind, and Alpine.js** for a lightweight, fast frontend.
-*   **Django Channels, Celery, and Redis** power real-time AI generation and background jobs.
+*   We use **Django, Cotton components, HTMX, Tailwind, and Alpine.js** for a lightweight, fast frontend.
+*   **Django EventStream, Celery, and Redis** power real-time AI generation and background jobs.
 *   **DigitalOcean** hosts everything under budget, with managed databases and object storage.
-*   **OpenAI, Anthropic, DALL·E, and Stable Diffusion** deliver the storytelling magic, wrapped in a service layer for easy swapping.
+*   **Pydantic AI, Google GenAI, and LiteLLM** deliver the storytelling magic, wrapped in a service layer for easy swapping.
 *   **Stripe, SendGrid, Twilio** handle payments and notifications securely.
 *   **Sentry, Grafana Cloud, Healthcheck.io** keep an eye on errors and performance.
 

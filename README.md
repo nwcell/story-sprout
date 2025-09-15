@@ -1,68 +1,74 @@
-# Story Sprout : Django + HTMX SaaS Boilerplate
+# Story Sprout : AI-Powered Storytelling Platform
 
 <div align="center">
-  <img src="https://img.shields.io/badge/Django-5.0-092E20?style=for-the-badge&logo=django&logoColor=white" alt="Django 5.0"/>
+  <img src="https://img.shields.io/badge/Django-5.2-092E20?style=for-the-badge&logo=django&logoColor=white" alt="Django 5.2"/>
   <img src="https://img.shields.io/badge/HTMX-Latest-2D79C7?style=for-the-badge&logo=html5&logoColor=white" alt="HTMX"/>
+  <img src="https://img.shields.io/badge/Cotton-Components-FF6B6B?style=for-the-badge&logo=html5&logoColor=white" alt="Cotton Components"/>
   <img src="https://img.shields.io/badge/Tailwind-3.x-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS"/>
-  <img src="https://img.shields.io/badge/Alpine.js-3.x-77C1D2?style=for-the-badge&logo=alpine.js&logoColor=white" alt="Alpine.js"/>
-  <img src="https://img.shields.io/badge/Stripe-Integration-6772E5?style=for-the-badge&logo=stripe&logoColor=white" alt="Stripe"/>
-  <img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge" alt="License: MIT"/>
+  <img src="https://img.shields.io/badge/Pydantic--AI-Latest-FF6B35?style=for-the-badge&logo=python&logoColor=white" alt="Pydantic AI"/>
+  <img src="https://img.shields.io/badge/uv-Package_Manager-4051B5?style=for-the-badge&logo=python&logoColor=white" alt="uv"/>
 </div>
 
-A modern, production-ready Django boilerplate for building SaaS applications with HTMX, Tailwind CSS, and Alpine.js. This template provides everything you need to kickstart your next SaaS project with best practices and modern tooling.
+A modern Django platform for creating AI-assisted illustrated stories. Built with HTMX, Cotton components, and Pydantic AI for a clean, maintainable architecture with real-time collaboration features.
 
 
 
 ## 🌟 Features
 
-- 🚀 **Django 5.0** with modern best practices and security features
-- 🎨 **Tailwind CSS** for beautiful, responsive designs
+- 🚀 **Django 5.2+** with modern architecture patterns
+- 🎨 **Cotton Components** for reusable, maintainable UI
 - ⚡ **HTMX** for dynamic interactions without complex JavaScript
-- 🎯 **Alpine.js** for lightweight JavaScript functionality
-- 🔐 **User Authentication** with django-allauth
+- 🎯 **Alpine.js** for lightweight client-side interactivity
+- 🤖 **Pydantic AI** integration for type-safe AI workflows
+- 🔐 **User Authentication** with django-allauth and social logins
 - ✉️ **Email Verification** system
-- 📱 **Responsive Landing Page** with modern design
-- 👑 **Django Admin Panel** customization
-- 💳 **Subscription System** with Stripe integration
-- 📊 **User Dashboard** with analytics
-- 🔒 **Role-based Access Control**
-- 🎨 **Modern UI Components**
-- 📈 **SEO Optimization**
-- 🔍 **Search Functionality**
-- 📱 **Mobile-First Approach**
+- 📱 **Responsive Interface** with Tailwind CSS
+- ⚙️ **Async Task Processing** with Celery and Redis
+- 📡 **Real-time Updates** via Server-Sent Events
+- 🔧 **Modern Development Tools** (uv, ruff, pytest)
+- 📊 **Django Ninja API** framework
+- 💳 **Subscription System** foundation with Stripe
+- 🏗️ **Multi-environment Configuration** management
+- 📝 **Story and Page Management** with ordered models
 
 ## 🚀 Quick Start
 
 1. **Clone the repository:**
 ```bash
-git clone https://github.com/eriktaveras/django-saas-boilerplate.git
-cd django-saas-boilerplate
+git clone <repository-url>
+cd story-sprout
 ```
 
-2. **Create and activate a virtual environment:**
+2. **Install dependencies with uv:**
 ```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+uv sync
 ```
 
-3. **Install dependencies:**
+3. **Set up environment:**
 ```bash
-pip install -r requirements.txt
+cp .env.example .env
+# Edit .env with your configuration
 ```
 
 4. **Run migrations:**
 ```bash
-python manage.py migrate
+make db-sync
+# or: uv run services/web/manage.py migrate
 ```
 
 5. **Create a superuser:**
 ```bash
-python manage.py createsuperuser
+make manage createsuperuser
+# or: uv run services/web/manage.py createsuperuser
 ```
 
-6. **Run the development server:**
+6. **Start the development servers:**
 ```bash
-python manage.py runserver
+# Terminal 1: Django server
+make web
+
+# Terminal 2: Celery worker (for AI tasks)
+make tasks
 ```
 
 Visit http://localhost:8000 to see your application!
@@ -70,35 +76,40 @@ Visit http://localhost:8000 to see your application!
 ## 📁 Project Structure
 
 ```
-├── core/                 # Main Django project
-│   ├── settings/        # Django settings
-│   ├── urls.py         # URL configuration
-│   └── wsgi.py         # WSGI configuration
-├── apps/                # Django applications
-│   ├── accounts/       # User authentication
-│   ├── landing/        # Landing page
-│   ├── dashboard/      # User dashboard
-│   └── subscriptions/  # Subscription management
-├── static/             # Static files
-│   ├── css/           # CSS files
-│   ├── js/            # JavaScript files
-│   └── images/        # Image assets
-├── templates/          # HTML templates
-│   ├── base.html      # Base template
-│   ├── components/    # Reusable components
-│   └── pages/         # Page templates
-└── manage.py          # Django management script
+story-sprout/
+├── services/
+│   ├── web/                 # Main Django application
+│   │   ├── apps/            # Django apps
+│   │   │   ├── accounts/    # User authentication
+│   │   │   ├── ai/          # AI integration and job management
+│   │   │   ├── common/      # Shared utilities
+│   │   │   ├── dashboard/   # User dashboard
+│   │   │   ├── landing/     # Landing page
+│   │   │   ├── stories/     # Story and page management
+│   │   │   └── subscriptions/ # Subscription system
+│   │   ├── core/            # Django project configuration
+│   │   │   └── settings/    # Environment-specific settings
+│   │   ├── templates/       # HTML templates with Cotton components
+│   │   └── static/          # Static assets
+│   ├── docs_server/         # Documentation server
+│   └── lab/                 # Experimental notebooks
+├── docs/                    # Project documentation
+├── scripts/                 # Utility scripts
+└── Makefile                 # Development commands
 ```
 
 ## 🛠️ Technology Stack
 
-- **Backend:** Django 5.0
-- **Frontend:** HTMX, Alpine.js
+- **Backend:** Django 5.2+ with Django Ninja API
+- **Frontend:** HTMX, Cotton Components, Alpine.js
 - **Styling:** Tailwind CSS
-- **Database:** PostgreSQL (recommended)
+- **Database:** PostgreSQL (prod) / SQLite (dev)
 - **Authentication:** django-allauth
-- **Payments:** Stripe
+- **AI Integration:** Pydantic AI, Google GenAI, LiteLLM
 - **Task Queue:** Celery with Redis
+- **Real-time:** Django EventStream (SSE)
+- **Package Manager:** uv
+- **Code Quality:** ruff, pytest, pre-commit
 
 ## 🔄 Celery Setup
 
@@ -122,13 +133,16 @@ Story Sprout uses Celery for handling asynchronous tasks like AI processing, ema
 
 2. **Start Celery worker** (from project root):
    ```bash
-   # Start a worker with the 'story_sprout' app
-   uv run -m celery -A core worker -l INFO
+   # Start worker using the management command
+   make tasks
+   # or manually:
+   uv run services/web/manage.py runworker
    ```
 
 3. **Optional: Start Celery beat for scheduled tasks**:
    ```bash
-   uv run -m celery -A core beat -l INFO
+   # This would need to be configured based on your setup
+   uv run services/web/manage.py celery beat
    ```
 
 ### Using Celery in Your Code

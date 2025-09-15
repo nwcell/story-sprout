@@ -113,15 +113,13 @@ addopts = [
     "--reuse-db",
     "-v",
 ]
-testpaths = [
-    "services/web/apps",
-]
+# testpaths = [
+#     "services/web/apps",
+# ]
 norecursedirs = [
     ".git",
     ".pytest_cache",
     "__pycache__",
     "*.egg-info",
     ".venv",
-    "services/docs_server",
 ]
-

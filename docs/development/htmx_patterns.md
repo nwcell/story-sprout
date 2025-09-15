@@ -1,101 +1,127 @@
-# HTMX View Patterns for Story Sprout
+# HTMX and Cotton Component Patterns for Story Sprout
 
-This document outlines the standardized patterns for HTMX interactions in the Story Sprout application, with a focus on editable field components.
+This document outlines the standardized patterns for HTMX interactions in the Story Sprout application, using Django Cotton components for reusable UI elements.
 
-## 1. Base Classes
+## 1. Cotton Component Architecture
 
-### 1.1. `HtmxEditableFieldView`
+Story Sprout uses Django Cotton components for reusable UI elements that integrate seamlessly with HTMX for dynamic interactions.
 
-The core class that handles both displaying and editing a single field in a model. All editable field views should inherit from this base class.
+### 1.1. Cotton Component Structure
 
-```python
-class HtmxEditableFieldView(View):
-    model = None              # Model class (required)
-    form_class = None         # Django form class (optional)
-    display_template = None   # Template to render for display mode
-    form_template = None      # Template to render for edit mode
-    field_name = None         # Model field name to update
+Cotton components are located in `templates/cotton/` and follow this pattern:
+
+```
+templates/cotton/
+├── stories/
+│   ├── title.html          # Story title component
+│   ├── description.html    # Story description component
+│   └── page/
+│       ├── content.html    # Page content component
+│       └── image_text.html # Page image text component
+├── fields/
+│   ├── input.html          # Input field component
+│   └── textarea.html       # Textarea field component
+└── button/
+    ├── save.html           # Save button component
+    └── cancel.html         # Cancel button component
 ```
 
-#### Key Features:
+### 1.2. Component Props and Slots
 
-- **Object Lookup**: Supports both primary key (`pk`) and UUID (`story_uuid`) lookup
-- **Security**: Automatically checks ownership (user field or related story's user)
-- **GET Request**: Shows the edit form
-- **POST Request**: Updates the field and returns to display mode
-- **HTMX Detection**: Only responds to HTMX requests
-
-### 1.2. `HtmxToggleView`
-
-For handling boolean toggle fields (e.g., checkboxes, switches).
-
-```python
-class HtmxToggleView(View):
-    model = None              # Model class (required)
-    template_name = None      # Template to render after toggle
-    field_name = None         # Boolean field to toggle
-```
-
-## 2. Implementation Pattern
-
-### 2.1. Create a Specialized View
-
-```python
-class StoryTitleEditView(HtmxEditableFieldView):
-    model = Story
-    form_class = StoryTitleForm
-    display_template = 'stories/components/story_title_display.html'
-    form_template = 'stories/components/story_title_form.html'
-    field_name = 'title'
-```
-
-### 2.2. Register URL Patterns
-
-```python
-path('<uuid:story_uuid>/title/', StoryTitleDisplayView.as_view(), name='get_story_title'),
-path('<uuid:story_uuid>/edit/title/', StoryTitleEditView.as_view(), name='edit_story_title'),
-```
-
-### 2.3. Create Templates
-
-Create matching display and form templates:
+Cotton components use props for configuration and slots for content:
 
 ```html
-<!-- Display template -->
-{% load ui_components %}
-
-{% editable_field story 'title' 'stories:edit_story_title' 'stories:get_story_title' editing=False %}
+<!-- Example: Using the input field component -->
+<c-fields.input
+    name="title"
+    value="{{ story.title }}"
+    placeholder="Enter story title"
+    hx-post="{% url 'stories:update_title' story.uuid %}"
+    hx-trigger="blur"
+/>
 ```
 
-```html
-<!-- Form template -->
-{% load ui_components %}
+## 2. HTMX Integration Patterns
 
-{% editable_field story 'title' 'stories:edit_story_title' 'stories:get_story_title' editing=True %}
+### 2.1. Inline Editing with Cotton Components
+
+Cotton components can be enhanced with HTMX attributes for inline editing:
+
+```html
+<!-- In your template -->
+<c-stories.title
+    story="{{ story }}"
+    hx-get="{% url 'stories:edit_title' story.uuid %}"
+    hx-trigger="click"
+    hx-swap="outerHTML"
+/>
 ```
 
-## 3. Component Template Tag Usage
-
-### 3.1. Basic Usage
+### 2.2. Form Submission Pattern
 
 ```html
-{% editable_field instance 'field_name' 'edit_url_name' 'display_url_name' %}
+<!-- Cotton component with HTMX form -->
+<c-fields.input
+    name="title"
+    value="{{ story.title }}"
+    hx-post="{% url 'stories:update_title' story.uuid %}"
+    hx-trigger="blur, keydown[key=='Enter']"
+    hx-swap="outerHTML"
+/>
 ```
 
-### 3.2. Optional Parameters
+### 2.3. Real-time Updates with SSE
 
-- `editing`: Boolean, whether to show in edit mode (default: False)
-- `field_type`: String, input type to use (default: 'text', options: 'text', 'textarea')
-- `show_label`: Boolean, whether to show field label (default: False)
-- `placeholder`: String, placeholder text for input
-- `button_layout`: String, button arrangement (default: 'row', options: 'row', 'column')
-- `has_magic`: Boolean, whether to show magic generate button (default: False)
-- `magic_url`: String, URL for magic content generation endpoint
-
-### 3.3. Button Group Tag
+Components can listen for Server-Sent Events for real-time updates:
 
 ```html
-{% form_button_group cancel_url='stories:get_story_title' has_magic=True magic_url='...' %}
+<c-htmx.sse
+    channel="story-{{ story.uuid }}"
+    events="story.updated"
+    hx-get="{% url 'stories:get_story' story.uuid %}"
+/>
+```
+
+## 3. Common Patterns
+
+### 3.1. AI-Enhanced Fields
+
+Many components include AI generation capabilities:
+
+```html
+<c-stories.description
+    story="{{ story }}"
+    magic_url="{% url 'ai:generate_description' story.uuid %}"
+/>
+```
+
+### 3.2. Modal Integration
+
+Cotton components work with modal dialogs:
+
+```html
+<c-modal
+    id="story-settings"
+    title="Story Settings"
+>
+    <c-stories.detail story="{{ story }}" />
+</c-modal>
+```
+
+### 3.3. Button Components
+
+Standardized button components for consistent styling:
+
+```html
+<c-button.save
+    hx-post="{% url 'stories:save' story.uuid %}"
+    hx-trigger="click"
+/>
+
+<c-button.cancel
+    hx-get="{% url 'stories:detail' story.uuid %}"
+    hx-target="#content"
+/>
 ```
 
 ## 4. Styling Conventions

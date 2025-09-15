@@ -101,12 +101,12 @@ skip-magic-trailing-comma = false
 docstring-code-line-length = 79
 
 [tool.pytest.ini_options]
-DJANGO_SETTINGS_MODULE = "core.settings"
+DJANGO_SETTINGS_MODULE = "config.settings"
 python_files = ["test_*.py", "*_test.py", "tests.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 pythonpath = [
-    "services/web",
+    "src",
 ]
 env = [
     "DJANGO_ENV=test",
@@ -120,7 +120,7 @@ addopts = [
     "--tb=short",
 ]
 testpaths = [
-    "services/web",
+    "src",
 ]
 norecursedirs = [
     ".git",

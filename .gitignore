@@ -46,10 +46,6 @@ Thumbs.db
 .env
 .env.local
 .env.*.local
-.env.dev
-.env.test
-.env.prod
-.env.staging
 
 # Static files
 staticfiles/

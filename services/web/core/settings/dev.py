@@ -1,6 +1,15 @@
 """Development-only overrides and conveniences."""
 
 import os
+from pathlib import Path
+
+from dotenv import load_dotenv
+
+# Load .env from project root
+_project_root = Path(__file__).resolve().parent.parent.parent.parent
+_env_path = _project_root / ".env"
+if _env_path.exists():
+    load_dotenv(_env_path, override=False)
 
 # Security: Development conveniences (never use in production)
 DEBUG = True

@@ -1,6 +1,15 @@
 """Production-only security hardening and optimizations."""
 
 import os
+from pathlib import Path
+
+from dotenv import load_dotenv
+
+# Load .env from project root
+_project_root = Path(__file__).resolve().parent.parent.parent.parent
+_env_path = _project_root / ".env"
+if _env_path.exists():
+    load_dotenv(_env_path, override=False)
 
 # Security: Enforce HTTPS and security headers
 SECURE_SSL_REDIRECT = True

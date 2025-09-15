@@ -1,46 +1,89 @@
-# Makefile for Story Sprout project commands
+# Makefile for Story Sprout project
 
-.PHONY: runserver tasks makemigrations migrate db-sync kill-celery
+# Variables
+web_dir = services/web
+manage_cmd = uv run $(web_dir)/manage.py
+uv_cmd = uv run
+docs_port = 8001
+web_port = 8000
 
-.PHONY: manage
-manage:
-	@uv run services/web/manage.py $*
+# Default target
+help: ## Show this help message
+	@echo "Story Sprout Development Commands:"
+	@echo ""
+	@egrep -h '\s##\s' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m %-20s\033[0m %s\n", $$1, $$2}'
+.PHONY: help
 
-web:
-	@echo "Starting Django development server..."
-	@uv run services/web/manage.py runserver
+# Development targets
+web: ## 🌱 Start Django development server
+	@echo "🌱 Starting Django development server on port $(web_port)..."
+	@$(manage_cmd) runserver $(web_port)
+.PHONY: web
 
-tasks:
-	@echo "Starting single Celery worker (killing any existing workers)..."
-	@echo "Clearing Redis queues to prevent stale tasks..."
-	@redis-cli DEL celery > /dev/null 2>&1 || echo "Warning: Could not clear Redis (not running?)"
-	@uv run services/web/manage.py runworker
+tasks: ## 🔄 Start Celery worker
+	@echo "🔄 Starting Celery worker (killing existing workers)..."
+	@echo "🧹 Clearing Redis queues..."
+	@redis-cli DEL celery > /dev/null 2>&1 || echo "⚠️  Warning: Could not clear Redis (not running?)"
+	@$(manage_cmd) runworker
+.PHONY: tasks
 
-kill-celery:
-	@echo "Killing all Celery workers..."
+tasks-kill: ## 🛑 Kill all Celery workers
+	@echo "🛑 Killing all Celery workers..."
 	@./scripts/kill-celery.sh
+.PHONY: kill
 
-makemigrations:
-	@echo "Creating database migrations..."
-	@uv run services/web/manage.py makemigrations
+db: db-mm db-migrate ## ✅ Sync database (mm + migrate)
+	@echo "✅ Database synchronized"
+.PHONY: db
 
-migrate:
-	@echo "Applying database migrations..."
-	@uv run services/web/manage.py migrate
+# Database targets
+db-mm: ## 📝 Create database migrations
+	@echo "📝 Creating database migrations..."
+	@$(manage_cmd) makemigrations
+.PHONY: mm
 
-db-sync: makemigrations migrate
+db-migrate: ## ⬆️  Apply database migrations
+	@echo "⬆️  Applying database migrations..."
+	@$(manage_cmd) migrate
+.PHONY: migrate
 
-docs-server:
-	@uv run mkdocs serve -f docs/mkdocs.yml -a localhost:8001 -w docs
+# Documentation targets
+docs: ## 📚 Start documentation server
+	@echo "📚 Starting documentation server on port $(docs_port)..."
+	@$(uv_cmd) mkdocs serve -f docs/mkdocs.yml -a localhost:$(docs_port) -w docs
+.PHONY: docs
 
+# Notebook targets
+kernel: ## 🔧 Install Jupyter kernel
+	@echo "🔧 Installing Jupyter kernel..."
+	@$(uv_cmd) python -m ipykernel install --name=story-sprout --display-name "Python (story-sprout)" --prefix .venv
+	@echo "✅ Kernel installed at .venv/share/jupyter/kernels/story-sprout"
 .PHONY: kernel
-kernel:
-	@uv run python -m ipykernel install --name=story-sprout --display-name "Python (story-sprout)" --prefix .venv
-	@echo "✅ kernel installed at .venv/share/jupyter/kernels/story-sprout"
 
-.PHONY: notebooks
-notebooks: kernel
-	@uv run jupyter lab notebooks
-
+nb: kernel ## 📓 Start Jupyter Lab
+	@echo "📓 Starting Jupyter Lab..."
+	@$(uv_cmd) jupyter lab notebooks
 .PHONY: nb
-nb: notebooks
+
+# Utility targets
+manage: ## 🛠️  Run Django management command
+	@$(manage_cmd) $(filter-out $@,$(MAKECMDGOALS))
+.PHONY: manage
+
+clean: ## 🧹 Clean temporary files
+	@echo "🧹 Cleaning temporary files..."
+	@find . -type f -name "*.pyc" -delete
+	@find . -type d -name "__pycache__" -delete
+	@find . -type d -name "*.egg-info" -exec rm -rf {} +
+	@find . -type f -name ".coverage" -delete
+	@echo "✅ Cleanup complete"
+.PHONY: clean
+
+test: ## 🧪 Run tests
+	@echo "🧪 Running tests..."
+	@$(uv_cmd) pytest
+.PHONY: test
+
+# Prevent make from interpreting arguments as targets
+%:
+	@:

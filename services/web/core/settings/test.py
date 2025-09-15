@@ -1,5 +1,8 @@
 """Test environment overrides for speed and isolation."""
 
+# Security: Use test-only secret key (unsafe but fine for tests)
+# SECRET_KEY = "django-insecure-test-key-only-for-testing-do-not-use-in-production"
+
 # Security: Unsafe but fast password hashing for tests
 PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
 

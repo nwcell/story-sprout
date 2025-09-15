@@ -76,6 +76,7 @@ dev = [
     "pytest>=8.4.2",
     "pytest-cov>=7.0.0",
     "pytest-django>=4.11.1",
+    "pytest-env>=1.1.5",
     "pytest-xdist>=3.8.0",
     "ipykernel>=6.30.1",
 ]
@@ -101,21 +102,26 @@ docstring-code-line-length = 79
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "core.settings"
-python_files = ["tests.py", "test_*.py", "*_test.py"]
+python_files = ["test_*.py", "*_test.py", "tests.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 pythonpath = [
     "services/web",
+]
+env = [
+    "DJANGO_ENV=test",
+    "SECRET_KEY=django-insecure-test-key-only-for-testing-do-not-use-in-production",
 ]
 addopts = [
     "--strict-markers",
     "--strict-config",
     "--reuse-db",
     "-v",
+    "--tb=short",
 ]
-# testpaths = [
-#     "services/web/apps",
-# ]
+testpaths = [
+    "services/web",
+]
 norecursedirs = [
     ".git",
     ".pytest_cache",

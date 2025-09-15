@@ -1,15 +1,17 @@
 """Production-only security hardening and optimizations."""
 
-import os
 from pathlib import Path
 
-from dotenv import load_dotenv
+import environ
+
+# Initialize django-environ
+env = environ.Env()
 
 # Load .env from project root
 _project_root = Path(__file__).resolve().parent.parent.parent.parent
 _env_path = _project_root / ".env"
 if _env_path.exists():
-    load_dotenv(_env_path, override=False)
+    env.read_env(_env_path)
 
 # Security: Enforce HTTPS and security headers
 SECURE_SSL_REDIRECT = True
@@ -25,7 +27,7 @@ SECURE_BROWSER_XSS_FILTER = True
 CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.redis.RedisCache",
-        "LOCATION": os.environ.get("REDIS_CACHE_URL", "redis://127.0.0.1:6379/1"),
+        "LOCATION": env("REDIS_CACHE_URL", default="redis://127.0.0.1:6379/1"),
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }

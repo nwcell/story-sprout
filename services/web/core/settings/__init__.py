@@ -1,8 +1,17 @@
-import os as _os
+from pathlib import Path
+
+import environ
 
 from .base import *  # noqa: F401,F403
 
-_env = _os.getenv("DJANGO_ENV", "dev")
+# Initialize django-environ for overlay selection
+_env_loader = environ.Env()
+_project_root = Path(__file__).resolve().parent.parent.parent.parent
+_env_path = _project_root / ".env"
+if _env_path.exists():
+    _env_loader.read_env(_env_path)
+
+_env = _env_loader("DJANGO_ENV", default="dev")
 _mod = f"{__name__}.{_env}"
 
 try:

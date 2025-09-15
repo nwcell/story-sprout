@@ -10,11 +10,9 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
-import os
 from pathlib import Path
 
-from django.core.exceptions import ImproperlyConfigured
-from dotenv import load_dotenv
+import environ
 
 from core.logging import InterceptHandler, setup_logger
 
@@ -24,31 +22,26 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 # Initialize loguru
 setup_logger()
 
-# Load environment variables from project root directory
-# Load .env from project root (don't override host/CI env vars)
+# Initialize django-environ
+env = environ.Env()
+
+# Load .env from project root
 _env_path = BASE_DIR.parent / ".env"
 if _env_path.exists():
-    load_dotenv(_env_path, override=False)
-
-# Helper function for CSV environment variables
-def _csv(name: str) -> list[str]:
-    v = os.getenv(name)
-    return [s.strip() for s in v.split(",")] if v else []
+    env.read_env(_env_path)
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("SECRET_KEY")
-if not SECRET_KEY:
-    raise ImproperlyConfigured("SECRET_KEY env var is required")
+SECRET_KEY = env("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG", "").lower() in {"1", "true", "yes"}
+DEBUG = env.bool("DEBUG", default=False)
 
-ALLOWED_HOSTS = _csv("ALLOWED_HOSTS")
-CSRF_TRUSTED_ORIGINS = _csv("CSRF_TRUSTED_ORIGINS")
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
+CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
 
 
 # Application definition
@@ -152,16 +145,16 @@ ASGI_APPLICATION = "core.asgi.application"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 # Database configuration with PostgreSQL support via environment variables
-if os.getenv("DB_NAME"):
+if env("DB_NAME", default=None):
     # Use PostgreSQL if database environment variables are provided
     DATABASES = {
         "default": {
-            "ENGINE": os.getenv("DB_ENGINE", "django.db.backends.postgresql"),
-            "NAME": os.getenv("DB_NAME"),
-            "USER": os.getenv("DB_USER"),
-            "PASSWORD": os.getenv("DB_PASSWORD"),
-            "HOST": os.getenv("DB_HOST", "localhost"),
-            "PORT": os.getenv("DB_PORT", "5432"),
+            "ENGINE": env("DB_ENGINE", default="django.db.backends.postgresql"),
+            "NAME": env("DB_NAME"),
+            "USER": env("DB_USER"),
+            "PASSWORD": env("DB_PASSWORD"),
+            "HOST": env("DB_HOST", default="localhost"),
+            "PORT": env("DB_PORT", default="5432"),
         }
     }
 else:
@@ -234,19 +227,19 @@ AUTHENTICATION_BACKENDS = [
     "allauth.account.auth_backends.AuthenticationBackend",
 ]
 
-SITE_ID = int(os.getenv("SITE_ID", "1"))
+SITE_ID = env.int("SITE_ID", default=1)
 ACCOUNT_LOGIN_METHODS = {"email"}
 ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
-ACCOUNT_EMAIL_VERIFICATION = os.getenv("ACCOUNT_EMAIL_VERIFICATION") or "mandatory"
+ACCOUNT_EMAIL_VERIFICATION = env("ACCOUNT_EMAIL_VERIFICATION", default="mandatory")
 ACCOUNT_UNIQUE_EMAIL = True
 
 # Email configuration (env-driven; rely on Django defaults if unset)
-EMAIL_BACKEND = os.getenv("EMAIL_BACKEND")  # None -> Django default
-EMAIL_HOST = os.getenv("EMAIL_HOST")
-EMAIL_PORT = int(os.getenv("EMAIL_PORT")) if os.getenv("EMAIL_PORT") else None
-EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "").lower() in {"1", "true", "yes"}
-EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+EMAIL_BACKEND = env("EMAIL_BACKEND", default=None)  # None -> Django default
+EMAIL_HOST = env("EMAIL_HOST", default=None)
+EMAIL_PORT = env.int("EMAIL_PORT", default=None)
+EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=False)
+EMAIL_HOST_USER = env("EMAIL_HOST_USER", default=None)
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default=None)
 
 # Login/Logout URLs
 LOGIN_REDIRECT_URL = "/dashboard"
@@ -254,17 +247,17 @@ LOGOUT_REDIRECT_URL = "/"
 LOGIN_URL = "account_login"
 
 # Stripe settings (env-only; no defaults)
-STRIPE_PUBLIC_KEY = os.getenv("STRIPE_PUBLIC_KEY")
-STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
-STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
-STRIPE_PRICE_ID = os.getenv("STRIPE_PRICE_ID")
+STRIPE_PUBLIC_KEY = env("STRIPE_PUBLIC_KEY", default=None)
+STRIPE_SECRET_KEY = env("STRIPE_SECRET_KEY", default=None)
+STRIPE_WEBHOOK_SECRET = env("STRIPE_WEBHOOK_SECRET", default=None)
+STRIPE_PRICE_ID = env("STRIPE_PRICE_ID", default=None)
 
 # AI settings (env-only; no defaults)
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+OPENAI_API_KEY = env("OPENAI_API_KEY", default=None)
 
 # Celery settings (env-only; remove conflicting defaults)
-CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL")
-CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND")
+CELERY_BROKER_URL = env("CELERY_BROKER_URL", default=None)
+CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND", default=None)
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
@@ -284,16 +277,16 @@ EVENTSTREAM_STORAGE_CLASS = "django_eventstream.storage.DjangoModelStorage"
 EVENTSTREAM_CHANNELMANAGER_CLASS = "apps.common.sse.ChannelManager"
 
 # EventStream Redis configuration (only if provided)
-_event_redis_url = os.getenv("EVENTSTREAM_REDIS_URL") or os.getenv("REDIS_URL")
+_event_redis_url = env("EVENTSTREAM_REDIS_URL", default=None) or env("REDIS_URL", default=None)
 if _event_redis_url:
     EVENTSTREAM_REDIS = {"url": _event_redis_url}
 else:
-    _host = os.getenv("REDIS_HOST")
+    _host = env("REDIS_HOST", default=None)
     if _host:
         EVENTSTREAM_REDIS = {
             "host": _host,
-            "port": int(os.getenv("REDIS_PORT", 6379)),
-            "db": int(os.getenv("REDIS_DB", 0)),
+            "port": env.int("REDIS_PORT", default=6379),
+            "db": env.int("REDIS_DB", default=0),
         }
     # else: don't define EVENTSTREAM_REDIS in base
 

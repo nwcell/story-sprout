@@ -9,7 +9,40 @@ from django.db import transaction
 from django.utils.html import format_html
 from django.utils.timezone import now
 
-from .models import Job
+from apps.ai.models import Artifacts, Conversation, Job, Message
+
+
+@admin.register(Conversation)
+class ConversationAdmin(admin.ModelAdmin):
+    list_display = (
+        "uuid",
+        "user",
+        "title",
+        "created_at",
+        "updated_at",
+    )
+
+
+@admin.register(Message)
+class MessageAdmin(admin.ModelAdmin):
+    list_display = (
+        "uuid",
+        "conversation",
+        "content",
+        "position",
+        "created_at",
+        "updated_at",
+    )
+
+
+@admin.register(Artifacts)
+class ArtifactsAdmin(admin.ModelAdmin):
+    list_display = (
+        "uuid",
+        "file",
+        "created_at",
+        "updated_at",
+    )
 
 
 @admin.register(Job)

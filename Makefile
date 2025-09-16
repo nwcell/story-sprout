@@ -5,7 +5,7 @@ work_dir = $(shell git rev-parse --show-toplevel)
 web_dir = src
 app = config
 uv_cmd = uv run
-manage_cmd = $(uv_cmd) --directory $(web_dir) manage.py
+manage_cmd = $(uv_cmd) manage.py
 celery_cmd = $(uv_cmd) --directory $(web_dir) celery
 celery_pidfile = .run/celery.pid
 celery_host = dev@%h
@@ -69,7 +69,7 @@ db-migrate: ## ⬆️  Apply database migrations
 # Documentation targets
 docs: ## 📚 Start documentation server
 	@echo "📚 Starting documentation server on port $(docs_port)..."
-	@$(uv_cmd) mkdocs serve -f docs/mkdocs.yml -a localhost:$(docs_port) -w docs
+	@$(uv_cmd) mkdocs serve -f mkdocs.yml -a localhost:$(docs_port) -w docs
 .PHONY: docs
 
 # Notebook targets

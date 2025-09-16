@@ -25,21 +25,83 @@ class Conversation(models.Model):
         return self.messages.all().order_by("position")
 
 
+class MessageManager(models.Manager):
+    """Custom manager that handles position auto-assignment for bulk operations."""
+
+    def bulk_create(
+        self,
+        objs,
+        batch_size=None,
+        ignore_conflicts=False,
+        update_conflicts=False,
+        update_fields=None,
+        unique_fields=None,
+    ):
+        """Override bulk_create to assign positions before database insert."""
+        from django.db import transaction
+
+        # Group objects by conversation for position assignment
+        conv_groups = {}
+        for obj in objs:
+            conv_id = obj.conversation_id or obj.conversation.id
+            if conv_id not in conv_groups:
+                conv_groups[conv_id] = []
+            conv_groups[conv_id].append(obj)
+
+        with transaction.atomic():
+            # Assign positions for each conversation group
+            for conv_id, conv_objs in conv_groups.items():
+                # Get current max position for this conversation
+                max_position = self.filter(conversation_id=conv_id).aggregate(max_pos=models.Max("position"))[
+                    "max_pos"
+                ]
+                starting_position = (max_position or -1) + 1
+
+                # Assign sequential positions to objects without positions
+                for i, obj in enumerate(conv_objs):
+                    if obj.position is None:
+                        obj.position = starting_position + i
+
+            # Call parent bulk_create with positioned objects
+            return super().bulk_create(
+                objs,
+                batch_size=batch_size,
+                ignore_conflicts=ignore_conflicts,
+                update_conflicts=update_conflicts,
+                update_fields=update_fields,
+                unique_fields=unique_fields,
+            )
+
+
 class Message(models.Model):
+    """
+    Message within a conversation with auto-assigned sequential position.
+
+    Position auto-assignment works with:
+    - Single create: Message.objects.create(conversation=conv, content=data)
+    - Bulk create: Message.objects.bulk_create([Message(conversation=conv, content=data), ...])
+
+    Both operations will automatically assign sequential positions within each conversation.
+    """
+
     uuid = models.UUIDField(default=uuid4, editable=False, unique=True)
     conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name="messages")
     content = models.JSONField()
-    position = models.IntegerField()
+    position = models.IntegerField(
+        null=True, blank=True, help_text="Auto-assigned sequential position within conversation"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    objects = MessageManager()
 
     class Meta:
         ordering = ["conversation", "position"]
         unique_together = [["conversation", "position"]]
 
     def save(self, *args, **kwargs):
+        """Auto-assign position if not set (for single creates)."""
         if self.position is None:
-            # Atomic auto-increment position relative to conversation
             from django.db import transaction
 
             with transaction.atomic():

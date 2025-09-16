@@ -14,13 +14,8 @@ from pathlib import Path
 
 import environ
 
-from config.logging import InterceptHandler, setup_logger
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-
-# Initialize loguru
-setup_logger()
 
 # Initialize django-environ
 env = environ.Env()
@@ -30,6 +25,7 @@ _env_path = BASE_DIR.parent / ".env"
 if _env_path.exists():
     env.read_env(_env_path)
 
+# Logging configuration managed below in LOGGING dict
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -292,28 +288,22 @@ else:
 
 LOGGING = {
     "version": 1,
-    # IMPORTANT: drop Django's built-in handlers so you don't get duplicates
-    "disable_existing_loggers": True,
+    "disable_existing_loggers": False,
     "handlers": {
-        "loguru": {"()": InterceptHandler},  # your InterceptHandler
+        "console": {
+            "class": "logging.StreamHandler",
+        },
     },
-    # Single sink: everything bubbles to root -> InterceptHandler -> Loguru
-    "root": {"handlers": ["loguru"], "level": "INFO"},
+    "root": {
+        "handlers": ["console"],
+        "level": "WARNING",
+    },
     "loggers": {
-        # Django family
-        "django": {"level": "INFO", "propagate": True},
-        "django.server": {"level": "WARNING", "propagate": True},
-        "django.request": {"level": "INFO", "propagate": True},
-        # Daphne
-        "daphne": {"level": "INFO", "propagate": True},
-        "daphne.server": {"level": "INFO", "propagate": True},
-        "daphne.http_protocol": {"level": "INFO", "propagate": True},
-        # Asyncio noise control
-        "asyncio": {"level": "WARNING", "propagate": True},
-        # Celery
-        "celery": {"level": "INFO", "propagate": True},
-        "celery.worker": {"level": "INFO", "propagate": True},
-        "celery.task": {"level": "INFO", "propagate": True},
+        "apps": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
     },
 }
 

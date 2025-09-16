@@ -82,12 +82,12 @@ plugins:
       type: timeago
 
 # Additional configuration
-docs_dir: ../docs
+docs_dir: docs
 site_dir: ../site
 
 # Watch additional paths for changes
 watch:
-  - ../docs
+  - docs
 
 # Copyright
 copyright: Copyright &copy; 2025 Story Sprout

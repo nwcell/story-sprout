@@ -11,7 +11,7 @@ from ninja import Router
 from apps.ai.agents import list_agent_types
 from apps.ai.models import Conversation
 from apps.ai.schemas import ConversationDetailSchema, ConversationSchema, JobStatus, PageJob, RequestSchema, StoryJob
-from apps.ai.tasks import agent_orchestration_task
+from apps.ai.tasks import agent_task
 from apps.ai.util.celery import enqueue_job
 
 router = Router()
@@ -21,6 +21,8 @@ logger = logging.getLogger(__name__)
 @router.get("/agents", tags=["Agents"])
 def agents(request) -> list[str]:
     _user = request.user
+    logger.info(f"API: agents endpoint called by user {_user}")
+    logger.debug(f"API: Getting agent types list")
     return list_agent_types()
 
 
@@ -39,22 +41,27 @@ def get_conversations(request, conversation_uuid: UUID) -> ConversationDetailSch
 
 @router.post("/request", response=ConversationSchema, tags=["Request"])
 def create_request(request, payload: RequestSchema) -> ConversationSchema:
+    logger.info(f"create_request received: {payload}")
     user = request.user
 
     # Get or create conversation
     if payload.conversation_uuid:
         conversation = get_object_or_404(Conversation, uuid=payload.conversation_uuid, user=user)
+        logger.info(f"create_request found conversation: {conversation}")
     else:
         # Create new conversation with readable datetime title
         now = datetime.now()
         title = f"New Chat {now.strftime('%Y-%m-%d %H:%M')}"
         conversation = Conversation.objects.create(user=user, title=title)
+        logger.info(f"create_request created conversation: {conversation}")
 
         # Update payload with the new conversation UUID
         payload.conversation_uuid = conversation.uuid
 
     # Enqueue agent orchestration task
-    agent_orchestration_task.delay(payload)
+    logger.info(f"create_request enqueuing agent task: {payload}")
+    agent_task.delay(payload)
+    logger.info(f"create_request enqueued agent task: {payload}")
 
     return conversation
 

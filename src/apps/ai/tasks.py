@@ -23,15 +23,14 @@ from apps.stories.services import (
 
 logger = logging.getLogger(__name__)
 
-
 ai = AIEngine()
 
 
-@shared_task(name="ai.agent_orchestration")
-def agent_orchestration_task(payload: RequestSchema) -> str:
+@shared_task(name="ai.agent_task")
+def agent_task(payload: RequestSchema) -> str:
     """Orchestrate pydantic-ai agent conversation."""
+    logger.info(f"🚀 TASK STARTING: agent_orchestration - {payload}")
     logger.info(f"agent_orchestration received: {payload}")
-    print(f"agent_orchestration received: {payload}")
 
     # Parse payload
     conversation_uuid = payload.conversation_uuid
@@ -48,9 +47,15 @@ def agent_orchestration_task(payload: RequestSchema) -> str:
     result = agent.run_sync(prompt, deps=deps, message_history=messages)
     logger.info(f"agent_orchestration result: {result}")
 
-    for message in result.new_messages_json():
-        logger.info(f"agent_orchestration message: {message}")
-        Message.objects.create(conversation=conversation, content=message)
+    # Create messages using bulk_create - database trigger handles position assignment
+    new_messages = result.new_messages_json()
+    if new_messages:
+        logger.info(f"agent_orchestration creating {len(new_messages)} messages")
+        messages_to_create = [
+            Message(conversation=conversation, content=msg.model_dump() if hasattr(msg, "model_dump") else msg)
+            for msg in new_messages
+        ]
+        Message.objects.bulk_create(messages_to_create)
 
     logger.info(f"agent_orchestration completed for conversation {conversation_uuid}")
     return f"Conversation {conversation_uuid} updated"

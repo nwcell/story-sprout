@@ -28,11 +28,11 @@ This file tracks high-level tasks and future development goals for the Story Spr
     - [x] Update subtasks based on user answers
     - [x] Pause until user approves revisions ← **APPROVED**
     - [x] Add pydantic-ai dependency
-    - [ ] Create single pydantic AI agent for story tasks
-    - [ ] Make new generic pydantic ai endpoint that can update the title
-        - [ ] api call (ninja) - new generic endpoint
-        - [ ] celery task - integrate with existing job system
-        - [ ] sse notification (use existing update title service)
+    - [x] Create single pydantic AI agent for story tasks
+    - [ ] Make new generic pydantic ai endpoint that can update the title _(in-progress)_
+        - [x] api call (ninja) - new generic endpoint
+        - [ ] celery task - integrate with existing job system _(in-progress)_
+        - [ ] sse notification (use existing update title service) _(in-progress)_
     - [ ] Pause until user approves
     - [ ] Add tools to the agent
         - [ ] Review tool requirements & verify clarifying questions w/ user
@@ -49,6 +49,7 @@ This file tracks high-level tasks and future development goals for the Story Spr
 
 ## Low Priority
 
+- [ ] Unified launch & log command w/ centralized reboot (https://github.com/DarthSim/overmind)
 - [ ] Migrate to Bubble UI
 - [ ] Migrate to locally building Tailwind
 - [ ] Clean up Marketing site codebase & make presentable

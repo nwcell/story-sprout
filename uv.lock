@@ -4071,6 +4071,7 @@ dependencies = [
     { name = "python-lsp-server" },
     { name = "redis" },
     { name = "requests" },
+    { name = "rich" },
     { name = "stripe" },
     { name = "whitenoise", extra = ["brotli"] },
 ]
@@ -4140,6 +4141,7 @@ requires-dist = [
     { name = "python-lsp-server", specifier = ">=1.13.1" },
     { name = "redis", specifier = ">=6.2.0" },
     { name = "requests", specifier = ">=2.32.4" },
+    { name = "rich", specifier = ">=14.1.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.12.9" },
     { name = "stripe", specifier = ">=12.3.0" },
     { name = "watchdog", marker = "extra == 'dev'", specifier = ">=6.0.0" },

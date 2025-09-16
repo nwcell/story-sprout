@@ -80,6 +80,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
+    "apps.common.middleware.RequestLoggingMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -306,14 +307,13 @@ LOGGING = {
                 "CRITICAL": "red,bg_white",
             },
         },
-        "multicolor": {
-            "()": "config.dynamic_logging.get_multi_color_formatter",
-        },
     },
     "handlers": {
         "console": {
-            "class": "logging.StreamHandler",
-            "formatter": "multicolor",
+            "()": "rich.logging.RichHandler",
+            "rich_tracebacks": True,
+            "markup": True,
+            "show_path": False,
         },
         "plain": {
             "class": "logging.StreamHandler",
@@ -335,9 +335,19 @@ LOGGING = {
             "level": "INFO",
             "propagate": False,
         },
-        "django.channels": {
+        "django.request": {
             "handlers": ["console"],
             "level": "INFO",
+            "propagate": False,
+        },
+        "django.server": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "django.channels": {
+            "handlers": ["plain"],
+            "level": "WARNING",
             "propagate": False,
         },
     },

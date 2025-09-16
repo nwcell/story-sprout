@@ -40,7 +40,17 @@ def agent_task(payload: RequestSchema) -> str:
 
     # Get conversation and build message history
     conversation = Conversation.objects.get(uuid=conversation_uuid)
-    messages = list(conversation.messages.all().order_by("position")) or None
+    django_messages = list(conversation.messages.all().order_by("position"))
+
+    # Convert Django messages to pydantic-ai ModelMessage objects
+    messages = None
+    if django_messages:
+        from pydantic_ai.messages import ModelMessagesTypeAdapter
+
+        # Extract content (which contains the serialized ModelMessage data)
+        message_contents = [msg.content for msg in django_messages]
+        # Convert back to ModelMessage objects for pydantic-ai
+        messages = ModelMessagesTypeAdapter.validate_python(message_contents)
 
     # Run agent with prompt (sync version)
     agent = get_agent(agent_type)

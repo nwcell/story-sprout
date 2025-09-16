@@ -20,40 +20,42 @@ class Conversation(models.Model):
     def __str__(self):
         return self.title or str(self.id)
 
-    def add_run(self, result):
-        """
-        Persist this run's new messages as a single JSON bytes blob.
-        Returns the created Run instance.
-        """
-        Run.objects.create(
-            conversation=self,
-            messages_json_bytes=result.new_messages_json(),
-        )
 
-    @property
-    def history(self):
-        out = []
-        for run in self.runs.order_by("created_at"):
-            out += run.messages_json_bytes
-        return out
-
-
-class Run(models.Model):
+class Message(models.Model):
     uuid = models.UUIDField(default=uuid4, editable=False, unique=True)
     conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name="runs")
-    messages_json_bytes = models.BinaryField()
+    content = models.JSONField()
+    position = models.IntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ["-created_at"]
+        ordering = ["conversation", "position"]
+        unique_together = [["conversation", "position"]]
+
+    def save(self, *args, **kwargs):
+        if self.position is None:
+            # Atomic auto-increment position relative to conversation
+            from django.db import transaction
+
+            with transaction.atomic():
+                max_position = (
+                    Message.objects.filter(conversation=self.conversation)
+                    .select_for_update()
+                    .aggregate(max_pos=models.Max("position"))["max_pos"]
+                )
+                self.position = (max_position or -1) + 1
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.conversation} - Run {self.uuid}"
+        return f"{self.conversation} - Message {self.position}"
 
 
 class Artifacts(models.Model):
-    run = models.ForeignKey(Run, on_delete=models.CASCADE, related_name="artifacts")
+    uuid = models.UUIDField(default=uuid4, editable=False, unique=True)
+    file = models.FileField(upload_to="artifacts")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
 
 class Job(models.Model):

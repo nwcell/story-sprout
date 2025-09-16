@@ -1,17 +1,43 @@
 import logging
+from uuid import UUID
 
 from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
 from ninja import Router
 
-from apps.ai.schemas import JobStatus, PageJob, StoryJob
+from apps.ai.models import Conversation
+from apps.ai.schemas import ConversationDetailSchema, ConversationSchema, JobStatus, PageJob, RequestSchema, StoryJob
 from apps.ai.util.celery import enqueue_job
 
 router = Router()
 logger = logging.getLogger(__name__)
 
 
-# @router.post('conversations')
-# def ai_conversation(request) -> JobStatus:
+@router.get("/agents", tags=["Agents"])
+def agents(request) -> list[str]:
+    _user = request.user
+    return ["writer"]
+
+
+@router.get("/conversations", response=list[ConversationSchema], tags=["Conversations"])
+def list_conversations(request) -> list[ConversationSchema]:
+    user = request.user
+    return Conversation.objects.filter(user=user)
+
+
+@router.get("/conversations/{conversation_uuid}", response=ConversationDetailSchema, tags=["Conversations"])
+def get_conversations(request, conversation_uuid: UUID) -> ConversationDetailSchema:
+    user = request.user
+    conversation = get_object_or_404(Conversation, uuid=conversation_uuid, user=user)
+    return conversation
+
+
+@router.post("/request", response=ConversationSchema, tags=["Request"])
+def create_request(request, payload: RequestSchema) -> ConversationSchema:
+    user = request.user
+    conversation = Conversation.objects.create(user=user)
+    # Start running the workflow
+    return conversation
 
 
 # TODO: Add Auth

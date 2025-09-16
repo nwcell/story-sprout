@@ -313,7 +313,7 @@ LOGGING = {
             "()": "rich.logging.RichHandler",
             "rich_tracebacks": True,
             "markup": True,
-            "show_path": False,
+            "show_path": True,
         },
         "plain": {
             "class": "logging.StreamHandler",
@@ -322,7 +322,7 @@ LOGGING = {
     },
     "root": {
         "handlers": ["console"],
-        "level": "WARNING",
+        "level": "INFO",
     },
     "loggers": {
         "apps": {

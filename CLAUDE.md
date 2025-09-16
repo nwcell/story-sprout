@@ -207,3 +207,45 @@ uv run python services/web/manage.py migrate --merge
 ```bash
 uv run python services/web/manage.py collectstatic --noinput
 ```
+
+## Task Management Best Practices
+
+### Working with Task Lists and Checkboxes
+
+When working on complex features or implementations, use the structured task management approach in the `docs/brain/` directory. This ensures organized, trackable progress.
+
+#### Checkbox Status Indicators
+- ✅ **Completed**: `- [x] Task description`
+- ⏳ **In Progress**: `- [ ] Task description _**(⏳ In Progress)**_`
+- 📋 **Pending**: `- [ ] Task description`
+- 🔍 **Review Needed**: `- [ ] Task description _**(🔍 Review)**_`
+- ⚠️ **Blocked**: `- [ ] Task description _**(⚠️ Blocked: reason)**_`
+- 🧪 **Testing**: `- [ ] Task description _**(🧪 Testing)**_`
+
+#### Implementation Guidelines
+1. **Focus Limit**: Work on 3-5 tasks maximum at any time to maintain quality
+2. **Status Updates**: Mark tasks as `_**(⏳ In Progress)**_` when starting work
+3. **Sequential Completion**: Complete tasks fully before moving to next phase
+4. **Nested Tasks**: Use indentation for subtasks and dependencies
+5. **Review Process**: Add `_**(🔍 Review)**_` tag when task needs verification
+6. **Specific References**: Include file paths and line numbers for clarity
+
+#### Example Task Structure
+```markdown
+## Phase 1: Foundation
+- [x] Configure basic setup
+- [ ] Implement core functionality _**(⏳ In Progress)**_
+  - [x] Add model definitions
+  - [ ] Create API endpoints _**(🧪 Testing)**_
+  - [ ] Add validation logic
+- [ ] Integration testing _**(⚠️ Blocked: waiting for API completion)**_
+```
+
+#### Task Management Process
+1. **Planning**: Break large features into phases with clear dependencies
+2. **Execution**: Work sequentially through phases, completing all tasks before advancing
+3. **Testing**: Each phase should include testing tasks
+4. **Review**: Mark completed phases for review before proceeding
+5. **Documentation**: Update task lists as work progresses
+
+Use this approach for all significant development work to maintain organized, trackable progress and ensure nothing is missed during implementation.

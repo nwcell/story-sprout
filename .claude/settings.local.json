@@ -1,8 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "WebSearch",
-      "Bash(DJANGO_SETTINGS_MODULE=config.settings uv run --directory src python -c \"\nimport os\nos.environ.setdefault(''DJANGO_SETTINGS_MODULE'', ''config.settings'')\nimport django\ndjango.setup()\n\n# Send a simple test to see the logging\nfrom apps.ai.tasks import agent_orchestration_task\nfrom apps.ai.schemas import RequestSchema\nfrom uuid import uuid4\n\nprint(''🧪 Testing Django-Celery logging integration...'')\ntask = agent_orchestration_task.delay(RequestSchema(\n    conversation_uuid=uuid4(),\n    agent=''writer'',\n    prompt=''Testing beautiful Django Loguru logging! ✨''\n))\nprint(f''📝 Task submitted: {task.id}'')\n\")"
+      "WebFetch(domain:github.com)",
+      "Bash(python:*)"
     ],
     "deny": [],
     "ask": []

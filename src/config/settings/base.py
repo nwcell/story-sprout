@@ -289,9 +289,35 @@ else:
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
+    "formatters": {
+        "standard": {
+            "format": "[%(asctime)s] %(levelname)s %(name)s: %(message)s",
+            "datefmt": "%Y-%m-%d %H:%M:%S",
+        },
+        "colored": {
+            "()": "colorlog.ColoredFormatter",
+            "format": "[%(asctime)s] %(log_color)s%(levelname)s%(reset)s %(name)s: %(message)s",
+            "datefmt": "%Y-%m-%d %H:%M:%S",
+            "log_colors": {
+                "DEBUG": "cyan",
+                "INFO": "green",
+                "WARNING": "yellow",
+                "ERROR": "red",
+                "CRITICAL": "red,bg_white",
+            },
+        },
+        "multicolor": {
+            "()": "config.dynamic_logging.get_multi_color_formatter",
+        },
+    },
     "handlers": {
         "console": {
             "class": "logging.StreamHandler",
+            "formatter": "multicolor",
+        },
+        "plain": {
+            "class": "logging.StreamHandler",
+            "formatter": "standard",
         },
     },
     "root": {
@@ -300,6 +326,16 @@ LOGGING = {
     },
     "loggers": {
         "apps": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "daphne": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "django.channels": {
             "handlers": ["console"],
             "level": "INFO",
             "propagate": False,

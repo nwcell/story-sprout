@@ -26,14 +26,14 @@ app.autodiscover_tasks(["apps.ai"])
 def config_loggers(*args, **kwargs):
     """Configure Celery workers to use Django logging settings."""
     import logging
-    
+
     # Apply Django's LOGGING configuration
     dictConfig(settings.LOGGING)
-    
+
     # Test that logging is working immediately after setup
-    test_logger = logging.getLogger('apps')
+    test_logger = logging.getLogger("apps")
     test_logger.info("🔧 Celery worker logging initialized via setup_logging signal")
-    
+
     # Also test the specific task logger
-    task_logger = logging.getLogger('apps.ai.tasks')
+    task_logger = logging.getLogger("apps.ai.tasks")
     task_logger.info("🔧 Task logger configured and ready")

@@ -59,6 +59,7 @@ dependencies = [
     "python-lsp-server>=1.13.1",
     "jupyterlab>=4.3.6",
     "loguru>=0.7.3",
+    "colorlog>=6.9.0",
 ]
 
 [tool.uv]

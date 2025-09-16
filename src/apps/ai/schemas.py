@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, ConfigDict, field_validator
 
 
 class JobStatus(BaseModel):
@@ -31,22 +31,20 @@ class AgentRequestSchema(BaseModel):
 
 
 class MessageSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     uuid: UUID
     content: dict
 
-    class Config:
-        from_attributes = True
-
 
 class ConversationSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     uuid: UUID
     title: str | None
     meta: dict
     created_at: datetime
     updated_at: datetime
-
-    class Config:
-        from_attributes = True
 
 
 class ConversationDetailSchema(ConversationSchema):

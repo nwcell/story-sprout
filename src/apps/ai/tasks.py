@@ -3,7 +3,6 @@ Celery tasks for AI services.
 """
 
 import logging
-from uuid import UUID
 
 from celery import shared_task
 
@@ -35,7 +34,7 @@ def agent_orchestration_task(payload: RequestSchema) -> str:
     print(f"agent_orchestration received: {payload}")
 
     # Parse payload
-    conversation_uuid = UUID(payload.conversation_uuid)
+    conversation_uuid = payload.conversation_uuid
     agent_type = payload.agent
     prompt = payload.prompt
 

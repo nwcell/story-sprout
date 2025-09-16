@@ -1,8 +1,9 @@
 """Tests for the stories app."""
 
-from apps.stories.models import Page, Story
 from django.contrib.auth import get_user_model
 from django.test import TestCase
+
+from apps.stories.models import Page, Story
 
 User = get_user_model()
 

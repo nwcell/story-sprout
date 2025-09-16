@@ -2,6 +2,7 @@
 Celery tasks for AI services.
 """
 
+import json
 import logging
 
 from celery import shared_task
@@ -48,13 +49,12 @@ def agent_task(payload: RequestSchema) -> str:
     logger.info(f"agent_orchestration result: {result}")
 
     # Create messages using bulk_create - database trigger handles position assignment
-    new_messages = result.new_messages_json()
-    if new_messages:
-        logger.info(f"agent_orchestration creating {len(new_messages)} messages")
-        messages_to_create = [
-            Message(conversation=conversation, content=msg.model_dump() if hasattr(msg, "model_dump") else msg)
-            for msg in new_messages
-        ]
+    new_messages_json = result.new_messages_json()
+    if new_messages_json:
+        # Decode JSON bytes to Python objects for storage
+        messages_data = json.loads(new_messages_json.decode("utf-8"))
+        logger.info(f"agent_orchestration creating {len(messages_data)} messages")
+        messages_to_create = [Message(conversation=conversation, content=msg_data) for msg_data in messages_data]
         Message.objects.bulk_create(messages_to_create)
 
     logger.info(f"agent_orchestration completed for conversation {conversation_uuid}")

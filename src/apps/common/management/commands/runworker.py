@@ -6,7 +6,7 @@ import psutil
 from django.core.management.base import BaseCommand
 from django.utils import autoreload
 
-CELERY_CMD = "celery -A core worker -l info --pool=solo -n dev_worker@localhost"
+CELERY_CMD = "celery -A config worker -l info --pool=solo -n dev_worker@localhost"
 
 
 def kill_existing_workers():

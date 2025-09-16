@@ -2,8 +2,7 @@ from datetime import datetime
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel
-from pydantic_ai.messages import ModelMessage
+from pydantic import BaseModel, field_validator
 
 
 class JobStatus(BaseModel):
@@ -33,7 +32,10 @@ class AgentRequestSchema(BaseModel):
 
 class MessageSchema(BaseModel):
     uuid: UUID
-    content: ModelMessage
+    content: dict
+
+    class Config:
+        from_attributes = True
 
 
 class ConversationSchema(BaseModel):
@@ -43,6 +45,17 @@ class ConversationSchema(BaseModel):
     created_at: datetime
     updated_at: datetime
 
+    class Config:
+        from_attributes = True
+
 
 class ConversationDetailSchema(ConversationSchema):
     messages: list[MessageSchema]
+
+    @field_validator("messages", mode="before")
+    @classmethod
+    def coerce_related_manager(cls, v):
+        # Accept RelatedManager, QuerySet, or list
+        if hasattr(v, "all"):
+            return list(v.all())
+        return list(v)

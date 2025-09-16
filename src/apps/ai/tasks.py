@@ -3,10 +3,14 @@ Celery tasks for AI services.
 """
 
 import logging
+from uuid import UUID
 
 from celery import shared_task
 
-from apps.ai.schemas import PageJob, StoryJob
+from apps.ai.agents import get_agent
+from apps.ai.models import Conversation, Message
+from apps.ai.schemas import PageJob, RequestSchema, StoryJob
+from apps.ai.types import AgentDependencies
 from apps.ai.util.ai import AIEngine
 from apps.ai.util.celery import JobTask
 from apps.stories.models import Page, Story
@@ -22,6 +26,35 @@ logger = logging.getLogger(__name__)
 
 
 ai = AIEngine()
+
+
+@shared_task(name="ai.agent_orchestration")
+def agent_orchestration_task(payload: RequestSchema) -> str:
+    """Orchestrate pydantic-ai agent conversation."""
+    logger.info(f"agent_orchestration received: {payload}")
+    print(f"agent_orchestration received: {payload}")
+
+    # Parse payload
+    conversation_uuid = UUID(payload.conversation_uuid)
+    agent_type = payload.agent
+    prompt = payload.prompt
+
+    # Get conversation and build message history
+    conversation = Conversation.objects.get(uuid=conversation_uuid)
+    messages = list(conversation.messages.all().order_by("position")) or None
+
+    # Run agent with prompt (sync version)
+    agent = get_agent(agent_type)
+    deps = AgentDependencies(conversation_uuid=conversation_uuid)
+    result = agent.run_sync(prompt, deps=deps, message_history=messages)
+    logger.info(f"agent_orchestration result: {result}")
+
+    for message in result.new_messages_json():
+        logger.info(f"agent_orchestration message: {message}")
+        Message.objects.create(conversation=conversation, content=message)
+
+    logger.info(f"agent_orchestration completed for conversation {conversation_uuid}")
+    return f"Conversation {conversation_uuid} updated"
 
 
 @shared_task(name="ai.story_title", base=JobTask)

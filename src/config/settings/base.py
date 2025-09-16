@@ -259,6 +259,9 @@ CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = TIME_ZONE
 
+# Disable Celery's root logger hijacking to use Django logging config
+CELERY_WORKER_HIJACK_ROOT_LOGGER = False
+
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
@@ -297,15 +300,20 @@ LOGGING = {
     # Single sink: everything bubbles to root -> InterceptHandler -> Loguru
     "root": {"handlers": ["loguru"], "level": "INFO"},
     "loggers": {
-        # Let these bubble up to root; DO NOT attach their own handlers
+        # Django family
         "django": {"level": "INFO", "propagate": True},
-        "django.server": {"level": "WARNING", "propagate": True},  # or INFO if you want access logs
+        "django.server": {"level": "WARNING", "propagate": True},
         "django.request": {"level": "INFO", "propagate": True},
+        # Daphne
         "daphne": {"level": "INFO", "propagate": True},
         "daphne.server": {"level": "INFO", "propagate": True},
         "daphne.http_protocol": {"level": "INFO", "propagate": True},
-        # If you see asyncio duplicates/noise:
+        # Asyncio noise control
         "asyncio": {"level": "WARNING", "propagate": True},
+        # Celery
+        "celery": {"level": "INFO", "propagate": True},
+        "celery.worker": {"level": "INFO", "propagate": True},
+        "celery.task": {"level": "INFO", "propagate": True},
     },
 }
 

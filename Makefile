@@ -1,11 +1,33 @@
 # Makefile for Story Sprout project
 
 # Variables
+work_dir = $(shell git rev-parse --show-toplevel)
 web_dir = src
+app = config
 uv_cmd = uv run
-manage_cmd = uv run $(uv_cmd) manage.py
+manage_cmd = $(uv_cmd) --directory $(web_dir) manage.py
+celery_cmd = $(uv_cmd) --directory $(web_dir) celery
+celery_pidfile = .run/celery.pid
+celery_host = dev@%h
 docs_port = 8001
 web_port = 8000
+
+
+# --- Watchdog config ---
+watchmedo        := uv run watchmedo
+watch_patterns   := "*.py;*.toml"
+ignore_patterns  := "*/.git/*;*/.venv/*;*/node_modules/*;*/.pytest_cache/*;*/.mypy_cache/*;*/.run/*;*/dist/*;*/build/*;*/static/*;*/media/*"
+
+# Helper macro
+define WATCH
+	$(watchmedo) auto-restart \
+	  --directory=. --recursive \
+	  --patterns=$(watch_patterns) \
+	  --ignore-patterns=$(ignore_patterns) \
+	  --signal SIGTERM --kill-after 5 -- \
+	  $(1)
+endef
+
 
 # Default target
 help: ## Show this help message
@@ -21,16 +43,13 @@ web: ## 🌱 Start Django development server
 .PHONY: web
 
 tasks: ## 🔄 Start Celery worker
-	@echo "🔄 Starting Celery worker (killing existing workers)..."
-	@echo "🧹 Clearing Redis queues..."
-	@redis-cli DEL celery > /dev/null 2>&1 || echo "⚠️  Warning: Could not clear Redis (not running?)"
-	@$(manage_cmd) runworker
+	@echo "🔄 Starting Celery worker"
+	@$(call WATCH,$(celery_cmd) -A $(app) worker \
+		--loglevel=INFO \
+		--pool=solo \
+		--hostname=$(celery_host) \
+		--without-gossip --without-mingle --without-heartbeat)
 .PHONY: tasks
-
-tasks-kill: ## 🛑 Kill all Celery workers
-	@echo "🛑 Killing all Celery workers..."
-	@./scripts/kill-celery.sh
-.PHONY: kill
 
 db: db-mm db-migrate ## ✅ Sync database (mm + migrate)
 	@echo "✅ Database synchronized"

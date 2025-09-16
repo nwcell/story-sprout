@@ -20,10 +20,14 @@ class Conversation(models.Model):
     def __str__(self):
         return self.title or str(self.id)
 
+    def get_ordered_messages(self):
+        """Return messages ordered by position."""
+        return self.messages.all().order_by("position")
+
 
 class Message(models.Model):
     uuid = models.UUIDField(default=uuid4, editable=False, unique=True)
-    conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name="runs")
+    conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name="messages")
     content = models.JSONField()
     position = models.IntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
@@ -49,6 +53,19 @@ class Message(models.Model):
 
     def __str__(self):
         return f"{self.conversation} - Message {self.position}"
+
+    @classmethod
+    def from_pydantic_message(cls, conversation, message):
+        """Create a Message from a pydantic-ai ModelMessage."""
+        return cls.objects.create(
+            conversation=conversation, content=message.model_dump() if hasattr(message, "model_dump") else message
+        )
+
+    def to_pydantic_message(self):
+        """Convert this Message to a pydantic-ai compatible format."""
+        # This would need proper deserialization based on message type
+        # For now, return the content directly
+        return self.content
 
 
 class Artifacts(models.Model):

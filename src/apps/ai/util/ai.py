@@ -62,6 +62,6 @@ class AIEngine:
 
     def generate_image(self, prompt: str) -> str | None:
         response = litellm.image_generation(
-            model=self.image_model, prompt=prompt, size="1024x1024", quality="auto", n=1
+            model=self.image_model, prompt=prompt, size="1024x1024", quality="standard", n=1
         )
         return response.data[0].url

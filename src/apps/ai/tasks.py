@@ -13,11 +13,7 @@ from apps.ai.schemas import PageJob, RequestSchema, StoryJob
 from apps.ai.types import AgentDependencies
 from apps.ai.util.ai import AIEngine
 from apps.ai.util.celery import JobTask
-from apps.stories.models import Page
-from apps.stories.services import (
-    StoryService,
-    set_page_image_and_notify,
-)
+from apps.stories.services import StoryService
 
 logger = logging.getLogger(__name__)
 
@@ -110,7 +106,7 @@ def ai_story_brainstorm_job(payload: StoryJob) -> str:
 def ai_page_content_job(payload: PageJob) -> str:
     logger.info(f"page_content received: {payload} (type: {type(payload)})")
     story_service = StoryService.load_from_page_uuid(payload.page_uuid)
-    page_obj = story_service.get_page(payload.page_uuid)
+    page_obj = story_service.get_page_obj(payload.page_uuid)
     out = ai.prompt_completion("page_content.md", {"page": page_obj, "generation_type": "content"})
 
     logger.info(f"page_content result: {out}")
@@ -122,7 +118,7 @@ def ai_page_content_job(payload: PageJob) -> str:
 def ai_page_image_text_job(payload: PageJob) -> str:
     logger.info(f"page_image_text received: {payload} (type: {type(payload)})")
     story_service = StoryService.load_from_page_uuid(payload.page_uuid)
-    page_obj = story_service.get_page(payload.page_uuid)
+    page_obj = story_service.get_page_obj(payload.page_uuid)
     out = ai.prompt_completion("page_image_text.md", {"page": page_obj})
 
     logger.info(f"page_image_text result: {out}")
@@ -133,18 +129,20 @@ def ai_page_image_text_job(payload: PageJob) -> str:
 @shared_task(name="ai.page_image", base=JobTask)
 def ai_page_image_job(payload: PageJob) -> str:
     logger.info(f"page_image received: {payload} (type: {type(payload)})")
-    page = Page.objects.get(uuid=payload.page_uuid)
+    story_service = StoryService.load_from_page_uuid(payload.page_uuid)
+    page_obj = story_service.get_page_obj(payload.page_uuid)
 
     # If no image_text, generate it first
-    if not page.image_text:
-        logger.info(f"No image_text for page {page.uuid}, generating image text first")
+    if not page_obj.image_text:
+        logger.info(f"No image_text for page {page_obj.uuid}, generating image text first")
         ai_page_image_text_job(payload)
         # Refresh page to get the newly generated image_text
-        page.refresh_from_db()
+        story_service = StoryService.load_from_page_uuid(payload.page_uuid)
+        page_obj = story_service.get_page_obj(payload.page_uuid)
 
-    out = ai.generate_image(page.image_text)
+    out = ai.generate_image(page_obj.image_text)
 
     logger.info(f"page_image result: {out}")
     if out:
-        set_page_image_and_notify(page, out)
-    return f"job:{page.story.channel}:ai_page_image_job"
+        story_service.set_page_image(page_key=payload.page_uuid, image_data=out)
+    return f"job:{page_obj.story.channel}:ai_page_image_job"

@@ -25,22 +25,22 @@ def _publish_job(job: Job) -> None:
     )
 
 
-@receiver(post_save, sender=Job, dispatch_uid="jobs.autodispatch")
-def jobs_autodispatch(sender, instance: Job, created: bool, **kwargs):
-    """
-    Auto-dispatch when:
-      - a Job is created with QUEUED status, OR
-      - a Job is re-queued (status set to QUEUED) and has no task_id yet.
-
-    Idempotency guards:
-      - don't enqueue if celery_task_id is already set
-      - only enqueue when status is QUEUED
-    """
-    # Must be QUEUED and not already dispatched
-    if instance.status != Job.Status.QUEUED:
-        return
-    if instance.celery_task_id:
-        return
-
-    # Publish only after the outer transaction commits
-    transaction.on_commit(lambda: _publish_job(instance))
+# @receiver(post_save, sender=Job, dispatch_uid="jobs.autodispatch")
+# def jobs_autodispatch(sender, instance: Job, created: bool, **kwargs):
+#     """
+#     Auto-dispatch when:
+#       - a Job is created with QUEUED status, OR
+#       - a Job is re-queued (status set to QUEUED) and has no task_id yet.
+#
+#     Idempotency guards:
+#       - don't enqueue if celery_task_id is already set
+#       - only enqueue when status is QUEUED
+#     """
+#     # Must be QUEUED and not already dispatched
+#     if instance.status != Job.Status.QUEUED:
+#         return
+#     if instance.celery_task_id:
+#         return
+#
+#     # Publish only after the outer transaction commits
+#     transaction.on_commit(lambda: _publish_job(instance))

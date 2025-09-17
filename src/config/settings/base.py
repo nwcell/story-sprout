@@ -269,22 +269,20 @@ STORAGES = {
 }
 
 # EventStream configuration for Server-Sent Events
-EVENTSTREAM_STORAGE_CLASS = "django_eventstream.storage.DjangoModelStorage"
+EVENTSTREAM_STORAGE_CLASS = "django_eventstream.storage.DjangoModelStorage" 
 EVENTSTREAM_CHANNELMANAGER_CLASS = "apps.common.sse.ChannelManager"
 
-# EventStream Redis configuration (only if provided)
+# EventStream Redis configuration - default to localhost for development
 _event_redis_url = env("EVENTSTREAM_REDIS_URL", default=None) or env("REDIS_URL", default=None)
 if _event_redis_url:
     EVENTSTREAM_REDIS = {"url": _event_redis_url}
 else:
-    _host = env("REDIS_HOST", default=None)
-    if _host:
-        EVENTSTREAM_REDIS = {
-            "host": _host,
-            "port": env.int("REDIS_PORT", default=6379),
-            "db": env.int("REDIS_DB", default=0),
-        }
-    # else: don't define EVENTSTREAM_REDIS in base
+    _host = env("REDIS_HOST", default="localhost")  # Default to localhost
+    EVENTSTREAM_REDIS = {
+        "host": _host,
+        "port": env.int("REDIS_PORT", default=6379),
+        "db": env.int("REDIS_DB", default=0),
+    }
 
 
 LOGGING = {

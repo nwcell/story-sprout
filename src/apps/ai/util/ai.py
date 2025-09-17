@@ -1,3 +1,4 @@
+import logging
 import os
 from dataclasses import dataclass
 
@@ -5,6 +6,8 @@ import litellm
 from django.conf import settings
 from django.template import Context, Template
 from pydantic_ai import Agent
+
+logger = logging.getLogger(__name__)
 
 
 def render_prompt(template_name: str, context: dict):
@@ -48,11 +51,13 @@ class AIEngine:
             temperature=self.temperature,
             stream=stream,
         )
+        logger.info(f"AIEngine: completion response: {response}")
+        logger.info(f"AIEngine: completion response content: {response.choices[0].message.content}")
         return response.choices[0].message.content
 
     def prompt_completion(self, template_name: str, context: dict, stream: bool = False) -> str:
         prompt = render_prompt(template_name, context)
-        print(prompt)
+        logger.info(f"AIEngine: prompt_completion prompt: {prompt}")
         return self.completion(prompt, stream=stream)
 
     def generate_image(self, prompt: str) -> str | None:

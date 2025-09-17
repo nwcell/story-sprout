@@ -28,7 +28,6 @@ urlpatterns = [
     # Catch legacy livereload requests and return 204 to stop spam
     # path("livereload/<path:path>", lambda request, path: JsonResponse({}, status=204)),
     path("api/", api.urls),
-    path("mcp/", include("mcp_server.urls")),
 ]
 
 if settings.DEBUG:

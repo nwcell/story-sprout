@@ -1,26 +1,37 @@
-from pydantic_ai import BinaryContent, RunContext
-from pydantic_ai.messages import ToolReturn
+from pydantic_ai import RunContext
+from pydantic_ai.messages import BinaryContent, ImageUrl, ToolReturn
 from pydantic_ai.toolsets import FunctionToolset
 
-from apps.ai.types import AgentDependencies
+from apps.ai.engine.types import AgentDependencies
+from apps.stories.services import PageSchema, StorySchema, StoryService
 
 
-async def get_story(ctx: RunContext[AgentDependencies]) -> dict:
+async def get_story(ctx: RunContext[AgentDependencies]) -> StorySchema:
     """Get story information for the current conversation."""
-    # TODO: Implement story retrieval based on conversation context
-    return {"message": "Story retrieval not yet implemented"}
+    story_service = StoryService(uuid=ctx.deps.conversation.story_uuid)
+    return story_service.story
 
 
-async def get_page(ctx: RunContext[AgentDependencies], page_num: int) -> dict:
+async def get_page(ctx: RunContext[AgentDependencies], page_num: int) -> PageSchema:
     """Get page information by page number."""
-    # TODO: Implement page retrieval based on conversation context
-    return {"message": f"Page {page_num} retrieval not yet implemented"}
+    story_service = StoryService(uuid=ctx.deps.conversation.story_uuid)
+    page = story_service.get_page(page_num)
+    return page
 
 
-async def get_page_image(ctx: RunContext[AgentDependencies], page_num: int) -> BinaryContent | None:
+async def get_page_image(ctx: RunContext[AgentDependencies], page_num: int) -> ToolReturn:
     """Get page image by page number."""
-    # TODO: Implement page image retrieval
-    return None
+    story_service = StoryService(uuid=ctx.deps.conversation.story_uuid)
+    page = story_service.get_page(page_num)
+    # media_type = page.image.content_type
+    # image_binary = story_service.get_page_image_binary(page_num)
+    return ToolReturn(
+        return_value=f"Found image for page {page_num}",
+        content=[
+            # BinaryContent(data=image_binary, media_type=media_type),
+            ImageUrl(url=page.image.url, force_download=True),
+        ],
+    )
 
 
 async def generate_image(ctx: RunContext[AgentDependencies], prompt: str) -> ToolReturn:

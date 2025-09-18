@@ -7,8 +7,8 @@ and can be reused throughout the application.
 
 from pydantic_ai import Agent
 
-from apps.ai.tools import book_toolset
-from apps.ai.types import AgentDependencies
+from apps.ai.engine.tools import book_toolset
+from apps.ai.engine.types import AgentDependencies
 
 # Writer agent for children's book creation
 writer_agent = Agent(

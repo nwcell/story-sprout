@@ -8,11 +8,10 @@ from django.http import HttpResponse, StreamingHttpResponse
 from django.shortcuts import get_object_or_404
 from ninja import Router
 
-from apps.ai.agents import list_agent_types
+from apps.ai.engine.agents import list_agent_types
+from apps.ai.engine.celery import enqueue_job
 from apps.ai.models import Conversation
 from apps.ai.schemas import ConversationDetailSchema, ConversationSchema, JobStatus, PageJob, RequestSchema, StoryJob
-from apps.ai.tasks import agent_task
-from apps.ai.util.celery import enqueue_job
 
 router = Router()
 logger = logging.getLogger(__name__)
@@ -22,7 +21,7 @@ logger = logging.getLogger(__name__)
 def agents(request) -> list[str]:
     _user = request.user
     logger.info(f"API: agents endpoint called by user {_user}")
-    logger.debug(f"API: Getting agent types list")
+    logger.debug("API: Getting agent types list")
     return list_agent_types()
 
 
@@ -60,8 +59,10 @@ def create_request(request, payload: RequestSchema) -> ConversationSchema:
 
     # Enqueue agent orchestration task
     logger.info(f"create_request enqueuing agent task: {payload}")
-    agent_task.delay(payload)
-    logger.info(f"create_request enqueued agent task: {payload}")
+    job = enqueue_job(user=user, workflow="ai.agent_task", payload=payload)
+    # agent_task.delay(payload)
+    logger.info(f"create_request enqueued job: {job}")
+    logger.info(f"create_request enqueued payload: {payload}")
 
     return conversation
 

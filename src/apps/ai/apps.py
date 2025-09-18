@@ -7,4 +7,4 @@ class AiConfig(AppConfig):
 
     def ready(self):
         from apps.ai import tasks  # noqa
-        from apps.ai import signals  # noqa
+        # from apps.ai import signals  # noqa

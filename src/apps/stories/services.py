@@ -25,6 +25,7 @@ class ImageField(BaseModel):
     width: int | None = None
     name: str
     size: int
+    content_type: str
 
 
 class PageSchema(BaseModel):
@@ -58,6 +59,7 @@ class StoryService:
             width=django_image_field.width,
             name=django_image_field.name,
             size=django_image_field.size,
+            content_type=django_image_field.content_type,
         )
 
     def story_obj(self) -> Story:

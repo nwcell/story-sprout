@@ -269,7 +269,7 @@ STORAGES = {
 }
 
 # EventStream configuration for Server-Sent Events
-EVENTSTREAM_STORAGE_CLASS = "django_eventstream.storage.DjangoModelStorage" 
+EVENTSTREAM_STORAGE_CLASS = "django_eventstream.storage.DjangoModelStorage"
 EVENTSTREAM_CHANNELMANAGER_CLASS = "apps.common.sse.ChannelManager"
 
 # EventStream Redis configuration - default to localhost for development
@@ -344,7 +344,7 @@ LOGGING = {
             "propagate": False,
         },
         "django.channels": {
-            "handlers": ["plain"],
+            "handlers": ["console"],
             "level": "WARNING",
             "propagate": False,
         },

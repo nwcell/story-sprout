@@ -7,12 +7,12 @@ import logging
 
 from celery import shared_task
 
-from apps.ai.agents import get_agent
+from apps.ai.engine.agents import get_agent
+from apps.ai.engine.celery import JobTask
+from apps.ai.engine.types import AgentDependencies
 from apps.ai.models import Conversation, Message
 from apps.ai.schemas import PageJob, RequestSchema, StoryJob
-from apps.ai.types import AgentDependencies
 from apps.ai.util.ai import AIEngine
-from apps.ai.util.celery import JobTask
 from apps.stories.services import StoryService
 
 logger = logging.getLogger(__name__)

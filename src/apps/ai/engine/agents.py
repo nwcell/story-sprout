@@ -8,7 +8,7 @@ and can be reused throughout the application.
 from pydantic_ai import Agent
 
 from apps.ai.engine.dependencies import StoryAgentDeps
-from apps.ai.engine.tools import book_toolset
+from apps.ai.engine.tools import book_toolset, image_toolset
 
 # Writer agent for children's book creation
 writer_agent = Agent(
@@ -20,7 +20,7 @@ writer_agent = Agent(
         "Always ask for follow-up feedback or next steps at the end of your response.\n"
         "Be encouraging and collaborative in your tone."
     ),
-    toolsets=[book_toolset],
+    toolsets=[book_toolset, image_toolset],
 )
 
 # Registry for accessing agents by name (type-safe)

@@ -1,7 +1,7 @@
 import logging
 
 from pydantic_ai import RunContext
-from pydantic_ai.messages import BinaryContent, ImageUrl, ToolReturn
+from pydantic_ai.messages import ImageUrl, ToolReturn
 from pydantic_ai.toolsets import FunctionToolset
 
 from apps.ai.engine.dependencies import StoryAgentDeps
@@ -73,23 +73,27 @@ def update_page(
     page_num: int,
     content: str | None = None,
     image_text: str | None = None,
+    image_url: str | None = None,
 ):
-    """Update the text content for a specific page.
+    """Update the text content and/or image for a specific page.
 
-    Use this tool to set or update the content and/or image text for a page.
+    Use this tool to set or update the content, image text, and/or image for a page.
+    For image_url, provide the URL of an image (e.g., from generate_image tool).
     Returns confirmation of what was updated."""
 
-    if not content and not image_text:
-        raise ValueError("Must provide at least one of content or image_text")
+    if not content and not image_text and not image_url:
+        raise ValueError("Must provide at least one of content, image_text, or image_url")
 
     story_service = ctx.deps.story_service
-    story_service.update_page(page_key=page_num, content=content, image_text=image_text)
+    story_service.update_page(page_key=page_num, content=content, image_text=image_text, image_data=image_url)
 
     out = {}
     if content:
         out["content"] = content
     if image_text:
         out["image_text"] = image_text
+    if image_url:
+        out["image_url"] = image_url
     out = {"action": "updated_page", **out}
     logger.info(f"tool.update_page updated page {page_num}: {out}")
     return out
@@ -112,11 +116,32 @@ def generate_image(ctx: RunContext[StoryAgentDeps], prompt: str) -> ToolReturn:
                 content_blocks.append(part.text)
                 return_value["texts"].append(part.text)
             elif part.inline_data:
-                mime = getattr(part.inline_data, "mime_type", "image/png")
                 data = part.inline_data.data
-                img = BinaryContent(data=data, media_type=mime)
+                mime = getattr(part.inline_data, "mime_type", "image/png")
+
+                # Save as artifact first and get UUID
+                artifact_uuid = ctx.deps.artifact_service.save_image(data, return_uuid=True)
+
+                # Create pydantic-ai content from artifact UUID
+                # Using binary=True as workaround for pydantic-ai ImageUrl localhost bug
+                img = ctx.deps.artifact_service.create_image_content(
+                    artifact_uuid=artifact_uuid,
+                    use_binary=True,  # Workaround for pydantic-ai bug
+                )
                 content_blocks.append(img)
-                return_value["images"].append({"mime": mime, "len": len(data)})
+
+                # Get URL for logging/reference
+                image_url = ctx.deps.artifact_service.save_image(data)
+                return_value["images"].append(
+                    {
+                        "mime": mime,
+                        "len": len(data),
+                        "url": image_url,  # Keep URL for reference/logging
+                        "artifact_uuid": artifact_uuid,
+                    }
+                )
+
+                logger.info(f"Generated and saved image: {image_url} (UUID: {artifact_uuid})")
 
     return ToolReturn(
         return_value=return_value,

@@ -6,6 +6,7 @@ from uuid import UUID
 
 from google.genai import Client as GoogleClient
 
+from apps.ai.services import ArtifactService
 from apps.stories.services import StoryService
 
 
@@ -15,6 +16,7 @@ class StoryAgentDeps:
     conversation_uuid: UUID | None
     story_uuid: UUID | None
     story_service: StoryService
+    artifact_service: ArtifactService
     image_client: GoogleClient
     image_model: str
 
@@ -42,7 +44,10 @@ class StoryAgentDeps:
             raise ValueError("Must provide exactly one of story_uuid or page_uuid")
 
         self.conversation_uuid = conversation_uuid
-        self.story_service = StoryService.load_from_page_uuid(page_uuid) if page_uuid else StoryService(uuid=story_uuid)
+        self.story_service = (
+            StoryService.load_from_page_uuid(page_uuid) if page_uuid else StoryService(uuid=story_uuid)
+        )
         self.story_uuid = self.story_service.uuid
+        self.artifact_service = ArtifactService()
         self.image_client = GoogleClient()
         self.image_model = image_model

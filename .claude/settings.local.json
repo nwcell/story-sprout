@@ -2,9 +2,13 @@
   "permissions": {
     "allow": [
       "WebFetch(domain:github.com)",
+      "WebFetch(domain:ai.pydantic.dev)",
+      "WebFetch(domain:stackoverflow.com)",
       "Bash(python:*)",
       "WebSearch",
-      "WebFetch(domain:ai.pydantic.dev)"
+      "Bash(cat:*)",
+      "Bash(uv run ruff:*)",
+      "Bash(uv run:*)",
     ],
     "deny": [],
     "ask": []

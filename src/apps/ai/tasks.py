@@ -223,18 +223,39 @@ def ai_page_image_job(payload: PageJob) -> str:
     logger.info(f"page_image received: {payload} (type: {type(payload)})")
     story_service = StoryService.load_from_page_uuid(payload.page_uuid)
     page_obj = story_service.get_page_obj(payload.page_uuid)
+    page_num = page_obj.page_number
 
     # If no image_text, generate it first
     if not page_obj.image_text:
         logger.info(f"No image_text for page {page_obj.uuid}, generating image text first")
         ai_page_image_text_job(payload)
         # Refresh page to get the newly generated image_text
-        story_service = StoryService.load_from_page_uuid(payload.page_uuid)
         page_obj = story_service.get_page_obj(payload.page_uuid)
+        page_num = page_obj.page_number
 
-    out = ai.generate_image(page_obj.image_text)
+    # Build enhanced prompt for the writer agent
+    content = page_obj.content or ""
+    text_instruction = f'Include this text at the bottom of the image: "{content}"\n\n' if content else ""
 
-    logger.info(f"page_image result: {out}")
-    if out:
-        story_service.set_page_image(page_key=payload.page_uuid, image_data=out)
+    enhanced_prompt = (
+        f"Generate an illustration for page {page_num} of this children's picture book.\n\n"
+        "Instructions:\n"
+        "1. First, get the current story and page information\n"
+        f"2. Create a watercolor style illustration based on this scene: {page_obj.image_text}\n\n"
+        "Style requirements for the image:\n"
+        "- Watercolor painting style with soft, flowing colors\n"
+        "- Child-friendly and whimsical aesthetic\n"
+        "- Leave space at the bottom for text overlay\n"
+        f"{text_instruction}"
+        "- Suitable for ages 2-3\n\n"
+        f"3. Use the update_page tool with image_url to set the generated image for page {page_num}\n\n"
+        "Generate the image and update the page with the image URL."
+    )
+
+    # Use the writer agent to generate image and update page
+    agent = writer_agent
+    deps = StoryAgentDeps(page_uuid=payload.page_uuid)
+    result = agent.run_sync(enhanced_prompt, deps=deps)
+    logger.info(f"page_image result: {result}")
+
     return f"job:{page_obj.story.channel}:ai_page_image_job"

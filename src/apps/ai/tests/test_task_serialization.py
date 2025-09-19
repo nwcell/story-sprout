@@ -8,13 +8,11 @@ when passed to Celery tasks, and that the tasks receive the models as expected.
 import logging
 from unittest.mock import patch
 
-import pytest
 from django.test import TestCase
 
 from apps.ai.schemas import StoryJob
 from apps.ai.tasks import ai_story_title_job
 from apps.stories.models import Story
-
 
 logger = logging.getLogger(__name__)
 
@@ -120,8 +118,8 @@ class TestTaskSerialization(TestCase):
 
     def test_task_base_class_behavior(self):
         """Test if the JobTask base class is interfering with argument handling."""
+
         from apps.ai.util.celery import JobTask
-        from unittest.mock import MagicMock
 
         # Create a mock task instance to test base class behavior
         task_instance = JobTask()

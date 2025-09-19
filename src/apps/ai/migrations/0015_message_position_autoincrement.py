@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
             field=models.IntegerField(
                 null=True,
                 blank=True,
-                help_text="Auto-assigned sequential position within conversation"
+                help_text="Auto-assigned sequential position within conversation",
             ),
         ),
     ]

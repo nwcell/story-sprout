@@ -247,6 +247,7 @@ STRIPE_PRICE_ID = env("STRIPE_PRICE_ID", default=None)
 
 # AI settings (env-only; no defaults)
 OPENAI_API_KEY = env("OPENAI_API_KEY", default=None)
+GOOGLE_API_KEY = env("GOOGLE_API_KEY", default=None)
 
 # Celery settings (env-only; remove conflicting defaults)
 CELERY_BROKER_URL = env("CELERY_BROKER_URL", default=None)

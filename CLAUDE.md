@@ -249,3 +249,19 @@ When working on complex features or implementations, use the structured task man
 5. **Documentation**: Update task lists as work progresses
 
 Use this approach for all significant development work to maintain organized, trackable progress and ensure nothing is missed during implementation.
+
+## Context7 Integration
+
+Always use context7 when I need code generation, setup or configuration steps, or library/API documentation. This means you should automatically use the Context7 MCP tools to resolve library id and get library docs without me having to explicitly ask.
+
+Use context7 for:
+- Code generation tasks requiring library/framework knowledge
+- Setup and configuration steps for new tools or services
+- API documentation and usage examples
+- Library-specific implementation patterns
+- Framework best practices and conventions
+
+# important-instruction-reminders
+Do what has been asked; nothing more, nothing less.
+NEVER create files unless they're absolutely necessary for achieving your goal.
+ALWAYS prefer editing an existing file to creating a new one.

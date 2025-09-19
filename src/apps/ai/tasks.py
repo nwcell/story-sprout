@@ -7,9 +7,9 @@ import logging
 
 from celery import shared_task
 
-from apps.ai.engine.agents import get_agent
+from apps.ai.engine.agents import get_agent, writer_agent
 from apps.ai.engine.celery import JobTask
-from apps.ai.engine.types import AgentDependencies
+from apps.ai.engine.dependencies import StoryAgentDeps
 from apps.ai.models import Conversation, Message
 from apps.ai.schemas import PageJob, RequestSchema, StoryJob
 from apps.ai.util.ai import AIEngine
@@ -47,7 +47,7 @@ def agent_task(payload: RequestSchema) -> str:
 
     # Run agent with prompt (sync version)
     agent = get_agent(agent_type)
-    deps = AgentDependencies(conversation_uuid=conversation_uuid)
+    deps = StoryAgentDeps(conversation_uuid=conversation_uuid)
     result = agent.run_sync(prompt, deps=deps, message_history=messages)
     logger.info(f"agent_orchestration result: {result}")
 
@@ -67,63 +67,155 @@ def agent_task(payload: RequestSchema) -> str:
 @shared_task(name="ai.story_title", base=JobTask)
 def ai_story_title_job(payload: StoryJob) -> str:
     logger.info(f"story_title received: {payload} (type: {type(payload)})")
-    story_service = StoryService(uuid=payload.story_uuid)
-    story_obj = story_service.story_obj()
-    out = ai.prompt_completion("story_title.md", {"story": story_obj})
-
-    logger.info(f"story_title result: {out}")
-    story_service.set_title(input=out)
-    return f"job:{story_obj.channel}:ai_story_title_job"
+    prompt = (
+        "Create a fun, catchy title for this children's picture book.\n\n"
+        "Instructions:\n"
+        "1. First, get the current story information to understand the content\n"
+        "2. Create a title that is:\n"
+        "   - Kid-friendly: Simple, playful language for ages 2-3\n"
+        "   - Captures the story: Reflects main theme, character, or adventure\n"
+        "   - Light and fun: Whimsical and engaging, avoid scary themes\n"
+        "   - Memorable: Use rhythm, rhyme, or alliteration when possible\n"
+        "   - Concise: 2-5 words only\n"
+        "   - Different from current title (if one exists)\n"
+        "3. Use the update_story tool to set the new title\n\n"
+        "Provide just the title (2-5 words). No explanations or formatting."
+    )
+    agent = writer_agent
+    deps = StoryAgentDeps(conversation_uuid=None, story_uuid=payload.story_uuid)
+    result = agent.run_sync(prompt, deps=deps)
+    logger.info(f"story_title result: {result}")
+    return f"task:ai_story_title_job:{payload.story_uuid}"
 
 
 @shared_task(name="ai.story_description", base=JobTask)
 def ai_story_description_job(payload: StoryJob) -> str:
     logger.info(f"story_description received: {payload} (type: {type(payload)})")
-    story_service = StoryService(uuid=payload.story_uuid)
-    story_obj = story_service.story_obj()
-    out = ai.prompt_completion("story_description.md", {"story": story_obj})
-    logger.info(f"story_description result: {out}")
-    story_service.set_description(input=out)
-    return f"job:{story_obj.channel}:ai_story_description_job"
+    prompt = (
+        "Create a complete story arc with clear beginning, middle, and end for this children's picture book.\n\n"
+        "Instructions:\n"
+        "1. First, get the current story information to understand existing content\n"
+        "2. Create a structured story outline that:\n"
+        "   - Has a simple, clear plot for 2-3 year olds\n"
+        "   - Includes gentle conflict and positive resolution\n"
+        "   - Features relatable, charming characters\n"
+        "   - Has visual potential for illustrations\n"
+        "3. Use the update_story tool to set the story arc as the description\n\n"
+        "Format the story arc as:\n"
+        "Summary: (One compelling sentence summarizing the entire story)\n\n"
+        "Beginning: (1-2 sentences introducing characters and problem)\n\n"
+        "Middle: (2-3 sentences describing the adventure and challenges)\n\n"
+        "End: (1-2 sentences describing resolution and happy ending)\n\n"
+        "No formatting or markdown - just plain text with the structure above."
+    )
+    agent = writer_agent
+    deps = StoryAgentDeps(conversation_uuid=None, story_uuid=payload.story_uuid)
+    result = agent.run_sync(prompt, deps=deps)
+    logger.info(f"story_description result: {result}")
+    return f"task:ai_story_description_job:{payload.story_uuid}"
 
 
 @shared_task(name="ai.story_brainstorm", base=JobTask)
 def ai_story_brainstorm_job(payload: StoryJob) -> str:
     logger.info(f"story_brainstorm received: {payload} (type: {type(payload)})")
-    story_service = StoryService(uuid=payload.story_uuid)
-    story_obj = story_service.story_obj()
-    out = ai.prompt_completion("story_brainstorm.md", {"story": story_obj})
+    prompt = (
+        "Generate a completely original, creative story concept for a children's picture book from scratch.\n\n"
+        "Instructions:\n"
+        "1. Create something completely fresh and imaginative:\n"
+        "   - Combine familiar elements in surprising ways\n"
+        "   - Think beyond typical picture book scenarios\n"
+        "   - Create unique, memorable characters (animals, objects, children, fantasy beings)\n"
+        "   - Use magical realism or creative problem-solving themes\n"
+        "2. Make it age-appropriate for 2-3 year olds:\n"
+        "   - Simple but engaging conflicts with positive resolutions\n"
+        "   - Gentle humor and playfulness\n"
+        "   - Visual storytelling potential\n"
+        "3. Use the update_story tool to set this original concept as the description\n\n"
+        "Format the original story concept as:\n"
+        "Summary: (One compelling sentence summarizing the entire story)\n\n"
+        "Beginning: (1-2 sentences introducing characters and problem)\n\n"
+        "Middle: (2-3 sentences describing the adventure and challenges)\n\n"
+        "End: (1-2 sentences describing resolution and happy ending)\n\n"
+        "No formatting or markdown - just plain text with the structure above."
+    )
+    agent = writer_agent
+    deps = StoryAgentDeps(conversation_uuid=None, story_uuid=payload.story_uuid)
+    result = agent.run_sync(prompt, deps=deps)
+    logger.info(f"story_brainstorm result: {result}")
 
-    logger.info(f"story_brainstorm result: {out}")
-    story_service.set_description(input=out)
-
-    # Let's update the title, do reflect the new description!
+    # Let's update the title to reflect the new description!
     ai_story_title_job.apply_async(args=(payload,))
-    return f"job:{story_obj.channel}:ai_story_brainstorm_job"
+    return f"task:ai_story_brainstorm_job:{payload.story_uuid}"
 
 
 @shared_task(name="ai.page_content", base=JobTask)
 def ai_page_content_job(payload: PageJob) -> str:
     logger.info(f"page_content received: {payload} (type: {type(payload)})")
+
+    # Get page context first to determine page number and story
     story_service = StoryService.load_from_page_uuid(payload.page_uuid)
     page_obj = story_service.get_page_obj(payload.page_uuid)
-    out = ai.prompt_completion("page_content.md", {"page": page_obj, "generation_type": "content"})
+    page_num = page_obj.page_number
+    prompt = (
+        f"Write content for page {page_num} of this children's picture book.\n\n"
+        "Instructions:\n"
+        "1. First, get the story information to understand the overall narrative\n"
+        f"2. Get the current page information for page {page_num}\n"
+        "3. Analyze the page's role in the story:\n"
+        "   - Beginning (first 25% of pages): Introduce characters, setting, and main problem\n"
+        "   - Middle (middle 50% of pages): Develop adventure and build toward turning point\n"
+        "   - End (last 25% of pages): Resolve problem and provide happy conclusion\n"
+        "4. Write content that:\n"
+        "   - Directly advances the story arc from previous page\n"
+        "   - Maintains narrative flow and logical progression\n"
+        "   - Uses simple, engaging language for 2-3 year olds (1-3 short sentences)\n"
+        "   - Avoids repetition of previous page structure\n"
+        f"5. Use the update_page tool to set the content for page {page_num}\n\n"
+        "Provide ONLY the 1-3 sentences of text for the page. No commentary or formatting."
+    )
 
-    logger.info(f"page_content result: {out}")
-    story_service.set_page_content(page_key=payload.page_uuid, input=out)
-    return f"job:{page_obj.story.channel}:ai_page_content_job"
+    agent = writer_agent
+    deps = StoryAgentDeps(conversation_uuid=None, page_uuid=payload.page_uuid)
+    result = agent.run_sync(prompt, deps=deps)
+    logger.info(f"page_content result: {result}")
+    return f"task:ai_page_content_job:{payload.page_uuid}"
 
 
 @shared_task(name="ai.page_image_text", base=JobTask)
 def ai_page_image_text_job(payload: PageJob) -> str:
     logger.info(f"page_image_text received: {payload} (type: {type(payload)})")
+
+    # Get page context first to determine page number and story
     story_service = StoryService.load_from_page_uuid(payload.page_uuid)
     page_obj = story_service.get_page_obj(payload.page_uuid)
-    out = ai.prompt_completion("page_image_text.md", {"page": page_obj})
+    page_num = page_obj.page_number
 
-    logger.info(f"page_image_text result: {out}")
-    story_service.set_page_image_text(page_key=payload.page_uuid, input=out)
-    return f"job:{page_obj.story.channel}:ai_page_image_text_job"
+    prompt = (
+        f"Create a descriptive scene description for page {page_num} of this children's picture book.\n\n"
+        "Instructions:\n"
+        "1. First, get the story information to understand the overall narrative\n"
+        f"2. Get the current page information for page {page_num} including its content\n"
+        "3. Create a purely descriptive scene that captures what should be visually depicted\n"
+        "4. Focus on these scene elements:\n"
+        "   - Characters: Who is in the scene? What are they doing? What expressions?\n"
+        "   - Setting/Environment: Where does this take place? Physical environment?\n"
+        "   - Actions: What specific actions or movements are happening?\n"
+        "   - Objects/Props: What important objects or items are visible?\n"
+        "   - Composition: How are elements arranged? Foreground/background?\n"
+        "5. Guidelines:\n"
+        "   - Be purely descriptive and objective\n"
+        "   - Do NOT include artistic style, mood, lighting, or color descriptions\n"
+        "   - Focus on WHAT is happening and WHERE, not HOW it should look\n"
+        "   - Keep it concise but detailed for accurate visual representation\n"
+        f"6. Use the update_page tool to set the image_text for page {page_num}\n\n"
+        "Provide a clear descriptive paragraph that objectively describes the scene."
+    )
+
+    agent = writer_agent
+    deps = StoryAgentDeps(conversation_uuid=None, page_uuid=payload.page_uuid)
+    result = agent.run_sync(prompt, deps=deps)
+    logger.info(f"page_image_text result: {result}")
+    return f"task:ai_page_image_text_job:{payload.page_uuid}"
 
 
 @shared_task(name="ai.page_image", base=JobTask)

@@ -7,13 +7,13 @@ and can be reused throughout the application.
 
 from pydantic_ai import Agent
 
+from apps.ai.engine.dependencies import StoryAgentDeps
 from apps.ai.engine.tools import book_toolset
-from apps.ai.engine.types import AgentDependencies
 
 # Writer agent for children's book creation
 writer_agent = Agent(
     model="openai:gpt-4o",
-    deps_type=AgentDependencies,
+    deps_type=StoryAgentDeps,
     system_prompt=(
         "You are a children's book ghost author.\n"
         "You are helping ghostwrite children's stories.\n"
@@ -24,12 +24,12 @@ writer_agent = Agent(
 )
 
 # Registry for accessing agents by name (type-safe)
-AGENTS: dict[str, Agent[AgentDependencies, str]] = {
+AGENTS: dict[str, Agent[StoryAgentDeps, str]] = {
     "writer": writer_agent,
 }
 
 
-def get_agent(agent_type: str) -> Agent[AgentDependencies, str]:
+def get_agent(agent_type: str) -> Agent[StoryAgentDeps, str]:
     """Get an agent by type name."""
     if agent_type not in AGENTS:
         raise ValueError(f"Unknown agent type: {agent_type}. Available: {list(AGENTS.keys())}")

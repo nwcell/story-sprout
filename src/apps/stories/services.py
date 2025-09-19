@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime
+from typing import Literal
 from uuid import UUID
 
 import requests
@@ -25,7 +26,6 @@ class ImageField(BaseModel):
     width: int | None = None
     name: str
     size: int
-    content_type: str
 
 
 class PageSchema(BaseModel):
@@ -59,22 +59,32 @@ class StoryService:
             width=django_image_field.width,
             name=django_image_field.name,
             size=django_image_field.size,
-            content_type=django_image_field.content_type,
         )
+
+    def _get_story_queryset(self):
+        """Get QuerySet for this story.
+        Returns a QuerySet that can be used with .get(), .first(), .update(), etc.
+        """
+        return Story.objects.filter(uuid=self.uuid)
 
     def story_obj(self) -> Story:
         logger.info(f"StoryService.story_obj({self.uuid})")
-        return Story.objects.get(uuid=self.uuid)
+        return self._get_story_queryset().get()
+
+    def _get_page_queryset(self, page_key: PageKey):
+        """Get QuerySet for a page by key.
+        Returns a QuerySet that can be used with .get(), .first(), .update(), etc.
+        """
+        if isinstance(page_key, int):
+            # page_key is page number (1-indexed)
+            return Page.objects.filter(story__uuid=self.uuid, order=page_key - 1)
+        else:
+            # page_key is UUID
+            return Page.objects.filter(uuid=page_key, story__uuid=self.uuid)
 
     def get_page_obj(self, page_key: PageKey) -> Page:
         """Get page by either page number (int) or UUID."""
-        story_obj = self.story_obj()
-        if isinstance(page_key, int):
-            # page_key is page number
-            return story_obj.get_page_by_num(page_key)
-        else:
-            # page_key is UUID
-            return story_obj.pages.get(uuid=page_key)
+        return self._get_page_queryset(page_key).get()
 
     def get_page(self, page_key: PageKey) -> PageSchema:
         page_obj = self.get_page_obj(page_key)
@@ -108,8 +118,7 @@ class StoryService:
         page = Page.objects.get(uuid=page_uuid)
         return cls(page.story.uuid)
 
-    @property
-    def story(self) -> StorySchema:
+    def get_story(self, fresh: bool = False) -> StorySchema:
         story_obj = self.story_obj()
         pages = []
 
@@ -129,39 +138,32 @@ class StoryService:
 
     def set_title(self, input: str) -> None:
         """Update story title and send SSE notification."""
-        story_obj = self.story_obj()
-        story_obj.title = input
-        story_obj.save()
-        send_event(story_obj.channel, "get_story_title", "")
+        self._get_story_queryset().update(title=input)
+        self.refresh_story("title")
 
     def set_description(self, input: str) -> None:
         """Update story description and send SSE notification."""
-        story_obj = self.story_obj()
-        story_obj.description = input
-        story_obj.save()
-        send_event(story_obj.channel, "get_story_description", "")
+        self._get_story_queryset().update(description=input)
+        self.refresh_story("description")
+
+    def update_story(self, title: str | None = None, description: str | None = None) -> None:
+        if title:
+            self.set_title(title)
+        if description:
+            self.set_description(description)
 
     def set_page_content(self, page_key: PageKey, input: str) -> None:
         """Update page content. page_key can be page number (int) or UUID."""
-        story_obj = self.story_obj()
-        page_instance = self.get_page_obj(page_key)
-        page_instance.content = input
-        page_instance.save()
-        send_event(story_obj.channel, f"get_page_content#{page_instance.uuid}", "")
+        self._get_page_queryset(page_key).update(content=input)
+        self.refresh_page(page_key, "content")
 
     def set_page_image_text(self, page_key: PageKey, input: str) -> None:
         """Update page image text. page_key can be page number (int) or UUID."""
-        story_obj = self.story_obj()
-        page_instance = self.get_page_obj(page_key)
-        page_instance.image_text = input
-        page_instance.save()
-        send_event(story_obj.channel, f"get_page_image_text#{page_instance.uuid}", "")
+        self._get_page_queryset(page_key).update(image_text=input)
+        self.refresh_page(page_key, "image_text")
 
     def set_page_image(self, page_key: PageKey, image_data: ImageData) -> None:
-        """Update page image. Accepts either URL (str) or binary data (bytes).
-        page_key can be page number (int) or UUID."""
-        story_obj = self.story_obj()
-        page_instance = self.get_page_obj(page_key)
+        page_instance = self._get_page_queryset(page_key).get()
 
         if image_data:
             # Generate filename with timestamp
@@ -179,4 +181,44 @@ class StoryService:
             else:
                 raise ValueError(f"Unsupported image_data type: {type(image_data)}")
 
-        send_event(story_obj.channel, f"get_page_image#{page_instance.uuid}", "")
+        self.refresh_page(page_key, "image")
+
+    def update_page(
+        self,
+        page_key: PageKey,
+        content: str | None = None,
+        image_text: str | None = None,
+        image_data: ImageData | None = None,
+    ) -> None:
+        if content:
+            self.set_page_content(page_key, content)
+        if image_text:
+            self.set_page_image_text(page_key, image_text)
+        if image_data:
+            self.set_page_image(page_key, image_data)
+
+    def refresh_story(self, target: Literal["title", "description", "page_list", None]):
+        story = self.get_story()
+        if target == "title":
+            send_event(story.channel, "get_story_title", "")
+        elif target == "description":
+            send_event(story.channel, "get_story_description", "")
+        elif target == "page_list":
+            send_event(story.channel, "list_pages", "")
+        elif target is None:
+            # Currently, there is no hook to refresh an entire story
+            send_event(story.channel, "get_story_title", "")
+            send_event(story.channel, "get_story_description", "")
+            send_event(story.channel, "list_pages", "")
+
+    def refresh_page(self, page_key: PageKey, target: Literal["content", "image_text", "image", None]):
+        story = self.get_story()
+        page = self.get_page(page_key)
+        if target == "content":
+            send_event(story.channel, f"get_page_content#{page.uuid}", "")
+        elif target == "image_text":
+            send_event(story.channel, f"get_page_image_text#{page.uuid}", "")
+        elif target == "image":
+            send_event(story.channel, f"get_page_image#{page.uuid}", "")
+        elif target is None:
+            send_event(story.channel, f"get_page#{page.uuid}", "")

@@ -34,8 +34,8 @@ def get_page_image(ctx: RunContext[StoryAgentDeps], page_num: int) -> ToolReturn
     logger.info(f"tool.get_page_image({ctx.deps.story_uuid}, {page_num})")
     story_service = ctx.deps.story_service
     page = story_service.get_page(page_num)
-    # media_type = page.image.content_type
-    # image_binary = story_service.get_page_image_binary(page_num)
+    if not page.image:
+        return ToolReturn(return_value=f"No image found for page {page_num}")
     return ToolReturn(
         return_value=f"Found image for page {page_num}",
         content=[

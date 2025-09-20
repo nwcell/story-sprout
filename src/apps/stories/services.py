@@ -1,12 +1,14 @@
 import logging
+import mimetypes
 from datetime import datetime
-from typing import Literal
+from typing import Any, Literal
 from uuid import UUID
 
 import requests
 from django.core.files.base import ContentFile
 from django.db.models import ImageField as DjangoImageField
 from django_eventstream import send_event
+from google.genai.types import Part
 from pydantic import BaseModel
 
 from apps.stories.models import Page, Story
@@ -172,6 +174,7 @@ class StoryService:
 
             if isinstance(image_data, str):
                 # Handle URL - download the image
+                # TODO: DONT USE REQUESTS
                 response = requests.get(image_data)
                 response.raise_for_status()
                 page_instance.image.save(filename, ContentFile(response.content), save=True)
@@ -222,3 +225,34 @@ class StoryService:
             send_event(story.channel, f"get_page_image#{page.uuid}", "")
         elif target is None:
             send_event(story.channel, f"get_page#{page.uuid}", "")
+
+    def gemini_parts(self) -> list[Any]:
+        """
+        Prepares the story for the Gemini API by separating JSON metadata
+        from binary image data.
+        """
+        story = self.get_story(fresh=False)
+        contents: list[Any] = []
+
+        # 1) Story-level metadata
+        contents.append(story.model_dump_json(exclude={"pages"}))
+
+        # 2) Per-page payloads and images
+        for page in story.pages:
+            contents.append(page.model_dump_json(exclude={"image"}))
+
+            page_obj = self.get_page_obj(page.uuid)
+            page_image = page_obj.image
+            if page_image:
+                page_image.open("rb")
+                try:
+                    data = page_image.read()
+                finally:
+                    page_image.close()
+                mime, _ = mimetypes.guess_type(getattr(page_image, "name", "image"))
+                if not mime:
+                    continue
+                part = Part.from_bytes(data=data, mime_type=mime)
+                contents.append(part)
+
+        return contents

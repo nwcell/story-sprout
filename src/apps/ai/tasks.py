@@ -233,29 +233,28 @@ def ai_page_image_job(payload: PageJob) -> str:
         page_obj = story_service.get_page_obj(payload.page_uuid)
         page_num = page_obj.page_number
 
-    # Build enhanced prompt for the writer agent
+    # Build enhanced prompt for the image agent
     content = page_obj.content or ""
-    text_instruction = f'Include this text at the bottom of the image: "{content}"\n\n' if content else ""
+    text_instruction = f'Include this text at the bottom of the image: "{content}"' if content else ""
 
-    enhanced_prompt = (
-        f"Generate an illustration for page {page_num} of this children's picture book.\n\n"
-        "Instructions:\n"
-        "1. First, get the current story and page information\n"
-        f"2. Create a watercolor style illustration based on this scene: {page_obj.image_text}\n\n"
-        "Style requirements for the image:\n"
+    enhanced_prompt = [
+        f"Create a watercolor style illustration for page {page_num} of this children's picture book.\n\n"
+        f"Scene description: {page_obj.image_text}\n\n"
+        "Style requirements:\n"
         "- Watercolor painting style with soft, flowing colors\n"
         "- Child-friendly and whimsical aesthetic\n"
         "- Leave space at the bottom for text overlay\n"
-        f"{text_instruction}"
+        f"{text_instruction}\n"
         "- Suitable for ages 2-3\n\n"
-        f"3. Use the update_page tool with image_url to set the generated image for page {page_num}\n\n"
-        "Generate the image and update the page with the image URL."
-    )
+        "Generate the illustration now."
+    ]
 
-    # Use the writer agent to generate image and update page
-    agent = writer_agent
+    # Use the writer agent with generate_image tool
     deps = StoryAgentDeps(page_uuid=payload.page_uuid)
-    result = agent.run_sync(enhanced_prompt, deps=deps)
+    result = writer_agent.run_sync("".join(enhanced_prompt), deps=deps)
     logger.info(f"page_image result: {result}")
+
+    # The image generation and page update will be handled by the writer agent using tools
+    # No need to manually extract and save images since the agent will use update_page tool
 
     return f"job:{page_obj.story.channel}:ai_page_image_job"

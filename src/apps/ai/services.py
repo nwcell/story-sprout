@@ -6,7 +6,9 @@ import logging
 import mimetypes
 import uuid
 from datetime import datetime
+from typing import Literal
 
+from attr import dataclass
 from django.conf import settings
 from django.core.files.base import ContentFile
 from pydantic_ai.messages import BinaryContent, ImageUrl
@@ -14,6 +16,51 @@ from pydantic_ai.messages import BinaryContent, ImageUrl
 from apps.ai.models import Artifacts
 
 logger = logging.getLogger(__name__)
+
+EmojiType = Literal[""]
+
+ColorType = Literal[
+    "pink",
+    "rose",
+    "purple",
+    "violet",
+    "indigo",
+    "blue",
+    "sky",
+    "cyan",
+    "teal",
+    "emerald",
+    "green",
+    "lime",
+    "yellow",
+    "amber",
+    "orange",
+    "red",
+    "neutral",
+    "slate",
+    "rainbow",
+]
+
+
+@dataclass
+class Chip:
+    emoji = Literal
+    color = ColorType
+    value = str
+
+
+class ChatService:
+    def __init__(self, conversation_uuid):
+        self.conversation_uuid = conversation_uuid
+
+    def update_prompt(self, input):
+        pass
+
+    def update_chips(self, chips):
+        pass
+
+    def update_freeform(self, freeform_on: bool = True):
+        pass
 
 
 class ArtifactService:
@@ -41,7 +88,9 @@ class ArtifactService:
 
         return f"{base_url}{relative_url}"
 
-    def save_image(self, image_data: bytes, filename: str = None, file_extension: str = "png", return_uuid: bool = False) -> str:
+    def save_image(
+        self, image_data: bytes, filename: str = None, file_extension: str = "png", return_uuid: bool = False
+    ) -> str:
         """
         Save image data as an artifact and return the URL or UUID.
 
@@ -148,17 +197,17 @@ class ArtifactService:
         artifact = self.get_artifact_by_uuid(artifact_uuid)
         if not artifact:
             raise ValueError(f"Artifact not found: {artifact_uuid}")
-            
+
         if use_binary:
             # Return binary content directly - works around pydantic-ai ImageUrl bug
-            with artifact.file.open('rb') as f:
+            with artifact.file.open("rb") as f:
                 data = f.read()
-            
+
             # Get media type from file extension using Python's mimetypes module
             media_type, _ = mimetypes.guess_type(artifact.file.name)
-            if not media_type or not media_type.startswith('image/'):
-                media_type = 'image/png'  # Default fallback
-                
+            if not media_type or not media_type.startswith("image/"):
+                media_type = "image/png"  # Default fallback
+
             logger.info(f"Creating BinaryContent from artifact {artifact_uuid}: {len(data)} bytes, type: {media_type}")
             return BinaryContent(data=data, media_type=media_type)
         else:

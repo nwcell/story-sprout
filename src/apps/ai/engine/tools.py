@@ -99,56 +99,46 @@ def update_page(
     return out
 
 
-# Expensive Generative Tools
-def generate_image(ctx: RunContext[StoryAgentDeps], prompt: str) -> ToolReturn:
-    """Generate an image using the prompt."""
+# Artist Tools
+def artist_request(ctx: RunContext[StoryAgentDeps], prompt: str) -> ToolReturn:
+    """Request an illustration from the children's book artist."""
+    logger.info(f"tool.artist_request({ctx.deps.story_uuid}, {prompt})")
+
+    # Use story service to prepare properly formatted story context with images
+    story_service = ctx.deps.story_service
+    contents = [
+        "SYSTEM_INSTRUCTION: You are a talented children's book illustrator creating artwork for this story.",
+        "PROMPT:",
+        prompt,
+        "STORY_CONTEXT:",
+        *story_service.gemini_parts(),
+    ]
+
+    # Use direct Gemini client instead of nested Agent to avoid binary content issues
     resp = ctx.deps.image_client.models.generate_content(
         model=ctx.deps.image_model,
-        contents=[prompt],
+        contents=contents,
     )
 
     content_blocks = []
-    return_value = {"texts": [], "images": []}
-
+    image_urls = []
     for cand in resp.candidates or []:
         for part in cand.content.parts or []:
-            if part.text:
-                content_blocks.append(part.text)
-                return_value["texts"].append(part.text)
-            elif part.inline_data:
+            if part.inline_data:
                 data = part.inline_data.data
-                mime = getattr(part.inline_data, "mime_type", "image/png")
-
-                # Save as artifact first and get UUID
-                artifact_uuid = ctx.deps.artifact_service.save_image(data, return_uuid=True)
-
-                # Create pydantic-ai content from artifact UUID
-                # Using binary=True as workaround for pydantic-ai ImageUrl localhost bug
-                img = ctx.deps.artifact_service.create_image_content(
-                    artifact_uuid=artifact_uuid,
-                    use_binary=True,  # Workaround for pydantic-ai bug
-                )
-                content_blocks.append(img)
-
-                # Get URL for logging/reference
                 image_url = ctx.deps.artifact_service.save_image(data)
-                return_value["images"].append(
-                    {
-                        "mime": mime,
-                        "len": len(data),
-                        "url": image_url,  # Keep URL for reference/logging
-                        "artifact_uuid": artifact_uuid,
-                    }
-                )
+                image_urls.append(image_url)
+                logger.info(f"Artist created image: {image_url}")
 
-                logger.info(f"Generated and saved image: {image_url} (UUID: {artifact_uuid})")
-
-    return ToolReturn(
-        return_value=return_value,
-        content=content_blocks,
-    )
+    if image_urls:
+        return_msg = f"Artist created {len(image_urls)} illustration(s): {', '.join(image_urls)}"
+        content_blocks.append(return_msg)
+        return ToolReturn(return_value="Artifacts saved", content=content_blocks)
+    else:
+        content_blocks.append("Artist request completed but no images were generated")
+        return ToolReturn(return_value="No artifacts", content=content_blocks)
 
 
 # Create toolsets
 book_toolset = FunctionToolset([get_story, get_page, get_page_image, update_story, update_page])
-image_toolset = FunctionToolset([generate_image])
+image_toolset = FunctionToolset([artist_request])

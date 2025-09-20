@@ -19,6 +19,7 @@ class StoryAgentDeps:
     artifact_service: ArtifactService
     image_client: GoogleClient
     image_model: str
+    # image_model_config: = GenerateContentConfig
 
     def __init__(
         self,
@@ -44,9 +45,7 @@ class StoryAgentDeps:
             raise ValueError("Must provide exactly one of story_uuid or page_uuid")
 
         self.conversation_uuid = conversation_uuid
-        self.story_service = (
-            StoryService.load_from_page_uuid(page_uuid) if page_uuid else StoryService(uuid=story_uuid)
-        )
+        self.story_service = StoryService.load_from_page_uuid(page_uuid) if page_uuid else StoryService(uuid=story_uuid)
         self.story_uuid = self.story_service.uuid
         self.artifact_service = ArtifactService()
         self.image_client = GoogleClient()

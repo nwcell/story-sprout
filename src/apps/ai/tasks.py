@@ -157,7 +157,7 @@ def ai_page_content_job(payload: PageJob) -> str:
     page_obj = story_service.get_page_obj(payload.page_uuid)
     page_num = page_obj.page_number
     prompt = (
-        f"Write content for page {page_num} of this children's picture book.\n\n"
+        f"Write and save content for page {page_num} of this children's picture book.\n\n"
         "Instructions:\n"
         "1. First, get the story information to understand the overall narrative\n"
         f"2. Get the current page information for page {page_num}\n"
@@ -169,9 +169,9 @@ def ai_page_content_job(payload: PageJob) -> str:
         "   - Directly advances the story arc from previous page\n"
         "   - Maintains narrative flow and logical progression\n"
         "   - Uses simple, engaging language for 2-3 year olds (1-3 short sentences)\n"
-        "   - Avoids repetition of previous page structure\n"
-        f"5. Use the update_page tool to set the content for page {page_num}\n\n"
-        "Provide ONLY the 1-3 sentences of text for the page. No commentary or formatting."
+        "   - Avoids repetition of previous page structure\n\n"
+        f"5. IMPORTANT: Use the update_page tool with page_num={page_num} and your written content "
+        f"to save the content to the page. Do not just return text - you must use the tool."
     )
 
     agent = writer_agent
@@ -191,7 +191,7 @@ def ai_page_image_text_job(payload: PageJob) -> str:
     page_num = page_obj.page_number
 
     prompt = (
-        f"Create a descriptive scene description for page {page_num} of this children's picture book.\n\n"
+        f"Create and save a descriptive scene description for page {page_num} of this children's picture book.\n\n"
         "Instructions:\n"
         "1. First, get the story information to understand the overall narrative\n"
         f"2. Get the current page information for page {page_num} including its content\n"
@@ -206,9 +206,9 @@ def ai_page_image_text_job(payload: PageJob) -> str:
         "   - Be purely descriptive and objective\n"
         "   - Do NOT include artistic style, mood, lighting, or color descriptions\n"
         "   - Focus on WHAT is happening and WHERE, not HOW it should look\n"
-        "   - Keep it concise but detailed for accurate visual representation\n"
-        f"6. Use the update_page tool to set the image_text for page {page_num}\n\n"
-        "Provide a clear descriptive paragraph that objectively describes the scene."
+        "   - Keep it concise but detailed for accurate visual representation\n\n"
+        f"6. IMPORTANT: Use the update_page tool with page_num={page_num} and image_text "
+        f"set to your scene description to save it to the page. Do not just return text - you must use the tool."
     )
 
     agent = writer_agent
@@ -233,20 +233,23 @@ def ai_page_image_job(payload: PageJob) -> str:
         page_obj = story_service.get_page_obj(payload.page_uuid)
         page_num = page_obj.page_number
 
-    # Build enhanced prompt for the image agent
+    # Build focused prompt for image generation only
     content = page_obj.content or ""
-    text_instruction = f'Include this text at the bottom of the image: "{content}"' if content else ""
-
+    image_text = page_obj.image_text or ""
+    
     enhanced_prompt = [
-        f"Create a watercolor style illustration for page {page_num} of this children's picture book.\n\n"
-        f"Scene description: {page_obj.image_text}\n\n"
-        "Style requirements:\n"
-        "- Watercolor painting style with soft, flowing colors\n"
-        "- Child-friendly and whimsical aesthetic\n"
-        "- Leave space at the bottom for text overlay\n"
-        f"{text_instruction}\n"
-        "- Suitable for ages 2-3\n\n"
-        "Generate the illustration now."
+        f"Generate an illustration for page {page_num} using the artist_request tool, "
+        f"then update the page image using update_page tool.\n\n"
+        f"Use this prompt for artist_request: "
+        f"Create a watercolor style illustration for page {page_num}. "
+        f"Scene description: {image_text} "
+        f"Include this text at the bottom of the image: '{content}' "
+        f"Review all previous pages to maintain consistent character designs, art style, colors, "
+        f"font style, and visual elements throughout the story. "
+        f"Style: watercolor painting with soft, flowing colors, child-friendly and whimsical, "
+        f"suitable for ages 2-3, with readable text at the bottom that matches previous pages.\n\n"
+        f"After generating the image, use update_page tool with page_num={page_num} and "
+        f"the image_url from artist_request. Do NOT modify the image_text field - only update the image."
     ]
 
     # Use the writer agent with generate_image tool

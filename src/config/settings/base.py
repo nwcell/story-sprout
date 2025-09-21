@@ -39,6 +39,9 @@ DEBUG = env.bool("DEBUG", default=False)
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
 CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
 
+# Base URL for absolute URL generation (for file URLs, emails, etc.)
+BASE_URL = env("BASE_URL", default="http://localhost:8000")
+
 
 # Application definition
 

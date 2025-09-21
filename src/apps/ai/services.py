@@ -66,30 +66,31 @@ class ChatService:
 class ArtifactService:
     """Service for managing artifacts using the AI app's Artifacts model."""
 
-    def _build_full_url(self, relative_url: str) -> str:
-        """Convert relative URL to full URL with proper host."""
-        if relative_url.startswith("http"):
-            return relative_url  # Already a full URL
+    def build_absolute_url(self, relative_url: str) -> str:
+        """
+        Build absolute URL using Django best practices.
 
-        # Get the base URL from Django settings or build one
-        if hasattr(settings, "BASE_URL") and settings.BASE_URL:
-            base_url = settings.BASE_URL.rstrip("/")
-        else:
-            # Fallback: try to construct from allowed hosts
-            if hasattr(settings, "ALLOWED_HOSTS") and settings.ALLOWED_HOSTS:
-                # Use the first allowed host (excluding localhost/127.0.0.1)
-                host = next(
-                    (h for h in settings.ALLOWED_HOSTS if h not in ["localhost", "127.0.0.1", "*"]), "localhost:8000"
-                )
-                protocol = "https" if host != "localhost:8000" else "http"
-                base_url = f"{protocol}://{host}"
-            else:
-                base_url = "http://localhost:8000"
+        Args:
+            relative_url: The relative URL from a file field
 
-        return f"{base_url}{relative_url}"
+        Returns:
+            Always returns an absolute URL
+        """
+        # Use environment-based configuration for absolute URLs
+        base_url = getattr(settings, 'BASE_URL', None)
+        if base_url:
+            # Use configured BASE_URL
+            return f"{base_url.rstrip('/')}{relative_url}"
+
+        # Fallback to localhost for development
+        return f"http://localhost:8000{relative_url}"
 
     def save_image(
-        self, image_data: bytes, filename: str = None, file_extension: str = "png", return_uuid: bool = False
+        self,
+        image_data: bytes,
+        filename: str = None,
+        file_extension: str = "png",
+        return_uuid: bool = False,
     ) -> str:
         """
         Save image data as an artifact and return the URL or UUID.
@@ -122,11 +123,10 @@ class ArtifactService:
                 logger.info(f"Saved image artifact: {artifact.uuid}")
                 return str(artifact.uuid)
             else:
-                # Return full URL that can be accessed externally
-                relative_url = artifact.file.url
-                full_url = self._build_full_url(relative_url)
-                logger.info(f"Saved image artifact: {artifact.uuid} -> {full_url}")
-                return full_url
+                # Return absolute URL for external access
+                file_url = self.build_absolute_url(artifact.file.url)
+                logger.info(f"Saved image artifact: {artifact.uuid} -> {file_url}")
+                return file_url
 
         except Exception as e:
             logger.error(f"Failed to save image artifact: {e}")
@@ -148,11 +148,10 @@ class ArtifactService:
             artifact = Artifacts()
             artifact.file.save(filename, ContentFile(file_data), save=True)
 
-            # Return full URL that can be accessed externally
-            relative_url = artifact.file.url
-            full_url = self._build_full_url(relative_url)
-            logger.info(f"Saved file artifact: {artifact.uuid} -> {full_url}")
-            return full_url
+            # Return absolute URL for external access
+            file_url = self.build_absolute_url(artifact.file.url)
+            logger.info(f"Saved file artifact: {artifact.uuid} -> {file_url}")
+            return file_url
 
         except Exception as e:
             logger.error(f"Failed to save file artifact: {e}")
@@ -211,7 +210,7 @@ class ArtifactService:
             logger.info(f"Creating BinaryContent from artifact {artifact_uuid}: {len(data)} bytes, type: {media_type}")
             return BinaryContent(data=data, media_type=media_type)
         else:
-            # Return URL - subject to pydantic-ai bug with localhost
-            image_url = self._build_full_url(artifact.file.url)
+            # Return absolute URL for external access
+            image_url = self.build_absolute_url(artifact.file.url)
             logger.info(f"Creating ImageUrl from artifact {artifact_uuid}: {image_url}")
             return ImageUrl(url=image_url, force_download=True)

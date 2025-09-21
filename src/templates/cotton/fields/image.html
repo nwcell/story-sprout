@@ -56,13 +56,33 @@
         </div>
     </div>
   </div>
-  {% if image and delete_url %}
+  {% if image %}
+  <!-- Save/Download button -->
+  <button type="button"
+          class="absolute top-2 right-22 bg-black bg-opacity-50 rounded-full p-2 transition-all duration-200 z-[60] opacity-0 group-hover:opacity-100 text-white hover:text-green-500"
+          @click="downloadImage('{{ image.url }}', '{{ image.name|default:'image' }}')"
+          title="Download image">
+      <i class="fa-solid fa-download text-sm"></i>
+  </button>
+  
+  <!-- Copy image button -->
+  <button type="button"
+          class="absolute top-2 right-12 bg-black bg-opacity-50 rounded-full p-2 transition-all duration-200 z-[60] opacity-0 group-hover:opacity-100 text-white hover:text-blue-500"
+          @click="copyImageToClipboard('{{ image.url }}')"
+          title="Copy image to clipboard">
+      <i class="fa-solid fa-clipboard text-sm"></i>
+  </button>
+  
+  {% if delete_url %}
+  <!-- Delete button -->
   <button type="button"
           class="absolute top-2 right-2 bg-black bg-opacity-50 rounded-full p-2 transition-all duration-200 z-[60] opacity-0 group-hover:opacity-100 text-white hover:text-red-500"
           hx-delete="{{ delete_url }}"
           hx-target="closest .image-upload"
-          hx-swap="outerHTML">
+          hx-swap="outerHTML"
+          title="Delete image">
       <i class="fa-solid fa-trash text-sm"></i>
   </button>
+  {% endif %}
   {% endif %}
 </div>

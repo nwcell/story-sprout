@@ -5,14 +5,18 @@ Following pydantic-ai best practices, agents are defined as module globals
 and can be reused throughout the application.
 """
 
+from django.conf import settings
 from pydantic_ai import Agent
 
 from apps.ai.engine.dependencies import StoryAgentDeps
+from apps.ai.engine.shims.grok import create_grok_model
 from apps.ai.engine.tools import book_toolset, image_toolset
 
 # Writer agent for children's book creation
 writer_agent = Agent(
-    model="openai:gpt-4o",
+    # model="openai:gpt-4o",
+    # For Grok (xAI) - bypasses model name validation:
+    model=create_grok_model("grok-4-fast-non-reasoning", api_key=settings.GROK_API_KEY),
     deps_type=StoryAgentDeps,
     system_prompt=(
         "You are a children's book ghost author.\n"

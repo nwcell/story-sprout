@@ -179,3 +179,129 @@ function handleFileDrop(el, data, event) {
     hideOverlay(el);
     data.isDragging = false;
 }
+
+/**
+ * Downloads an image from the given URL with the specified filename
+ * @param {string} imageUrl - The URL of the image to download
+ * @param {string} fileName - The desired filename for the downloaded image
+ */
+function downloadImage(imageUrl, fileName) {
+    // Create a temporary anchor element
+    const link = document.createElement('a');
+    link.href = imageUrl;
+    
+    // Extract file extension from URL if not in filename
+    if (!fileName.includes('.')) {
+        const urlParts = imageUrl.split('.');
+        const extension = urlParts[urlParts.length - 1].split('?')[0]; // Remove query params if any
+        fileName = `${fileName}.${extension}`;
+    }
+    
+    link.download = fileName;
+    link.style.display = 'none';
+    
+    // Append to body, click, and remove
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+/**
+ * Copies an image to the clipboard so it can be pasted into other applications
+ * @param {string} imageUrl - The URL of the image to copy
+ */
+async function copyImageToClipboard(imageUrl) {
+    try {
+        // Check if we're in a secure context (HTTPS or localhost)
+        if (!window.isSecureContext) {
+            const protocol = window.location.protocol;
+            const hostname = window.location.hostname;
+            
+            if (protocol === 'http:' && hostname !== 'localhost' && hostname !== '127.0.0.1') {
+                showCopyFeedback('Clipboard requires HTTPS or localhost. Try using localhost instead of your current URL.', 'error');
+            } else {
+                showCopyFeedback('Clipboard requires secure context (HTTPS)', 'error');
+            }
+            return;
+        }
+
+        // Check if the Clipboard API is available
+        if (!navigator.clipboard || !navigator.clipboard.write) {
+            showCopyFeedback('Clipboard API not supported in this browser', 'error');
+            return;
+        }
+
+        // Show loading feedback
+        showCopyFeedback('Copying image...', 'loading');
+
+        // Fetch the image
+        const response = await fetch(imageUrl);
+        if (!response.ok) {
+            throw new Error(`Failed to fetch image: ${response.status}`);
+        }
+
+        const blob = await response.blob();
+        
+        // Create clipboard item with the image blob
+        const clipboardItem = new ClipboardItem({
+            [blob.type]: blob
+        });
+
+        // Write to clipboard
+        await navigator.clipboard.write([clipboardItem]);
+        showCopyFeedback('Image copied to clipboard!', 'success');
+
+    } catch (error) {
+        console.error('Failed to copy image:', error);
+        showCopyFeedback('Failed to copy image', 'error');
+    }
+}
+
+/**
+ * Shows temporary feedback for copy operations
+ * @param {string} message - The message to show
+ * @param {string} type - The type of feedback ('success', 'error', 'loading')
+ */
+function showCopyFeedback(message, type = 'success') {
+    // Remove any existing feedback
+    const existingFeedback = document.querySelector('.copy-feedback');
+    if (existingFeedback) {
+        existingFeedback.remove();
+    }
+
+    // Create feedback element
+    const feedback = document.createElement('div');
+    feedback.className = 'copy-feedback fixed top-4 right-4 px-4 py-2 rounded-lg shadow-lg z-50 text-white text-sm font-medium transition-all duration-300';
+    
+    // Set style based on type
+    switch (type) {
+        case 'success':
+            feedback.classList.add('bg-green-600');
+            break;
+        case 'error':
+            feedback.classList.add('bg-red-600');
+            break;
+        case 'loading':
+            feedback.classList.add('bg-blue-600');
+            break;
+        default:
+            feedback.classList.add('bg-gray-600');
+    }
+
+    feedback.textContent = message;
+    document.body.appendChild(feedback);
+
+    // Auto-remove after 3 seconds (except for loading messages)
+    if (type !== 'loading') {
+        setTimeout(() => {
+            if (feedback && feedback.parentNode) {
+                feedback.style.opacity = '0';
+                setTimeout(() => {
+                    if (feedback && feedback.parentNode) {
+                        feedback.remove();
+                    }
+                }, 300);
+            }
+        }, 3000);
+    }
+}

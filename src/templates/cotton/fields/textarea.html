@@ -4,8 +4,9 @@
           class="field-sizing-content w-full p-3 rounded-lg resize-none {% if hide_border %}border-none{% endif %} {{ class }}"
           placeholder="{{ placeholder }}"
           x-data="{ resize() { if ($el.offsetParent === null) return; $el.style.height = '1px'; $el.style.height = $el.scrollHeight + 'px'; } }"
-          x-init="resize(); new MutationObserver(() => resize()).observe($el, {childList: true, characterData: true})"
+          x-init="resize(); 
+                  new MutationObserver(() => resize()).observe($el, {childList: true, characterData: true});
+                  new ResizeObserver(() => resize()).observe($el);"
           @input="resize()"
           @htmx:load.window="resize()"
-          x-on:resize.window="resize()"
           {{ attrs }}>{{ slot }}</textarea>

@@ -1,7 +1,7 @@
 import logging
 import mimetypes
 from datetime import datetime
-from typing import Any, Literal
+from typing import Any, Literal, NamedTuple
 from uuid import UUID
 
 import requests
@@ -20,6 +20,11 @@ PageKey = int | UUID
 
 # Type alias for image data - can be URL string or binary data
 ImageData = str | bytes
+
+
+class NamedContentFile(NamedTuple):
+    filename: str
+    content_file: ContentFile
 
 
 class ImageField(BaseModel):
@@ -68,6 +73,23 @@ class StoryService:
         Returns a QuerySet that can be used with .get(), .first(), .update(), etc.
         """
         return Story.objects.filter(uuid=self.uuid)
+
+    def _prep_image(self, image_data: ImageData) -> NamedContentFile:
+        # Generate filename with timestamp
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"generated_image_{timestamp}.png"
+
+        if isinstance(image_data, str):
+            # Handle URL - download the image
+            # TODO: DONT USE REQUESTS
+            response = requests.get(image_data)
+            response.raise_for_status()
+            content_file = ContentFile(response.content)
+        else:
+            # Handle binary data directly
+            content_file = ContentFile(image_data)
+
+        return NamedContentFile(filename, content_file)
 
     def story_obj(self) -> Story:
         logger.info(f"StoryService.story_obj({self.uuid})")
@@ -154,6 +176,21 @@ class StoryService:
         if description:
             self.set_description(description)
 
+    def create_page(
+        self,
+        content: str | None = None,
+        image_text: str | None = None,
+        image_data: ImageData | None = None,
+    ) -> None:
+        page_instance = Page(story=self.story_obj(), content=content, image_text=image_text)
+
+        if image_data:
+            named_content_file = self._prep_image(image_data)
+            page_instance.image.save(named_content_file.filename, named_content_file.content_file, save=False)
+
+        page_instance.save()
+        self.refresh_story("page_list")
+
     def set_page_content(self, page_key: PageKey, input: str) -> None:
         """Update page content. page_key can be page number (int) or UUID."""
         self._get_page_queryset(page_key).update(content=input)
@@ -167,23 +204,8 @@ class StoryService:
     def set_page_image(self, page_key: PageKey, image_data: ImageData) -> None:
         page_instance = self._get_page_queryset(page_key).get()
 
-        if image_data:
-            # Generate filename with timestamp
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"generated_image_{timestamp}.png"
-
-            if isinstance(image_data, str):
-                # Handle URL - download the image
-                # TODO: DONT USE REQUESTS
-                response = requests.get(image_data)
-                response.raise_for_status()
-                page_instance.image.save(filename, ContentFile(response.content), save=True)
-            elif isinstance(image_data, bytes):
-                # Handle binary data directly
-                page_instance.image.save(filename, ContentFile(image_data), save=True)
-            else:
-                raise ValueError(f"Unsupported image_data type: {type(image_data)}")
-
+        named_content_file = self._prep_image(image_data)
+        page_instance.image.save(named_content_file.filename, named_content_file.content_file, save=True)
         self.refresh_page(page_key, "image")
 
     def update_page(
@@ -199,6 +221,41 @@ class StoryService:
             self.set_page_image_text(page_key, image_text)
         if image_data:
             self.set_page_image(page_key, image_data)
+
+    def delete_page(self, page_key: PageKey) -> None:
+        page_instance = self._get_page_queryset(page_key).get()
+        page_instance.delete()
+        self.refresh_story("page_list")
+
+    def move_page(self, page_key: PageKey, target: Literal["first", "last", "up", "down"] | int) -> None:
+        """Move page to a new position within the story.
+
+        Args:
+            page_key: Page identifier (page number starting from 1, or UUID).
+            target: Target position. Can be:
+                - "first": Move to beginning of story
+                - "last": Move to end of story
+                - "up": Move one position earlier
+                - "down": Move one position later
+                - int: Move to specific page number (1-based, not 0-based)
+        """
+        page_instance = self._get_page_queryset(page_key).get()
+        if target == "first":
+            page_instance.top()
+        elif target == "last":
+            page_instance.bottom()
+        elif target == "up":
+            page_instance.up()
+        elif target == "down":
+            page_instance.down()
+        elif isinstance(target, int):
+            page_instance.move_to(target - 1)
+            if target < 1 or target > self.story_obj().page_count:
+                raise ValueError(f"page number out of range: {target}")
+        else:
+            raise ValueError(f"Invalid target: {target}")
+        page_instance.save()
+        self.refresh_story("page_list")
 
     def refresh_story(self, target: Literal["title", "description", "page_list", None]):
         story = self.get_story()

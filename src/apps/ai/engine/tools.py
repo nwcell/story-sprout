@@ -10,7 +10,9 @@ from apps.stories.services import PageSchema, StorySchema
 logger = logging.getLogger(__name__)
 
 
-# Context Tools
+# Read operations - inspect existing content
+
+
 # TODO: Add flag to get_story to include page images
 def get_story(ctx: RunContext[StoryAgentDeps]) -> StorySchema:
     """Get comprehensive story information including title, description, and all pages.
@@ -87,6 +89,54 @@ def get_page_image(ctx: RunContext[StoryAgentDeps], page_num: int) -> ToolReturn
             ImageUrl(url=page.image.url, force_download=True),
         ],
     )
+
+
+# Create operations - add new content
+def create_page(
+    ctx: RunContext[StoryAgentDeps],
+    content: str | None = None,
+    image_text: str | None = None,
+    image_url: str | None = None,
+):
+    """Create a new page at the end of the story.
+
+    This tool adds a new page to the story with optional content, image description,
+    and image. The page is automatically positioned at the end of the story and
+    assigned the next sequential page number. Updates are immediately saved and
+    will trigger UI refresh events.
+
+    Args:
+        ctx: The runtime context containing story dependencies.
+        content: Initial text content for the new page. Optional.
+        image_text: Description/prompt for the page's image. Optional.
+        image_url: URL of image to associate with the page. Can be from
+            artist_request tool or external source. Optional.
+
+    Returns:
+        dict: Confirmation object with 'action' key and created page details.
+
+    Note:
+        At least one of the optional parameters should typically be provided
+        to create meaningful content, though an empty page is allowed.
+    """
+    logger.info(f"tool.create_page({content}, {image_text}, {image_url})")
+    story_service = ctx.deps.story_service
+    story_service.create_page(content=content, image_text=image_text, image_data=image_url)
+
+    # Get the updated story to find the new page number
+    story = story_service.get_story()
+    new_page_num = story.page_count
+
+    out = {"action": "created_page", "page_num": new_page_num}
+    if content:
+        out["content"] = content
+    if image_text:
+        out["image_text"] = image_text
+    if image_url:
+        out["image_url"] = image_url
+
+    logger.info(f"tool.create_page created page {new_page_num}: {out}")
+    return out
 
 
 # Tools that have side effects
@@ -176,6 +226,78 @@ def update_page(
     return out
 
 
+# Reorganize operations - change structure
+def move_page(ctx: RunContext[StoryAgentDeps], page_num: int, target: str | int):
+    """Move a page to a new position within the story.
+
+    This tool reorders pages within the story. You can move a page to a specific
+    position or use directional commands. Page numbers are automatically updated
+    after the move. Updates are immediately saved and will trigger UI refresh events.
+
+    Args:
+        ctx: The runtime context containing story dependencies.
+        page_num: The page number to move (1-indexed).
+        target: Target position. Can be:
+            - "first": Move to beginning of story
+            - "last": Move to end of story
+            - "up": Move one position earlier
+            - "down": Move one position later
+            - int: Move to specific page number (1-indexed, not 0-indexed)
+
+    Returns:
+        dict: Confirmation object with 'action' key, original and new positions.
+
+    Raises:
+        ValueError: If page_num or target is out of range or invalid.
+
+    Note:
+        When moving to a specific position (int), other pages shift automatically.
+        Page numbers are 1-based, not 0-based indexes.
+    """
+    logger.info(f"tool.move_page({page_num}, {target})")
+    story_service = ctx.deps.story_service
+
+    # Get original position for logging
+    original_pos = page_num
+
+    story_service.move_page(page_key=page_num, target=target)
+
+    out = {"action": "moved_page", "original_position": original_pos, "target": target}
+    logger.info(f"tool.move_page moved page from {original_pos} to {target}: {out}")
+    return out
+
+
+# Destructive operations - remove content (use carefully)
+def delete_page(ctx: RunContext[StoryAgentDeps], page_num: int):
+    """Delete a specific page from the story.
+
+    This tool permanently removes a page and all its content from the story.
+    Page numbers are automatically reordered after deletion. Updates are
+    immediately saved and will trigger UI refresh events.
+
+    Args:
+        ctx: The runtime context containing story dependencies.
+        page_num: The page number to delete (1-indexed).
+
+    Returns:
+        dict: Confirmation object with 'action' key and deleted page number.
+
+    Raises:
+        ValueError: If page_num is out of range or invalid.
+
+    Warning:
+        This operation cannot be undone. The page and all its content
+        (text, images, descriptions) will be permanently lost.
+    """
+    logger.info(f"tool.delete_page({page_num})")
+    story_service = ctx.deps.story_service
+    story_service.delete_page(page_key=page_num)
+
+    out = {"action": "deleted_page", "page_num": page_num}
+    logger.info(f"tool.delete_page deleted page {page_num}: {out}")
+    return out
+
+
 # Artist Tools
 def artist_request(ctx: RunContext[StoryAgentDeps], prompt: str) -> ToolReturn:
     """Generate illustrations using AI image generation for the story.
@@ -237,5 +359,21 @@ def artist_request(ctx: RunContext[StoryAgentDeps], prompt: str) -> ToolReturn:
 
 
 # Create toolsets
-book_toolset = FunctionToolset([get_story, get_page, get_page_image, update_story, update_page])
+book_toolset = FunctionToolset(
+    [
+        # Read operations - inspect existing content
+        get_story,
+        get_page,
+        get_page_image,
+        # Create operations - add new content
+        create_page,
+        # Update operations - modify existing content
+        update_story,
+        update_page,
+        # Reorganize operations - change structure
+        move_page,
+        # Destructive operations - remove content (use carefully)
+        delete_page,
+    ]
+)
 image_toolset = FunctionToolset([artist_request])

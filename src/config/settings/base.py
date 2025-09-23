@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     "whitenoise.runserver_nostatic",  # https://whitenoise.readthedocs.io/en/latest/
     "django.contrib.staticfiles",
     "django.contrib.sites",
+    "django.contrib.postgres",  # PostgreSQL specific features (search, etc.)
     # Third party apps
     "django_eventstream",  # Server-Sent Events
     "allauth",

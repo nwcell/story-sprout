@@ -1,8 +1,7 @@
-from datetime import datetime
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import BaseModel, ConfigDict
 
 
 class JobStatus(BaseModel):
@@ -37,23 +36,23 @@ class MessageSchema(BaseModel):
     content: dict
 
 
-class ConversationSchema(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+# class ConversationSchema(BaseModel):
+#     model_config = ConfigDict(from_attributes=True)
 
-    uuid: UUID
-    title: str | None
-    meta: dict
-    created_at: datetime
-    updated_at: datetime
+#     uuid: UUID
+#     title: str | None
+#     meta: dict
+#     created_at: datetime
+#     updated_at: datetime
 
 
-class ConversationDetailSchema(ConversationSchema):
-    messages: list[MessageSchema]
+# class ConversationDetailSchema(ConversationSchema):
+#     messages: list[MessageSchema]
 
-    @field_validator("messages", mode="before")
-    @classmethod
-    def coerce_related_manager(cls, v):
-        # Accept RelatedManager, QuerySet, or list
-        if hasattr(v, "all"):
-            return list(v.all())
-        return list(v)
+#     @field_validator("messages", mode="before")
+#     @classmethod
+#     def coerce_related_manager(cls, v):
+#         # Accept RelatedManager, QuerySet, or list
+#         if hasattr(v, "all"):
+#             return list(v.all())
+#         return list(v)

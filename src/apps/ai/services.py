@@ -6,13 +6,16 @@ import logging
 import mimetypes
 import uuid
 from datetime import datetime
-from typing import Literal
+from typing import Annotated, Literal
 from uuid import UUID
 
 from attr import dataclass
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.files.base import ContentFile
+from django.db import connection
+from django.db.models import Q
+from pydantic import BaseModel, BeforeValidator
 from pydantic_ai.messages import BinaryContent, ImageUrl
 
 from apps.ai.models import Artifacts, Conversation
@@ -51,27 +54,65 @@ class Chip:
     value = str
 
 
-class ConversationFilter:
-    uuid: UUID | None = None
-    user: User | None = None
-    title: str | None = None
-    meta: dict | None = None
+class MessageSchema(BaseModel):
+    uuid: UUID
+    content: dict  # JSONField stores dict data
+    position: int
+
+
+def convert_messages(v):
+    """Convert Django RelatedManager or QuerySet to list."""
+    if hasattr(v, "all"):
+        return list(v.all())
+    return v
+
+
+class ConversationSchema(BaseModel):
+    uuid: UUID
+    user_id: int
+    title: str | None
+    meta: dict
+    created_at: datetime
+    updated_at: datetime
+
+
+class ConversationDetailSchema(ConversationSchema):
+    messages: Annotated[list[MessageSchema], BeforeValidator(convert_messages)]
 
 
 class ConversationService:
     def __init__(self, uuid: UUID, new_conversation: bool = False):
         self.uuid = uuid
 
-    def list_conversations(self, filter):
-        if filter.uuid:
-            return Conversation.objects.get(uuid=filter.uuid)
-        # elif title
+    def list_conversations(
+        self, user: User | None = None, title: str | None = None, meta: dict | None = None
+    ) -> list[ConversationSchema]:
+        query = Q()
 
-    def get_conversation(self, filter):
-        return Conversation.objects.get(uuid=self.uuid)
+        if user:
+            query &= Q(user=user)
+        if title:
+            # Use PostgreSQL full-text search if available, otherwise fallback to icontains
+            if connection.vendor == "postgresql":
+                query &= Q(title__search=title)
+            else:
+                query &= Q(title__icontains=title)
+        if meta:
+            for key, value in meta.items():
+                query &= Q(meta__contains={key: value})
 
-    def get_messages(self):
-        return self.get_conversation().messages.all()
+        conversations = Conversation.objects.filter(query)
+        return [ConversationSchema.model_validate(conv, from_attributes=True) for conv in conversations]
+
+    def get_conversation(self) -> ConversationDetailSchema:
+        conversation = Conversation.objects.get(uuid=self.uuid)
+        return ConversationDetailSchema.model_validate(conversation, from_attributes=True)
+
+    def create_conversation(
+        self, user: User, title: str | None = None, meta: dict | None = None
+    ) -> ConversationDetailSchema:
+        conversation = Conversation.objects.create(user=user, title=title, meta=meta or {})
+        return ConversationDetailSchema.model_validate(conversation, from_attributes=True)
 
 
 class ChatService:

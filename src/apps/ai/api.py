@@ -4,17 +4,22 @@ from datetime import datetime
 from uuid import UUID
 
 from django.core.cache import cache
-from django.http import HttpResponse, StreamingHttpResponse
-from django.shortcuts import get_object_or_404
-from ninja import Router
+from django.http import Http404, HttpResponse, StreamingHttpResponse
+from ninja import FilterSchema, Router
 
 from apps.ai.engine.agents import list_agent_types
 from apps.ai.engine.celery import enqueue_job
 from apps.ai.models import Conversation
-from apps.ai.schemas import ConversationDetailSchema, ConversationSchema, JobStatus, PageJob, RequestSchema, StoryJob
+from apps.ai.schemas import JobStatus, PageJob, RequestSchema, StoryJob
+from apps.ai.services import ConversationDetailSchema, ConversationSchema, ConversationService
 
 router = Router()
 logger = logging.getLogger(__name__)
+
+
+class ConversationFilterSchema(FilterSchema):
+    title: str | None = None
+    meta: dict | None = None
 
 
 @router.get("/agents", tags=["Agents"])
@@ -26,15 +31,17 @@ def agents(request) -> list[str]:
 
 
 @router.get("/conversations", response=list[ConversationSchema], tags=["Conversations"])
-def list_conversations(request) -> list[ConversationSchema]:
-    user = request.user
-    return Conversation.objects.filter(user=user)
+def list_conversations(request, title: str | None = None, meta: dict | None = None) -> list[ConversationSchema]:
+    conversation_service = ConversationService(uuid=None)
+    return conversation_service.list_conversations(user=request.user, title=title, meta=meta)
 
 
 @router.get("/conversations/{conversation_uuid}", response=ConversationDetailSchema, tags=["Conversations"])
 def get_conversations(request, conversation_uuid: UUID) -> ConversationDetailSchema:
-    user = request.user
-    conversation = get_object_or_404(Conversation, uuid=conversation_uuid, user=user)
+    conversation_service = ConversationService(uuid=conversation_uuid)
+    conversation = conversation_service.get_conversation()
+    if conversation.user_id != request.user.id:
+        raise Http404("Conversation not found")
     return conversation
 
 
@@ -45,13 +52,17 @@ def create_request(request, payload: RequestSchema) -> ConversationSchema:
 
     # Get or create conversation
     if payload.conversation_uuid:
-        conversation = get_object_or_404(Conversation, uuid=payload.conversation_uuid, user=user)
+        conversation_service = ConversationService(uuid=payload.conversation_uuid)
+        conversation = conversation_service.get_conversation()
+        if conversation.user_id != user.id:
+            raise Http404("Conversation not found")
         logger.info(f"create_request found conversation: {conversation}")
     else:
         # Create new conversation with readable datetime title
         now = datetime.now()
         title = f"New Chat {now.strftime('%Y-%m-%d %H:%M')}"
-        conversation = Conversation.objects.create(user=user, title=title)
+        conversation_service = ConversationService(uuid=None)
+        conversation = conversation_service.create_conversation(user=user, title=title)
         logger.info(f"create_request created conversation: {conversation}")
 
         # Update payload with the new conversation UUID
@@ -78,7 +89,11 @@ def stream_conversation_updates(request, conversation_uuid: UUID):
         while True:
             try:
                 # Check for new messages
-                conversation = Conversation.objects.get(uuid=conversation_uuid, user=request.user)
+                conversation_service = ConversationService(uuid=conversation_uuid)
+                conversation = conversation_service.get_conversation()
+                if conversation.user != request.user:
+                    yield "event: error\ndata: Conversation not found\n\n"
+                    break
                 current_message_count = conversation.messages.count()
 
                 if current_message_count > last_message_count:

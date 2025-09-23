@@ -7,13 +7,15 @@ import mimetypes
 import uuid
 from datetime import datetime
 from typing import Literal
+from uuid import UUID
 
 from attr import dataclass
 from django.conf import settings
+from django.contrib.auth.models import User
 from django.core.files.base import ContentFile
 from pydantic_ai.messages import BinaryContent, ImageUrl
 
-from apps.ai.models import Artifacts
+from apps.ai.models import Artifacts, Conversation
 
 logger = logging.getLogger(__name__)
 
@@ -49,6 +51,29 @@ class Chip:
     value = str
 
 
+class ConversationFilter:
+    uuid: UUID | None = None
+    user: User | None = None
+    title: str | None = None
+    meta: dict | None = None
+
+
+class ConversationService:
+    def __init__(self, uuid: UUID, new_conversation: bool = False):
+        self.uuid = uuid
+
+    def list_conversations(self, filter):
+        if filter.uuid:
+            return Conversation.objects.get(uuid=filter.uuid)
+        # elif title
+
+    def get_conversation(self, filter):
+        return Conversation.objects.get(uuid=self.uuid)
+
+    def get_messages(self):
+        return self.get_conversation().messages.all()
+
+
 class ChatService:
     def __init__(self, conversation_uuid):
         self.conversation_uuid = conversation_uuid
@@ -77,7 +102,7 @@ class ArtifactService:
             Always returns an absolute URL
         """
         # Use environment-based configuration for absolute URLs
-        base_url = getattr(settings, 'BASE_URL', None)
+        base_url = getattr(settings, "BASE_URL", None)
         if base_url:
             # Use configured BASE_URL
             return f"{base_url.rstrip('/')}{relative_url}"

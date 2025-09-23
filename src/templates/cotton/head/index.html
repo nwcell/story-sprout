@@ -34,6 +34,11 @@
 <link rel="stylesheet" href="{% static 'css/design-system.css' %}">
 <link rel="stylesheet" href="{% static 'css/components.css' %}">
 
+<!-- Alpine.js cloak CSS -->
+<style>
+[x-cloak] { display: none !important; }
+</style>
+
 <!-- Font Awesome -->
 <link href="{% static 'vendor/fontawesome/css/fontawesome.min.css' %}" rel="stylesheet" />
 <link href="{% static 'vendor/fontawesome/css/solid.min.css' %}" rel="stylesheet" />
@@ -43,11 +48,13 @@
 <script defer src="{% static 'vendor/htmx/json-enc.js' %}"></script>
 <script defer src="{% static 'vendor/htmx/htmx-ext-sse.js' %}"></script>
 
-<!-- Alpine.js -->
+<!-- Alpine.js - Load plugins first, then extensions, then Alpine -->
+<script defer src="{% static 'vendor/alpine/alpine-persist.js' %}"></script>
 <script defer src="{% static 'vendor/alpine/alpine-intersect.js' %}"></script>
+<script defer src="{% static 'js/ai-panel.js' %}"></script>
 <script defer src="{% static 'vendor/alpine/alpine.min.js' %}"></script>
 
-<!-- Component Scripts -->
+<!-- Other Component Scripts -->
 <script defer src="{% static 'js/image-upload.js' %}"></script>
 
 <!-- EventStream -->

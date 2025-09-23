@@ -14,36 +14,7 @@
     {% block extra_head %}{% endblock %}
 </head>
 <body class="h-full bg-white font-sans"
-      x-data="{
-                sidebarOpen: false,
-                aiPanelOpen: false,
-                aiPanelAvailable: false,
-                panelHeight: 0,
-                init() {
-                  this.checkAiPanelAvailability();
-                  // Listen for HTMX navigation events
-                  document.addEventListener('htmx:afterSwap', () => {
-                    this.checkAiPanelAvailability();
-                  });
-                  // Watch for panel height changes
-                  this.$watch('aiPanelOpen', () => {
-                    this.$nextTick(() => this.updatePanelHeight());
-                  });
-                },
-                checkAiPanelAvailability() {
-                  this.aiPanelAvailable = window.location.pathname.includes('/stories/') && !window.location.pathname.endsWith('/stories/');
-                },
-                updatePanelHeight() {
-                  if (this.aiPanelAvailable && this.aiPanelOpen) {
-                    const panel = document.getElementById('ai-panel-main');
-                    if (panel) {
-                      this.panelHeight = panel.offsetHeight + 24; // Add 1.5rem spacing
-                    }
-                  } else {
-                    this.panelHeight = 16; // 1rem when closed
-                  }
-                }
-              }"
+      x-data="{ sidebarOpen: false }"
       hx-headers='{"x-csrftoken": "{{ csrf_token }}"}'>
     <div>
         <!-- Off-canvas menu for mobile -->
@@ -95,11 +66,11 @@
             </div>
 
             <main class="flex-1">
-                <div id="dashboard-content" class="py-8 px-4 sm:px-6 lg:px-8 transition-all duration-500 ease-in-out" :style="{ marginBottom: panelHeight + 'px' }" x-init="updatePanelHeight()">
+                <div id="dashboard-content" class="py-8 px-4 sm:px-6 lg:px-8 transition-all duration-500 ease-in-out" :style="$store.aiPanel ? { marginBottom: $store.aiPanel.panelHeight + 'px' } : {}">
                     {% block dashboard_content %}{% endblock %}
                 </div>
             </main>
-            <c-ai.panel>Panel</c-ai.panel>
+
         </div>
     </div>
 

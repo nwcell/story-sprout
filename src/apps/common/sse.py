@@ -21,7 +21,7 @@ class ChannelManager(DefaultChannelManager):
 
 def send_template(channel, event, template, context):
     rendered = render_to_string(template, context)
-    send_event(channel, event, rendered)
+    send_event(channel, event, rendered, json_encode=False)
 
 
 def send_oob(channel, template: str, context: dict | None = None):

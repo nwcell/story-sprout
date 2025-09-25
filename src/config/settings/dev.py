@@ -30,20 +30,26 @@ CELERY_BROKER_URL = env("CELERY_BROKER_URL", default="redis://localhost:6379/0")
 CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND", default="redis://localhost:6379/0")
 
 # Cache: Environment-driven with in-memory fallback
-_cache_backend = env("CACHE_BACKEND", default="locmem")
-if _cache_backend == "redis":
-    CACHES = {
-        "default": {
-            "BACKEND": "django.core.cache.backends.redis.RedisCache",
-            "LOCATION": env("REDIS_CACHE_URL", default="redis://127.0.0.1:6379/1"),
-        }
+# _cache_backend = env("CACHE_BACKEND", default="locmem")
+# if _cache_backend == "redis":
+#     CACHES = {
+#         "default": {
+#             "BACKEND": "django.core.cache.backends.redis.RedisCache",
+#             "LOCATION": env("REDIS_CACHE_URL", default="redis://127.0.0.1:6379/1"),
+#         }
+#     }
+# else:
+#     CACHES = {
+#         "default": {
+#             "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+#         }
+#     }
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.dummy.DummyCache",
     }
-else:
-    CACHES = {
-        "default": {
-            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-        }
-    }
+}
 
 # Allauth: Relaxed email verification for development
 ACCOUNT_EMAIL_VERIFICATION = "none"

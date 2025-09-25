@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.sites",
     "django.contrib.postgres",  # PostgreSQL specific features (search, etc.)
+    "django.contrib.humanize",  # Human-readable formatting for dates, numbers, etc.
     # Third party apps
     "django_eventstream",  # Server-Sent Events
     "allauth",
@@ -69,8 +70,9 @@ INSTALLED_APPS = [
     "django_celery_results",
     "markdownx",
     "django_browser_reload",
+    # "django_cotton",
     "django_cotton.apps.SimpleAppConfig",
-    "template_partials.apps.SimpleAppConfig",
+    # "template_partials.apps.SimpleAppConfig",
     # Local apps
     "apps.common",
     "apps.accounts",
@@ -96,12 +98,29 @@ MIDDLEWARE = [
 ]
 
 if DEBUG:
-    # Add django_browser_reload middleware only in DEBUG mode
     MIDDLEWARE += [
         "django_browser_reload.middleware.BrowserReloadMiddleware",
     ]
 
 ROOT_URLCONF = "config.urls"
+
+# Template configuration with environment-based loader selection
+_template_loaders = [
+    "django_cotton.cotton_loader.Loader",
+    "django.template.loaders.filesystem.Loader",
+    "django.template.loaders.app_directories.Loader",
+]
+
+# Use cached loaders for production, direct loaders for development
+# if env("DJANGO_ENV", default="dev") == "dev":
+if DEBUG:
+    print("Using direct template loaders for development")
+    _loaders = _template_loaders
+    _debug = True
+else:
+    print("Using cached template loaders for production")
+    _loaders = [("django.template.loaders.cached.Loader", _template_loaders)]
+    _debug = False
 
 TEMPLATES = [
     {
@@ -115,28 +134,15 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
             ],
-            "loaders": [
-                (
-                    "template_partials.loader.Loader",
-                    [
-                        (
-                            "django.template.loaders.cached.Loader",
-                            [
-                                "django_cotton.cotton_loader.Loader",
-                                "django.template.loaders.filesystem.Loader",
-                                "django.template.loaders.app_directories.Loader",
-                            ],
-                        )
-                    ],
-                )
-            ],
+            "loaders": _loaders,
+            "debug": _debug,
             "builtins": [
                 "django_cotton.templatetags.cotton",
-                "template_partials.templatetags.partials",
             ],
         },
     },
 ]
+
 
 WSGI_APPLICATION = "config.wsgi.application"
 ASGI_APPLICATION = "config.asgi.application"
@@ -291,6 +297,7 @@ else:
     }
 
 
+# TODO: Move to Structlog or something
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,

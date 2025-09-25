@@ -52,11 +52,15 @@ class StorySchema(BaseModel):
     page_count: int
     pages: list[PageSchema]
     channel: str
+    conversation_uuid: UUID | None
 
 
 class StoryService:
     def __init__(self, uuid: UUID):
         self.uuid = uuid
+
+    def __str__(self):
+        return f"StoryService({self.uuid})"
 
     def _create_image_field(self, django_image_field: DjangoImageField) -> ImageField:
         """Convert Django ImageField to our Pydantic ImageField."""
@@ -92,7 +96,7 @@ class StoryService:
         return NamedContentFile(filename, content_file)
 
     def story_obj(self) -> Story:
-        logger.info(f"StoryService.story_obj({self.uuid})")
+        logger.debug(f"StoryService.story_obj({self.uuid})")
         return self._get_story_queryset().get()
 
     def _get_page_queryset(self, page_key: PageKey):
@@ -158,6 +162,7 @@ class StoryService:
             page_count=story_obj.page_count,
             pages=pages,
             channel=story_obj.channel,
+            conversation_uuid=story_obj.conversation.uuid,
         )
 
     def set_title(self, input: str) -> None:

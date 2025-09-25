@@ -6,6 +6,7 @@ import json
 import logging
 
 from celery import shared_task
+from pydantic_ai.messages import ModelMessagesTypeAdapter
 
 from apps.ai.engine.agents import get_agent, writer_agent
 from apps.ai.engine.celery import JobTask
@@ -13,6 +14,7 @@ from apps.ai.engine.dependencies import StoryAgentDeps
 from apps.ai.models import Conversation, Message
 from apps.ai.schemas import PageJob, RequestSchema, StoryJob
 from apps.ai.util.ai import AIEngine
+from apps.ai.services import ArtifactService, ConversationService
 from apps.stories.services import StoryService
 
 logger = logging.getLogger(__name__)
@@ -33,13 +35,14 @@ def agent_task(payload: RequestSchema) -> str:
 
     # Get conversation and build message history
     conversation = Conversation.objects.get(uuid=conversation_uuid)
+    story_uuid = conversation.meta["story_uuid"]
     django_messages = list(conversation.messages.all().order_by("position"))
+    logger.info(f"agent_orchestration conversation: {conversation}")
+    logger.info(f"agent_orchestration story_uuid: {story_uuid}")
 
     # Convert Django messages to pydantic-ai ModelMessage objects
     messages = None
     if django_messages:
-        from pydantic_ai.messages import ModelMessagesTypeAdapter
-
         # Extract content (which contains the serialized ModelMessage data)
         message_contents = [msg.content for msg in django_messages]
         # Convert back to ModelMessage objects for pydantic-ai
@@ -47,7 +50,7 @@ def agent_task(payload: RequestSchema) -> str:
 
     # Run agent with prompt (sync version)
     agent = get_agent(agent_type)
-    deps = StoryAgentDeps(conversation_uuid=conversation_uuid)
+    deps = StoryAgentDeps(conversation_uuid=conversation_uuid, story_uuid=conversation.meta["story_uuid"])
     result = agent.run_sync(prompt, deps=deps, message_history=messages)
     logger.info(f"agent_orchestration result: {result}")
 
@@ -60,7 +63,7 @@ def agent_task(payload: RequestSchema) -> str:
         messages_to_create = [Message(conversation=conversation, content=msg_data) for msg_data in messages_data]
         Message.objects.bulk_create(messages_to_create)
 
-    logger.info(f"agent_orchestration completed for conversation {conversation_uuid}")
+    logger.info(f"agent_orchestration completed with {repr(result.output)}")
     return f"Conversation {conversation_uuid} updated"
 
 
@@ -236,7 +239,7 @@ def ai_page_image_job(payload: PageJob) -> str:
     # Build focused prompt for image generation only
     content = page_obj.content or ""
     image_text = page_obj.image_text or ""
-    
+
     enhanced_prompt = [
         f"Generate an illustration for page {page_num} using the artist_request tool, "
         f"then update the page image using update_page tool.\n\n"

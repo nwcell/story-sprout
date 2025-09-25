@@ -4,6 +4,8 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from ordered_model.models import OrderedModel
 
+from apps.ai.models import Conversation
+
 User = get_user_model()
 
 
@@ -14,9 +16,18 @@ class Story(models.Model):
     description = models.TextField(default="", blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    conversation = models.OneToOneField(Conversation, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return self.title or "Untitled Story"
+
+    def save(self, *args, **kwargs):
+        if self.pk is None and self.conversation_id is None:
+            self.conversation = Conversation.objects.create(
+                user=self.user,
+                meta={"story_uuid": str(self.uuid)},
+            )
+        super().save(*args, **kwargs)
 
     @property
     def page_count(self):
@@ -25,6 +36,10 @@ class Story(models.Model):
     @property
     def channel(self):
         return f"story-{self.uuid}"
+
+    @property
+    def conversations(self):
+        return Conversation.objects.filter(meta__story_uuid=str(self.uuid))
 
     def get_page_by_num(self, num):
         """Get a page by it's page number in the book (1-indexed)"""

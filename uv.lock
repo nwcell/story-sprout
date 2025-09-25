@@ -1016,18 +1016,6 @@ wheels = [
 ]
 
 [[package]]
-name = "django-template-partials"
-version = "25.2"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "django" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/c1/7f/9eca482fbfd42f2ae19fa77fa231c0d2ba6ec7caf0ced16926480e1d746b/django_template_partials-25.2.tar.gz", hash = "sha256:55044e4a12d5d3adbc02df0758eb08fcd4e3451203e02a819f9853451696aef6", size = 17787 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/9f/30/96a9d0e70efd00af9b9c011111b5eba48d17914e5b3d39516d4a7cc7e7fb/django_template_partials-25.2-py2.py3-none-any.whl", hash = "sha256:4c4f6569bd2d016281700a215c09ba4b7a4bbd2da95ce15d8c1ae76d36da44b4", size = 9621 },
-]
-
-[[package]]
 name = "docstring-parser"
 version = "0.17.0"
 source = { registry = "https://pypi.org/simple" }
@@ -3731,7 +3719,6 @@ dependencies = [
     { name = "django-ninja" },
     { name = "django-ordered-model" },
     { name = "django-tailwind" },
-    { name = "django-template-partials" },
     { name = "litellm" },
     { name = "loguru" },
     { name = "pillow" },
@@ -3785,7 +3772,6 @@ requires-dist = [
     { name = "django-ninja", specifier = ">=1.4.3" },
     { name = "django-ordered-model", specifier = ">=3.7.4" },
     { name = "django-tailwind", specifier = ">=4.2.0" },
-    { name = "django-template-partials", specifier = ">=25.1" },
     { name = "litellm", specifier = ">=1.74.3" },
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "pillow", specifier = ">=11.3.0" },

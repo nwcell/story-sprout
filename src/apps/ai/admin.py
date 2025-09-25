@@ -12,6 +12,22 @@ from django.utils.timezone import now
 from apps.ai.models import Artifacts, Conversation, Job, Message
 
 
+class MessageInline(admin.TabularInline):
+    model = Message
+    fields = ("position", "content_pretty", "created_at", "updated_at")
+    readonly_fields = fields
+    extra = 0
+    ordering = ("position",)
+
+    @admin.display(description="Content")
+    def content_pretty(self, obj):
+        try:
+            body = json.dumps(obj.content, indent=2, sort_keys=True)
+        except (TypeError, ValueError):
+            body = obj.content
+        return format_html("<pre style='max-height:320px;overflow:auto'>{}</pre>", body)
+
+
 @admin.register(Conversation)
 class ConversationAdmin(admin.ModelAdmin):
     list_display = (
@@ -21,6 +37,7 @@ class ConversationAdmin(admin.ModelAdmin):
         "created_at",
         "updated_at",
     )
+    inlines = (MessageInline,)
 
 
 @admin.register(Message)

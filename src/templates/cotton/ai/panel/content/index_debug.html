@@ -1,37 +1,38 @@
-<c-vars prompt
+{% comment %} <c-vars prompt="What would you like to do?"
         :chips="[
                   {'emoji': '✍️', 'color': 'emerald', 'text': 'Draft a Title!'},
                   {'emoji': '🗞', 'color': 'amber', 'text': 'Outline story!'},
                   {'emoji': '🌮', 'color': 'neutral', 'text': 'Taco'},
         ]"
         :freeform=True
-        freeform_text
-        input_placeholder
-        submit_text />
+        freeform_text="Write my own"
+        input_placeholder="Enter your text here"
+        submit_text="Submit" /> {% endcomment %}
 
+<!-- DEBUG: Let's see what context we actually have - CACHE BUST 2025-09-24-14:21 -->
 <div style="background: #ff0000; padding: 10px; margin: 10px; font-family: monospace; font-size: 12px; color: white;">
   <strong>🔥 DEBUG CONTEXT 🔥:</strong><br>
-  prompt: "{{ prompt|default:"What would you like to do?" }}"<br>
+  prompt: "{{ prompt }}"<br>
   chips: {{ chips }}<br>
   freeform: {{ freeform }}<br>
   freeform_text: "{{ freeform_text }}"<br>
-  input_placeholder: "{{ input_placeholder|default:"Enter your text here" }}"<br>
-  submit_text: "{{ submit_text|default:"Submit" }}"<br>
+  input_placeholder: "{{ input_placeholder }}"<br>
+  submit_text: "{{ submit_text }}"<br>
   <strong>TIMESTAMP: {% now "Y-m-d H:i:s" %}</strong>
 </div>
 
 <div id="ai-panel-content"
      x-data="{ showFreeform: false, aiPanelChip: '', freeformText: '' }"
      x-effect="showFreeform = (aiPanelChip === 'freeform')">
-  <c-ai.panel.content.prompt_row prompt={{ prompt }} />
-  <c-ai.panel.content.chip_row :chips=chips :freeform=freeform x-show="!showFreeform" :freeform_text=freeform_text />
+  <c-ai.panel.content.prompt_row :prompt=prompt />
+  <c-ai.panel.content.chip_row :chips=chips :freeform=freeform x-show="!showFreeform" freeform_text={{ freeform_text }} />
   {% if freeform %}
     <div id="ai-panel-text-input"
          x-show="showFreeform"
          x-effect="if (showFreeform) setTimeout(() => $el.querySelector('textarea')?.focus(), 100)"
          class="p-2 flex items-center space-x-2">
       <c-button icon="chevron-left" class="text-gray-600 hover:text-gray-800" @click="aiPanelChip = ''" />
-      <c-fields.textarea type="text" name="ai-panel-text" placeholder="{{ input_placeholder|default:"Enter your text here" }}" :hide_border=False x-model="freeformText" />
+      <c-fields.textarea type="text" name="ai-panel-text" placeholder="{{ input_placeholder }}" :hide_border=False x-model="freeformText" />
     </div>
   {% endif %}
   <div id="ai-panel-submit" class="p-2">

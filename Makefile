@@ -15,7 +15,7 @@ web_port = 8000
 
 # --- Watchdog config ---
 watchmedo        := uv run watchmedo
-watch_patterns   := "*.py;*.toml"
+watch_patterns   := "*.py;*.toml;*.html;*.js;*.css"
 ignore_patterns  := "*/.git/*;*/.venv/*;*/node_modules/*;*/.pytest_cache/*;*/.mypy_cache/*;*/.run/*;*/dist/*;*/build/*;*/static/*;*/media/*"
 
 # Helper macro
@@ -95,6 +95,8 @@ clean: ## 🧹 Clean temporary files
 	@find . -type d -name "__pycache__" -delete
 	@find . -type d -name "*.egg-info" -exec rm -rf {} +
 	@find . -type f -name ".coverage" -delete
+	@echo "🧺 Purging Celery queues..."
+	@$(celery_cmd) -A $(app) purge --force
 	@echo "✅ Cleanup complete"
 .PHONY: clean
 

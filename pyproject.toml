@@ -17,7 +17,7 @@ dependencies = [
     "django-ninja>=1.4.3",
     "django-ordered-model>=3.7.4",
     "django-tailwind>=4.2.0",
-    "django-template-partials>=25.1",
+    # "django-template-partials>=25.1",
     "crispy-tailwind>=1.0.3",
     # Async & Real-time
     "daphne>=4.2.1",

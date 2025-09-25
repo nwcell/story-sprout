@@ -1,5 +1,3 @@
-{% load partials %}
-
 <c-vars story />
 
 <div id="story-{{ story.uuid }}"
@@ -44,13 +42,13 @@
     </div>
   </div>
 
-        <c-ai.chip name="ai-chip"
-                 type="button"
-                 emoji="🧠"
-                 color="lime"
-                 hx-post="{% url 'api-1:ai_story_brainstorm' %}"
-                 hx-ext='json-enc'
-                 hx-vals='{"story_uuid": "{{ story.uuid }}"}'>Brainstorm</c-ai.chip>
+  <c-ai.chip name="ai-chip"
+            type="button"
+            emoji="🧠"
+            color="lime"
+            hx-post="{% url 'api-1:ai_story_brainstorm' %}"
+            hx-ext='json-enc'
+            hx-vals='{"story_uuid": "{{ story.uuid }}"}'>Brainstorm</c-ai.chip>
 
   <div class="mt-8">
     <div class="flex items-center justify-between">
@@ -63,5 +61,5 @@
     <c-stories.page.new-page-button :story=story />
   </div>
 
-  <c-ai.panel>Panel</c-ai.panel>
+  <c-ai.panel filter-meta="story_uuid={{ story.uuid }}" :conversations=story.conversations :conversation=story.conversation >Panel</c-ai.panel>
 </div>

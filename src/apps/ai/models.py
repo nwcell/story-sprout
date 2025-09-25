@@ -2,6 +2,10 @@ from uuid import uuid4
 
 from django.contrib.auth import get_user_model
 from django.db import models
+from pydantic_ai.messages import ModelMessage, ModelMessagesTypeAdapter
+from pydantic_core import to_jsonable_python
+
+from apps.ai.types import ChatResponse, chat_response_adapter, Chip
 
 User = get_user_model()
 
@@ -18,11 +22,51 @@ class Conversation(models.Model):
         ordering = ["-created_at"]
 
     def __str__(self):
-        return self.title or str(self.id)
+        return self.title or f"Conversation: {str(self.uuid)}"
 
     def get_ordered_messages(self):
         """Return messages ordered by position."""
         return self.messages.all().order_by("position")
+
+    @property
+    def model_messages(self) -> list[ModelMessage]:
+        """Return messages ordered by position."""
+        messages = list(self.messages.all().order_by("position").values_list("content", flat=True))
+        return ModelMessagesTypeAdapter.validate_python(messages)
+
+    def insert_model_messages(self, messages: list[ModelMessage]):
+        messages = to_jsonable_python(messages)
+        messages_to_create = [Message(conversation=self, content=msg_data) for msg_data in messages]
+
+    def latest_response(self):
+        """Return the latest ModelResponse message."""
+        queryset = self.messages.filter(content__kind="response").order_by("-position")
+        return queryset.values_list("content", flat=True).first()
+
+    # TODO: This is gonna be brittle... denormalize?
+    @property
+    def chat_display(self) -> ChatResponse:
+        """Return a response shape from the latest response"""
+        chat_response: ChatResponse | None = None
+        response = self.latest_response()
+
+        if response:
+            for part in response.get("parts", []):
+                if part.get("tool_name") == "final_result":
+                    chat_response = chat_response_adapter.validate_python(part["args"])
+                    break
+
+        if chat_response is None:
+            chat_response = ChatResponse(
+                message="What sounds fun right now?",
+                chips=[
+                    Chip(emoji="🌟", color="sky", value="Cook up something new"),
+                    Chip(emoji="🛠️", color="emerald", value="Build on our story"),
+                    Chip(emoji="🤖", color="violet", value="Ask the writer bot"),
+                ],
+            )
+
+        return chat_response
 
 
 class MessageManager(models.Manager):
@@ -52,9 +96,7 @@ class MessageManager(models.Manager):
             # Assign positions for each conversation group
             for conv_id, conv_objs in conv_groups.items():
                 # Get current max position for this conversation
-                max_position = self.filter(conversation_id=conv_id).aggregate(max_pos=models.Max("position"))[
-                    "max_pos"
-                ]
+                max_position = self.filter(conversation_id=conv_id).aggregate(max_pos=models.Max("position"))["max_pos"]
                 starting_position = (max_position or -1) + 1
 
                 # Assign sequential positions to objects without positions

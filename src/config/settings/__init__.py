@@ -12,12 +12,14 @@ if _env_path.exists():
     _env_loader.read_env(_env_path)
 
 _env = _env_loader("DJANGO_ENV", default="dev")
+
 _mod = f"{__name__}.{_env}"
 
 try:
     _m = __import__(_mod, fromlist=["*"])
 except ModuleNotFoundError:
     _m = None
+
 
 if _m:
     for _k in dir(_m):

@@ -3,5 +3,5 @@
 <div id="ai-prompt"
      class="p-2"
      {% if oob %}hx-swap-oob="true"{% endif %}>
-  <p>{{prompt}}</p>
+  <p>{{ prompt|default:"What would you like to do?" }}</p>
 </div>

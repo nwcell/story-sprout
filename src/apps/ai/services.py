@@ -6,52 +6,50 @@ import logging
 import mimetypes
 import uuid
 from datetime import datetime
-from typing import Annotated, Literal
+from typing import Annotated
 from uuid import UUID
 
-from attr import dataclass
 from django.conf import settings
-from django.contrib.auth.models import User
 from django.core.files.base import ContentFile
 from django.db import connection
 from django.db.models import Q
-from pydantic import BaseModel, BeforeValidator
-from pydantic_ai.messages import BinaryContent, ImageUrl
+from pydantic import BaseModel, BeforeValidator, TypeAdapter
+from pydantic_ai.messages import BinaryContent, ImageUrl, ModelMessagesTypeAdapter
 
 from apps.ai.models import Artifacts, Conversation
 
 logger = logging.getLogger(__name__)
 
-EmojiType = Literal[""]
+# EmojiType = Literal[""]
 
-ColorType = Literal[
-    "pink",
-    "rose",
-    "purple",
-    "violet",
-    "indigo",
-    "blue",
-    "sky",
-    "cyan",
-    "teal",
-    "emerald",
-    "green",
-    "lime",
-    "yellow",
-    "amber",
-    "orange",
-    "red",
-    "neutral",
-    "slate",
-    "rainbow",
-]
+# ColorType = Literal[
+#     "pink",
+#     "rose",
+#     "purple",
+#     "violet",
+#     "indigo",
+#     "blue",
+#     "sky",
+#     "cyan",
+#     "teal",
+#     "emerald",
+#     "green",
+#     "lime",
+#     "yellow",
+#     "amber",
+#     "orange",
+#     "red",
+#     "neutral",
+#     "slate",
+#     "rainbow",
+# ]
 
 
-@dataclass
-class Chip:
-    emoji = Literal
-    color = ColorType
-    value = str
+# @dataclass
+# class Chip:
+#     emoji: str
+#     color: ColorType
+#     value: str
 
 
 class MessageSchema(BaseModel):
@@ -81,16 +79,25 @@ class ConversationDetailSchema(ConversationSchema):
 
 
 class ConversationService:
-    def __init__(self, uuid: UUID, new_conversation: bool = False):
+    def __init__(self, uuid: UUID):
         self.uuid = uuid
+        self.adapter: TypeAdapter = ModelMessagesTypeAdapter
+
+    @classmethod
+    def create_conversation(
+        cls, user_id: int, title: str | None = None, meta: dict | None = None
+    ) -> "ConversationService":
+        conversation = Conversation.objects.create(user_id=user_id, title=title or "", meta=meta or {})
+        return cls(uuid=conversation.uuid)
 
     def list_conversations(
-        self, user: User | None = None, title: str | None = None, meta: dict | None = None
+        self, user_id: int | None = None, title: str | None = None, meta: dict[str, str] | None = None
     ) -> list[ConversationSchema]:
         query = Q()
 
-        if user:
-            query &= Q(user=user)
+        logger.info(f"list_conversations called with user_id: {user_id}, title: {title}, meta: {meta}")
+        if user_id:
+            query &= Q(user_id=user_id)
         if title:
             # Use PostgreSQL full-text search if available, otherwise fallback to icontains
             if connection.vendor == "postgresql":
@@ -99,19 +106,14 @@ class ConversationService:
                 query &= Q(title__icontains=title)
         if meta:
             for key, value in meta.items():
-                query &= Q(meta__contains={key: value})
+                lookup_key = f"meta__{key}"
+                query &= Q(**{lookup_key: value})
 
         conversations = Conversation.objects.filter(query)
         return [ConversationSchema.model_validate(conv, from_attributes=True) for conv in conversations]
 
     def get_conversation(self) -> ConversationDetailSchema:
         conversation = Conversation.objects.get(uuid=self.uuid)
-        return ConversationDetailSchema.model_validate(conversation, from_attributes=True)
-
-    def create_conversation(
-        self, user: User, title: str | None = None, meta: dict | None = None
-    ) -> ConversationDetailSchema:
-        conversation = Conversation.objects.create(user=user, title=title, meta=meta or {})
         return ConversationDetailSchema.model_validate(conversation, from_attributes=True)
 
 

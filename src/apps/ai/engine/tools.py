@@ -374,6 +374,8 @@ book_toolset = FunctionToolset(
         move_page,
         # Destructive operations - remove content (use carefully)
         delete_page,
+        # Image Generation
+        artist_request,
     ]
 )
 image_toolset = FunctionToolset([artist_request])

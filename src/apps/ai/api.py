@@ -1,11 +1,12 @@
 import logging
 import time
-from datetime import datetime
+from typing import Annotated
 from uuid import UUID
 
 from django.core.cache import cache
 from django.http import Http404, HttpResponse, StreamingHttpResponse
-from ninja import FilterSchema, Router
+from ninja import Query, Router
+from pydantic import BaseModel
 
 from apps.ai.engine.agents import list_agent_types
 from apps.ai.engine.celery import enqueue_job
@@ -17,7 +18,7 @@ router = Router()
 logger = logging.getLogger(__name__)
 
 
-class ConversationFilterSchema(FilterSchema):
+class CreateConversationSchema(BaseModel):
     title: str | None = None
     meta: dict | None = None
 
@@ -31,9 +32,37 @@ def agents(request) -> list[str]:
 
 
 @router.get("/conversations", response=list[ConversationSchema], tags=["Conversations"])
-def list_conversations(request, title: str | None = None, meta: dict | None = None) -> list[ConversationSchema]:
+def list_conversations(
+    request,
+    title: Annotated[str | None, Query(description="Filter by title (substring match)")] = None,
+) -> list[ConversationSchema]:
+    """List conversations with optional filtering by title and meta key-value pairs.
+
+    Meta filtering uses deepobject style: meta[key]=value
+    Examples:
+    - ?title=my story&meta[story_uuid]=12345&meta[status]=draft
+    - ?meta[category]=stories&meta[author]=john&meta[priority]=high
+    """
+    # Parse meta parameters from deepobject style: meta[key]=value
+    meta = {}
+    for param_name, param_value in request.GET.items():
+        if param_name.startswith("meta[") and param_name.endswith("]"):
+            key = param_name[5:-1]  # Extract key from meta[key]
+            meta[key] = param_value
+    meta_filter = meta if meta else None
+    logger.info(
+        f"API: list_conversations endpoint called by user {request.user} with title {title} and meta {meta_filter}"
+    )
     conversation_service = ConversationService(uuid=None)
-    return conversation_service.list_conversations(user=request.user, title=title, meta=meta)
+    return conversation_service.list_conversations(user_id=request.user.id, title=title, meta=meta_filter)
+
+
+@router.post("/conversations", response=ConversationSchema, tags=["Conversations"])
+def create_conversation(request, payload: CreateConversationSchema) -> ConversationSchema:
+    conversation_service = ConversationService.create_conversation(
+        user_id=request.user.id, title=payload.title, meta=payload.meta
+    )
+    return conversation_service.get_conversation()
 
 
 @router.get("/conversations/{conversation_uuid}", response=ConversationDetailSchema, tags=["Conversations"])
@@ -45,31 +74,22 @@ def get_conversations(request, conversation_uuid: UUID) -> ConversationDetailSch
     return conversation
 
 
-@router.post("/request", response=ConversationSchema, tags=["Request"])
-def create_request(request, payload: RequestSchema) -> ConversationSchema:
+@router.post("/conversations/{conversation_uuid}/request", response=ConversationSchema, tags=["Request"])
+def create_request(request, conversation_uuid: UUID, payload: RequestSchema) -> ConversationSchema:
     logger.info(f"create_request received: {payload}")
     user = request.user
 
     # Get or create conversation
-    if payload.conversation_uuid:
-        conversation_service = ConversationService(uuid=payload.conversation_uuid)
-        conversation = conversation_service.get_conversation()
-        if conversation.user_id != user.id:
-            raise Http404("Conversation not found")
-        logger.info(f"create_request found conversation: {conversation}")
-    else:
-        # Create new conversation with readable datetime title
-        now = datetime.now()
-        title = f"New Chat {now.strftime('%Y-%m-%d %H:%M')}"
-        conversation_service = ConversationService(uuid=None)
-        conversation = conversation_service.create_conversation(user=user, title=title)
-        logger.info(f"create_request created conversation: {conversation}")
-
-        # Update payload with the new conversation UUID
-        payload.conversation_uuid = conversation.uuid
+    conversation_service = ConversationService(uuid=conversation_uuid)
+    conversation = conversation_service.get_conversation()
+    if conversation.user_id != user.id:
+        raise Http404("Conversation not found")
+    logger.info(f"create_request found conversation: {conversation}")
 
     # Enqueue agent orchestration task
     logger.info(f"create_request enqueuing agent task: {payload}")
+    # TODO: Fix this hacky workaround
+    payload.conversation_uuid = conversation_uuid
     job = enqueue_job(user=user, workflow="ai.agent_task", payload=payload)
     # agent_task.delay(payload)
     logger.info(f"create_request enqueued job: {job}")

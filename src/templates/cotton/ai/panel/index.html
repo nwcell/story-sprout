@@ -14,14 +14,14 @@
          :class="{ 'translate-y-0': $store.aiPanel && $store.aiPanel.isOpen, 'translate-y-full': !$store.aiPanel || !$store.aiPanel.isOpen }">
       <div id="ai-panel-bar" class="p-2 border-b border-light-gray flex items-center justify-between">
         <h2 id="ai-panel-title" class="text-lg font-medium text-black">AI Panel Content</h2>
-        <div class="flex items-center gap-2">
+        {% comment %} <div class="flex items-center gap-2">
           <label for="ai-panel-filter-select" class="text-sm text-gray-500 whitespace-nowrap">Conversation:</label>
           <select id="ai-panel-filter-select" class="max-w-xs w-48 text-sm">
             {% for conversation in conversations %}
               <option value="conversation_uuid={{ conversation.uuid }}">{% if conversation.title %}{{ conversation.title }}{% else %}Started {{ conversation.created_at|naturaltime }}{% endif %}</option>
             {% endfor %}
           </select>
-        </div>
+        </div> {% endcomment %}
         <c-button id="close-ai-panel"
                   icon="xmark"
                   class="hover:text-red-500"

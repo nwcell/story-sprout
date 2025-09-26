@@ -11,6 +11,9 @@ celery_pidfile = .run/celery.pid
 celery_host = dev@%h
 docs_port = 8001
 web_port = 8000
+network_port = 80
+network_host = 0.0.0.0
+caffeinate_cmd = caffeinate -is
 
 
 # --- Watchdog config ---
@@ -41,6 +44,11 @@ web: ## 🌱 Start Django development server
 	@echo "🌱 Starting Django development server on port $(web_port)..."
 	@$(manage_cmd) runserver $(web_port)
 .PHONY: web
+
+web-network: ## 🌱 Start Django development server on network
+	@echo "🌱 Starting Django development server on network port $(web_port)..."
+	@$(caffeinate_cmd) $(manage_cmd) runserver $(network_host):$(network_port)
+.PHONY: web-network
 
 tasks: ## 🔄 Start Celery worker
 	@echo "🔄 Starting Celery worker"

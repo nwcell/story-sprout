@@ -15,60 +15,89 @@
   chips: {{ chips }}<br>
   freeform: {{ freeform }}<br>
   freeform_text: "{{ freeform_text }}"<br>
-  input_placeholder: "{{ input_placeholder|default:"Enter your text here" }}"<br>
   submit_text: "{{ submit_text|default:"Submit" }}"<br>
   <strong>TIMESTAMP: {% now "Y-m-d H:i:s" %}</strong>
 </div> {% endcomment %}
 
 <div id="ai-panel-content"
-     x-data="{ showFreeform: true, aiPanelChip: '', freeformText: '', queuedImages: [] }"
+     x-data="{
+       showFreeform: true,
+       aiPanelChip: '',
+       freeformText: '',
+       queuedImages: [],
+       fileName: '',
+       isDragging: false,
+       isHovering: false,
+       isUploading: false,
+       queueFiles(files, dispatch) {
+         const newItems = Array.from(files || []).map(file => ({ file, url: URL.createObjectURL(file) }));
+         if (!newItems.length) {
+           return;
+         }
+         this.queuedImages = this.queuedImages.concat(newItems);
+         if (typeof dispatch === 'function') {
+           dispatch('ai-panel:images-selected', this.queuedImages.map(item => item.file));
+         }
+       }
+     }"
      x-effect="showFreeform = (aiPanelChip === 'freeform')">
-  <c-ai.panel.content.prompt_row prompt={{ prompt }} />
-  <c-ai.panel.content.chip_row :chips=chips :freeform=freeform x-show="!showFreeform" :freeform_text=freeform_text />
+  <div x-ref="container"
+       class="relative rounded-xl transition-all duration-150"
+       x-bind:class="{ 'ring-2 ring-indigo-400 ring-offset-2': isDragging }"
+       @dragover.prevent="handleQueueDragOver($el, $data, $event)"
+       @dragenter.prevent="handleQueueDragOver($el, $data, $event)"
+       @dragleave="handleQueueDragEnd($el, $data, $event)"
+       @drop.prevent="handleQueueFileDrop($el, $data, $event, $dispatch)">
+    <c-ai.panel.content.prompt_row prompt={{ prompt }} />
+    <c-ai.panel.content.chip_row :chips=chips :freeform=freeform x-show="!showFreeform" :freeform_text=freeform_text />
 
-  <div id="ai-panel-freeform" class="w-full p-1 rounded-xl resize-none bg-white shadow overflow-hidden border border-light-gray">
-    <c-fields.textarea id="ai-panel-text"
-                       type="text"
-                       name="ai-panel-text"
-                       placeholder="{{ input_placeholder|default:"Enter your text here" }}"
-                       hide_border
-                       class="focus:outline-none focus:ring-0"
-                       x-model="freeformText" />
-    <div id="ai-panel-submit" class="p-2 flex items-center justify-between">
-      <input type="file"
-             x-ref="aiPanelImageInput"
-             class="hidden"
-             accept=".jpg,.jpeg,.png,.webp"
-             multiple
-             x-on:change="const newItems = Array.from($event.target.files).map(file => ({ file, url: URL.createObjectURL(file) })); queuedImages = queuedImages.concat(newItems); $dispatch('ai-panel:images-selected', queuedImages.map(item => item.file)); $event.target.value = ''" />
-      <c-button icon="image"
-                class="w-10 h-10 rounded-lg flex items-center justify-center bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors duration-150"
-                title="Add image"
-                x-on:click="$refs.aiPanelImageInput.click()" />
-      <c-button icon="paper-plane"
-                class="w-10 h-10 rounded-lg flex items-center justify-center bg-slate-200 text-slate-500 transition-colors duration-150"
-                x-bind:disabled="freeformText.trim().length === 0"
-                x-bind:class="{
-                  'opacity-50 cursor-not-allowed': freeformText.trim().length === 0,
-                  'bg-indigo-500 text-white shadow-md': freeformText.trim().length > 0
-                }">{{ submit_text }}</c-button>
-    </div>
-    <div x-show="queuedImages.length" class="px-2 pb-2 border-t border-slate-200 mt-2 pt-3">
-      <div class="flex flex-wrap gap-2">
-        <template x-for="(item, index) in queuedImages" :key="index">
-          <div class="relative w-20">
-            <div class="aspect-square overflow-hidden rounded-lg border border-light-gray">
-              <img :src="item.url" :alt="item.file.name" class="h-full w-full object-cover" />
-            </div>
-            <button type="button"
-                    class="absolute -top-2 -right-2 bg-black bg-opacity-60 rounded-full w-6 h-6 flex items-center justify-center text-white transition-all duration-150 hover:text-red-400"
-                    title="Remove image"
-                    x-on:click="URL.revokeObjectURL(item.url); queuedImages.splice(index, 1)">
-              <i class="fa-solid fa-xmark text-xs"></i>
-            </button>
-            <p class="mt-1 text-xs text-slate-600 truncate hidden" x-text="item.file.name"></p>
+    <div id="ai-panel-freeform"
+         class="w-full p-1 rounded-xl resize-none bg-white shadow overflow-hidden border border-light-gray">
+      <div class="relative">
+        <c-fields.textarea id="ai-panel-text"
+                           type="text"
+                           name="ai-panel-text"
+                           placeholder="{{ input_placeholder|default:"Enter your text here" }}"
+                         hide_border
+                         class="focus:outline-none focus:ring-0"
+                         x-model="freeformText" />
+      <div id="ai-panel-submit" class="p-2 flex items-center justify-between">
+        <input type="file"
+               x-ref="fileInput"
+               class="hidden"
+               accept=".jpg,.jpeg,.png,.webp"
+               multiple
+               x-on:change="queueFiles($event.target.files, $dispatch); $event.target.value = ''" />
+        <c-button icon="image"
+                  class="w-10 h-10 rounded-lg flex items-center justify-center bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors duration-150"
+                  title="Add image"
+                  x-on:click="$refs.fileInput.click()" />
+        <c-button icon="paper-plane"
+                  class="w-10 h-10 rounded-lg flex items-center justify-center bg-slate-200 text-slate-500 transition-colors duration-150"
+                  x-bind:disabled="freeformText.trim().length === 0"
+                  x-bind:class="{
+                    'opacity-50 cursor-not-allowed': freeformText.trim().length === 0,
+                    'bg-indigo-500 text-white shadow-md': freeformText.trim().length > 0
+                  }">{{ submit_text }}</c-button>
+      </div>
+        <div x-show="queuedImages.length" class="px-2 pb-2 border-t border-slate-200 mt-2 pt-3">
+          <div class="flex flex-wrap gap-2">
+            <template x-for="(item, index) in queuedImages" :key="index">
+              <div class="relative w-20">
+                <div class="aspect-square overflow-hidden rounded-lg border border-light-gray">
+                  <img :src="item.url" :alt="item.file.name" class="h-full w-full object-cover" />
+                </div>
+                <button type="button"
+                        class="absolute -top-2 -right-2 bg-black bg-opacity-60 rounded-full w-6 h-6 flex items-center justify-center text-white transition-all duration-150 hover:text-red-400"
+                        title="Remove image"
+                        x-on:click="URL.revokeObjectURL(item.url); queuedImages.splice(index, 1)">
+                  <i class="fa-solid fa-xmark text-xs"></i>
+                </button>
+                <p class="mt-1 text-xs text-slate-600 truncate hidden" x-text="item.file.name"></p>
+              </div>
+            </template>
           </div>
-        </template>
+        </div>
       </div>
     </div>
   </div>

@@ -137,6 +137,48 @@ function handleDragEnd(el, data, event) {
     data.isDragging = false;
 }
 
+function handleQueueDragOver(el, data, event) {
+    event.preventDefault();
+    if (data.isUploading) return;
+
+    showOverlay(el);
+    data.isDragging = true;
+}
+
+function handleQueueDragEnd(el, data, event) {
+    event.preventDefault();
+    hideOverlay(el);
+    data.isDragging = false;
+}
+
+function handleQueueFileDrop(el, data, event, dispatch) {
+    event.preventDefault();
+    if (data.isUploading) return;
+
+    const files = event.dataTransfer.files;
+    const fileInput = el.querySelector('[x-ref="fileInput"]');
+
+    if (!files || files.length === 0 || !fileInput) {
+        hideOverlay(el);
+        data.isDragging = false;
+        return;
+    }
+
+    const validFiles = [];
+    for (let i = 0; i < files.length; i += 1) {
+        if (isFileTypeAllowed(files[i], fileInput)) {
+            validFiles.push(files[i]);
+        }
+    }
+
+    if (validFiles.length && typeof data.queueFiles === 'function') {
+        data.queueFiles(validFiles, dispatch);
+    }
+
+    hideOverlay(el);
+    data.isDragging = false;
+}
+
 function handleFileSelected(el, data) {
     const fileInput = el.closest('[x-data]').querySelector('[x-ref="fileInput"]');
     if (fileInput && fileInput.files.length > 0) {

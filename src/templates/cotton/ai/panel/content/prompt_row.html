@@ -1,7 +1,7 @@
+{% load markdown_filters %}
 <c-vars prompt />
 
 <div id="ai-prompt"
-     class="p-2"
-     {% if oob %}hx-swap-oob="true"{% endif %}>
-  <p>{{ prompt|default:"What would you like to do?" }}</p>
-</div>
+     {% if oob %}hx-swap-oob="true"{% endif %}
+     class="p-2 space-y-3"
+>{{ prompt|default:"What would you like to do?"|markdown_to_html }}</div>

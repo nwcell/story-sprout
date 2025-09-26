@@ -1,29 +1,16 @@
-<c-vars prompt
+<c-vars message
         :chips="[
                   {'emoji': '✍️', 'color': 'emerald', 'text': 'Draft a Title!'},
                   {'emoji': '🗞', 'color': 'amber', 'text': 'Outline story!'},
                   {'emoji': '🌮', 'color': 'neutral', 'text': 'Taco'},
         ]"
-        :freeform=True
-        freeform_text
         input_placeholder
         submit_text />
 
-{% comment %} <div style="background: #ff0000; padding: 10px; margin: 10px; font-family: monospace; font-size: 12px; color: white;">
-  <strong>🔥 DEBUG CONTEXT 🔥:</strong><br>
-  prompt: "{{ prompt|default:"What would you like to do?" }}"<br>
-  chips: {{ chips }}<br>
-  freeform: {{ freeform }}<br>
-  freeform_text: "{{ freeform_text }}"<br>
-  submit_text: "{{ submit_text|default:"Submit" }}"<br>
-  <strong>TIMESTAMP: {% now "Y-m-d H:i:s" %}</strong>
-</div> {% endcomment %}
-
 <div id="ai-panel-content"
      x-data="{
-       showFreeform: true,
        aiPanelChip: '',
-       freeformText: '',
+       messageText: '',
        queuedImages: [],
        fileName: '',
        isDragging: false,
@@ -39,8 +26,7 @@
            dispatch('ai-panel:images-selected', this.queuedImages.map(item => item.file));
          }
        }
-     }"
-     x-effect="showFreeform = (aiPanelChip === 'freeform')">
+     }">
   <div x-ref="container"
        class="relative rounded-xl transition-all duration-150"
        x-bind:class="{ 'ring-2 ring-indigo-400 ring-offset-2': isDragging }"
@@ -48,10 +34,10 @@
        @dragenter.prevent="handleQueueDragOver($el, $data, $event)"
        @dragleave="handleQueueDragEnd($el, $data, $event)"
        @drop.prevent="handleQueueFileDrop($el, $data, $event, $dispatch)">
-    <c-ai.panel.content.prompt_row prompt={{ prompt }} />
-    <c-ai.panel.content.chip_row :chips=chips :freeform=freeform x-show="!showFreeform" :freeform_text=freeform_text />
+    <c-ai.panel.content.prompt_row>{{ message }}</c-ai.panel.content.prompt_row>
+    <c-ai.panel.content.chip_row :chips=chips />
 
-    <div id="ai-panel-freeform"
+    <div id="ai-panel-input"
          class="w-full p-1 rounded-xl resize-none bg-white shadow overflow-hidden border border-light-gray">
       <div class="relative">
         <c-fields.textarea id="ai-panel-text"
@@ -60,7 +46,7 @@
                            placeholder="{{ input_placeholder|default:"Enter your text here" }}"
                          hide_border
                          class="focus:outline-none focus:ring-0"
-                         x-model="freeformText" />
+                         x-model="messageText" />
       <div id="ai-panel-submit" class="p-2 flex items-center justify-between">
         <input type="file"
                x-ref="fileInput"
@@ -74,10 +60,10 @@
                   x-on:click="$refs.fileInput.click()" />
         <c-button icon="paper-plane"
                   class="w-10 h-10 rounded-lg flex items-center justify-center bg-slate-200 text-slate-500 transition-colors duration-150"
-                  x-bind:disabled="freeformText.trim().length === 0"
+                  x-bind:disabled="messageText.trim().length === 0"
                   x-bind:class="{
-                    'opacity-50 cursor-not-allowed': freeformText.trim().length === 0,
-                    'bg-indigo-500 text-white shadow-md': freeformText.trim().length > 0
+                    'opacity-50 cursor-not-allowed': messageText.trim().length === 0,
+                    'bg-indigo-500 text-white shadow-md': messageText.trim().length > 0
                   }">{{ submit_text }}</c-button>
       </div>
         <div x-show="queuedImages.length" class="px-2 pb-2 border-t border-slate-200 mt-2 pt-3">

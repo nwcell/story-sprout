@@ -3,9 +3,7 @@
 <div id="ai-panel-chip-row"
      class="p-2 flex flex-wrap gap-3"
      role="radiogroup"
-     aria-label="Choose an action"
-     {% if oob %}hx-swap-oob="true"{% endif %}
-     {{ attrs }}>
+     aria-label="Choose an action">
   {% for chip in chips %}
     <c-ai.chip emoji="{{chip.emoji}}" name="ai-chip" color="{{chip.color}}" x-model="aiPanelChip">{{chip.value}}</c-ai.chip>
   {% endfor %}

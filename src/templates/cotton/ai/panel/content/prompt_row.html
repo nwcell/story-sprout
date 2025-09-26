@@ -4,4 +4,4 @@
 <div id="ai-prompt"
      {% if oob %}hx-swap-oob="true"{% endif %}
      class="p-2 space-y-3"
->{{ prompt|default:"What would you like to do?"|markdown_to_html }}</div>
+>{{ slot|default:"What would you like to do?"|markdown_to_html }}</div>

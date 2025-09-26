@@ -155,7 +155,7 @@ src/apps/ai/
 ### Phase 6: Documentation and Cleanup
 
 #### Documentation Updates
-- [ ] Update `CLAUDE.md` with new patterns
+- [ ] Update `AGENTS.md` with new patterns
 - [ ] Document response shape requirements
 - [ ] Add agent flow documentation
 - [ ] Create integration examples

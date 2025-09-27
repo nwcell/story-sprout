@@ -34,8 +34,21 @@
        @dragenter.prevent="handleQueueDragOver($el, $data, $event)"
        @dragleave="handleQueueDragEnd($el, $data, $event)"
        @drop.prevent="handleQueueFileDrop($el, $data, $event, $dispatch)">
-    <c-ai.panel.content.prompt_row>{{ message }}</c-ai.panel.content.prompt_row>
-    <c-ai.panel.content.chip_row :chips=chips />
+    <!-- Conversation Messages History -->
+    <div id="ai-panel-messages"
+         sse-swap="message"
+         hx-swap="beforeend"
+         class="max-h-64 overflow-y-auto mb-3 space-y-2">
+      <!-- Messages will be dynamically inserted here -->
+    </div>
+
+    <div id="ai-panel-prompt-row" sse-swap="prompt_row">
+      <c-ai.panel.content.prompt_row>{{ message }}</c-ai.panel.content.prompt_row>
+    </div>
+
+    <div id="ai-panel-chip-row" sse-swap="chip_row">
+      <c-ai.panel.content.chip_row :chips=chips />
+    </div>
 
     <div id="ai-panel-input"
          class="w-full p-1 rounded-xl resize-none bg-white shadow overflow-hidden border border-light-gray">

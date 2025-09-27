@@ -17,39 +17,10 @@ from pydantic import BaseModel, BeforeValidator, TypeAdapter
 from pydantic_ai.messages import BinaryContent, ImageUrl, ModelMessagesTypeAdapter
 
 from apps.ai.models import Artifacts, Conversation
+from apps.ai.types import ChatResponse
+from apps.common.sse import send_template
 
 logger = logging.getLogger(__name__)
-
-# EmojiType = Literal[""]
-
-# ColorType = Literal[
-#     "pink",
-#     "rose",
-#     "purple",
-#     "violet",
-#     "indigo",
-#     "blue",
-#     "sky",
-#     "cyan",
-#     "teal",
-#     "emerald",
-#     "green",
-#     "lime",
-#     "yellow",
-#     "amber",
-#     "orange",
-#     "red",
-#     "neutral",
-#     "slate",
-#     "rainbow",
-# ]
-
-
-# @dataclass
-# class Chip:
-#     emoji: str
-#     color: ColorType
-#     value: str
 
 
 class MessageSchema(BaseModel):
@@ -116,6 +87,40 @@ class ConversationService:
         conversation = Conversation.objects.get(uuid=self.uuid)
         return ConversationDetailSchema.model_validate(conversation, from_attributes=True)
 
+    def send_chat_response(self, chat_response: ChatResponse) -> None:
+        """
+        Send ChatResponse via SSE events to update the AI panel.
+
+        This triggers two separate events:
+        - 'prompt_row': Updates the message display
+        - 'chip_row': Updates the chips display
+
+        Args:
+            chat_response: ChatResponse containing message and chips
+        """
+        logger.info(
+            f"Sending chat response for conversation {self.uuid}: "
+            f"{len(chat_response.message)} chars, {len(chat_response.chips)} chips"
+        )
+
+        # Send message update event
+        self._send_message_event(chat_response.message)
+
+        # Send chips update event
+        self._send_chips_event(chat_response.chips)
+
+    def _send_message_event(self, message: str) -> None:
+        """Send SSE event to update the prompt row with new message."""
+        channel_name = f"conversation-{self.uuid}"
+        send_template(channel_name, "prompt_row", "cotton/ai/panel/content/prompt_row.html", {"slot": message})
+        logger.debug(f"Sent prompt_row event to {channel_name}")
+
+    def _send_chips_event(self, chips: list) -> None:
+        """Send SSE event to update the chip row with new chips."""
+        channel_name = f"conversation-{self.uuid}"
+        send_template(channel_name, "chip_row", "cotton/ai/panel/content/chip_row.html", {"chips": chips})
+        logger.debug(f"Sent chip_row event to {channel_name} with {len(chips)} chips")
+
 
 class ChatService:
     def __init__(self, conversation_uuid):
@@ -127,7 +132,7 @@ class ChatService:
     def update_chips(self, chips):
         pass
 
-    def update_freeform(self, freeform_on: bool = True):
+    def update_chat(self, freeform_on: bool = True):
         pass
 
 

@@ -5,6 +5,8 @@
   <div id="ai-panel"
        x-cloak
        x-show="$store.aiPanel"
+       hx-ext="sse"
+       sse-connect="{% url 'ai:conversation_events' conversation_uuid=conversation.uuid %}"
        class="fixed bottom-0 left-0 md:left-64 right-0"
        :class="{ 'z-[30] pointer-events-auto': $store.aiPanel && $store.aiPanel.isOpen, 'z-auto pointer-events-none': !$store.aiPanel || !$store.aiPanel.isOpen }">
 

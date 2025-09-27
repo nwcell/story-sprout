@@ -1,10 +1,8 @@
 import logging
-import time
 from typing import Annotated
 from uuid import UUID
 
-from django.core.cache import cache
-from django.http import Http404, HttpResponse, StreamingHttpResponse
+from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404
 from ninja import File, Form, Query, Router, UploadedFile
 from pydantic import BaseModel
@@ -113,59 +111,6 @@ def send_chat(
     return HttpResponse(status=204)
 
 
-@router.get("/conversations/{conversation_uuid}/stream")
-def stream_conversation_updates(request, conversation_uuid: UUID):
-    """Stream real-time updates for a conversation via SSE."""
-
-    def event_stream():
-        channel_name = f"conversation_{conversation_uuid}"
-        last_message_count = 0
-
-        while True:
-            try:
-                # Check for new messages
-                conversation_service = ConversationService(uuid=conversation_uuid)
-                conversation = conversation_service.get_conversation()
-                if conversation.user != request.user:
-                    yield "event: error\ndata: Conversation not found\n\n"
-                    break
-                current_message_count = conversation.messages.count()
-
-                if current_message_count > last_message_count:
-                    # Send new messages
-                    new_messages = conversation.messages.all()[last_message_count:]
-                    for message in new_messages:
-                        data = {
-                            "type": "message",
-                            "uuid": str(message.uuid),
-                            "content": message.content,
-                            "position": message.position,
-                        }
-                        yield f"data: {data}\n\n"
-
-                    last_message_count = current_message_count
-
-                # Check for completion signal
-                completion_signal = cache.get(f"{channel_name}_complete")
-                if completion_signal:
-                    cache.delete(f"{channel_name}_complete")
-                    yield "event: complete\ndata: Conversation updated\n\n"
-                    break
-
-                time.sleep(1)  # Poll every second
-
-            except Conversation.DoesNotExist:
-                yield "event: error\ndata: Conversation not found\n\n"
-                break
-            except Exception as e:
-                logger.error(f"SSE streaming error: {e}")
-                yield f"event: error\ndata: {str(e)}\n\n"
-                break
-
-    response = StreamingHttpResponse(event_stream(), content_type="text/event-stream")
-    response["Cache-Control"] = "no-cache"
-    response["Connection"] = "keep-alive"
-    return response
 
 
 # TODO: Add Auth

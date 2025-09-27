@@ -23,6 +23,7 @@ urlpatterns = [
     path("", include("apps.landing.urls")),
     path("dashboard/", include("apps.dashboard.urls")),
     path("stories/", include("apps.stories.urls")),
+    path("ai/", include("apps.ai.urls")),
     path("subscriptions/", include("apps.subscriptions.urls")),
     path("__reload__/", include("django_browser_reload.urls")),
     # Catch legacy livereload requests and return 204 to stop spam

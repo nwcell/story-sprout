@@ -2,6 +2,7 @@ from django.template.loader import render_to_string
 from django_eventstream import send_event
 from django_eventstream.channelmanager import DefaultChannelManager
 
+from apps.ai.models import Conversation
 from apps.stories.models import Story
 
 
@@ -16,6 +17,12 @@ class ChannelManager(DefaultChannelManager):
             story_uuid = channel[6:]  # Remove "story-" prefix
             story = Story.objects.filter(uuid=story_uuid, user=user).first()
             return bool(user and user.is_authenticated and story)
+        # allow "conversation-<conversation_uuid>" channels
+        elif channel.startswith("conversation-"):
+            # Extract UUID from channel name (everything after "conversation-")
+            conversation_uuid = channel[13:]  # Remove "conversation-" prefix
+            conversation = Conversation.objects.filter(uuid=conversation_uuid, user=user).first()
+            return bool(user and user.is_authenticated and conversation)
         return False
 
 

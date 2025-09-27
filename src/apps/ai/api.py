@@ -5,14 +5,18 @@ from uuid import UUID
 
 from django.core.cache import cache
 from django.http import Http404, HttpResponse, StreamingHttpResponse
-from ninja import Query, Router
+from django.shortcuts import get_object_or_404
+from ninja import File, Form, Query, Router, UploadedFile
 from pydantic import BaseModel
 
 from apps.ai.engine.agents import list_agent_types
 from apps.ai.engine.celery import enqueue_job
-from apps.ai.models import Conversation
-from apps.ai.schemas import JobStatus, PageJob, RequestSchema, StoryJob
+from apps.ai.models import Artifacts, Conversation
+from apps.ai.schemas import JobStatus
+from apps.ai.schemas import PageJob as OldPageJob
+from apps.ai.schemas import StoryJob as OldStoryJob
 from apps.ai.services import ConversationDetailSchema, ConversationSchema, ConversationService
+from apps.ai.types import ChatRequest, PageJob, StoryJob
 
 router = Router()
 logger = logging.getLogger(__name__)
@@ -74,28 +78,39 @@ def get_conversations(request, conversation_uuid: UUID) -> ConversationDetailSch
     return conversation
 
 
-@router.post("/conversations/{conversation_uuid}/request", response=ConversationSchema, tags=["Request"])
-def create_request(request, conversation_uuid: UUID, payload: RequestSchema) -> ConversationSchema:
-    logger.info(f"create_request received: {payload}")
+@router.post("/chat", response=None, tags=["Chat"])
+def send_chat(
+    request,
+    payload: Form[ChatRequest],
+    files: list[UploadedFile] | None = File(None),
+) -> None:
+    logger.info(f"send_chat received: {payload}")
     user = request.user
 
-    # Get or create conversation
-    conversation_service = ConversationService(uuid=conversation_uuid)
-    conversation = conversation_service.get_conversation()
-    if conversation.user_id != user.id:
-        raise Http404("Conversation not found")
-    logger.info(f"create_request found conversation: {conversation}")
+    # Validate conversation ownership
+    get_object_or_404(Conversation, uuid=payload.conversation_uuid, user=request.user)
+
+    # Handle image uploads
+    artifact_uuids = []
+    if files:
+        for file in files:
+            # Validate file type
+            if file.content_type not in ["image/jpeg", "image/png", "image/webp", "image/jpg"]:
+                logger.warning(f"Invalid file type received: {file.content_type}")
+                continue
+            artifact = Artifacts.objects.create(file=file)
+            artifact_uuids.append(artifact.uuid)
 
     # Enqueue agent orchestration task
-    logger.info(f"create_request enqueuing agent task: {payload}")
-    # TODO: Fix this hacky workaround
-    payload.conversation_uuid = conversation_uuid
-    job = enqueue_job(user=user, workflow="ai.agent_task", payload=payload)
-    # agent_task.delay(payload)
-    logger.info(f"create_request enqueued job: {job}")
-    logger.info(f"create_request enqueued payload: {payload}")
+    logger.info(f"send_chat enqueuing agent task: {payload}")
+    chat_request = ChatRequest(
+        conversation_uuid=payload.conversation_uuid,
+        message=payload.message,
+        artifact_uuids=artifact_uuids,
+    )
+    enqueue_job(user=user, workflow="ai.agent_task", chat_request=chat_request)
 
-    return conversation
+    return HttpResponse(status=204)
 
 
 @router.get("/conversations/{conversation_uuid}/stream")
@@ -155,13 +170,16 @@ def stream_conversation_updates(request, conversation_uuid: UUID):
 
 # TODO: Add Auth
 @router.post("/jobs/story/title/suggest")
-def ai_story_title(request, payload: StoryJob) -> JobStatus:
+def ai_story_title(request, payload: OldStoryJob) -> JobStatus:
     # API validates via Pydantic (Ninja) here; Celery validates again at run time.
     logger.info(f"ai_story_title received: {payload} (type: {type(payload)})")
+    chat_request = ChatRequest()
+    story_job = StoryJob(story_uuid=payload.story_uuid)
     job = enqueue_job(
         user=request.user,
         workflow="ai.story_title",
-        payload=payload,
+        chat_request=chat_request,
+        job=story_job,
     )
     if request.htmx:
         return HttpResponse(status=204)
@@ -170,13 +188,16 @@ def ai_story_title(request, payload: StoryJob) -> JobStatus:
 
 # TODO: Add Auth
 @router.post("/jobs/story/description/suggest")
-def ai_story_description(request, payload: StoryJob) -> JobStatus:
+def ai_story_description(request, payload: OldStoryJob) -> JobStatus:
     # API validates via Pydantic (Ninja) here; Celery validates again at run time.
     logger.info(f"ai_story_description received: {payload} (type: {type(payload)})")
+    chat_request = ChatRequest()
+    story_job = StoryJob(story_uuid=payload.story_uuid)
     job = enqueue_job(
         user=request.user,
         workflow="ai.story_description",
-        payload=payload,
+        chat_request=chat_request,
+        job=story_job,
     )
     if request.htmx:
         return HttpResponse(status=204)
@@ -185,13 +206,16 @@ def ai_story_description(request, payload: StoryJob) -> JobStatus:
 
 # TODO: Add Auth
 @router.post("/jobs/story/brainstorm")
-def ai_story_brainstorm(request, payload: StoryJob) -> JobStatus:
+def ai_story_brainstorm(request, payload: OldStoryJob) -> JobStatus:
     # API validates via Pydantic (Ninja) here; Celery validates again at run time.
     logger.info(f"ai_story_brainstorm received: {payload} (type: {type(payload)})")
+    chat_request = ChatRequest()
+    story_job = StoryJob(story_uuid=payload.story_uuid)
     job = enqueue_job(
         user=request.user,
         workflow="ai.story_brainstorm",
-        payload=payload,
+        chat_request=chat_request,
+        job=story_job,
     )
     if request.htmx:
         return HttpResponse(status=204)
@@ -199,13 +223,16 @@ def ai_story_brainstorm(request, payload: StoryJob) -> JobStatus:
 
 
 @router.post("/jobs/page/content/suggest")
-def ai_page_content(request, payload: PageJob) -> JobStatus:
+def ai_page_content(request, payload: OldPageJob) -> JobStatus:
     # API validates via Pydantic (Ninja) here; Celery validates again at run time.
     logger.info(f"ai_page_content received: {payload} (type: {type(payload)})")
+    chat_request = ChatRequest()
+    page_job = PageJob(page_uuid=payload.page_uuid)
     job = enqueue_job(
         user=request.user,
         workflow="ai.page_content",
-        payload=payload,
+        chat_request=chat_request,
+        job=page_job,
     )
     if request.htmx:
         return HttpResponse(status=204)
@@ -213,13 +240,16 @@ def ai_page_content(request, payload: PageJob) -> JobStatus:
 
 
 @router.post("/jobs/page/image_text/suggest")
-def ai_page_image_text(request, payload: PageJob) -> JobStatus:
+def ai_page_image_text(request, payload: OldPageJob) -> JobStatus:
     # API validates via Pydantic (Ninja) here; Celery validates again at run time.
     logger.info(f"ai_page_image_text received: {payload} (type: {type(payload)})")
+    chat_request = ChatRequest()
+    page_job = PageJob(page_uuid=payload.page_uuid)
     job = enqueue_job(
         user=request.user,
         workflow="ai.page_image_text",
-        payload=payload,
+        chat_request=chat_request,
+        job=page_job,
     )
     if request.htmx:
         return HttpResponse(status=204)
@@ -227,13 +257,16 @@ def ai_page_image_text(request, payload: PageJob) -> JobStatus:
 
 
 @router.post("/jobs/page/image/generate")
-def ai_page_image_generate(request, payload: PageJob) -> JobStatus:
+def ai_page_image_generate(request, payload: OldPageJob) -> JobStatus:
     # API validates via Pydantic (Ninja) here; Celery validates again at run time.
     logger.info(f"ai_page_image_generate received: {payload} (type: {type(payload)})")
+    chat_request = ChatRequest()
+    page_job = PageJob(page_uuid=payload.page_uuid)
     job = enqueue_job(
         user=request.user,
         workflow="ai.page_image",
-        payload=payload,
+        chat_request=chat_request,
+        job=page_job,
     )
     if request.htmx:
         return HttpResponse(status=204)

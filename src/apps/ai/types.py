@@ -1,6 +1,7 @@
-from typing import Literal
+from typing import Literal, Annotated
+from uuid import UUID
 
-from pydantic import BaseModel, TypeAdapter
+from pydantic import BaseModel, TypeAdapter, Field, Discriminator
 from pydantic_core import core_schema
 
 
@@ -70,8 +71,37 @@ class Chip(BaseModel):
     value: str
 
 
+# User and Job Types
+class User(BaseModel):
+    user_id: int
+
+
+class Job(BaseModel):
+    """Base job type for AI tasks."""
+    job_type: str = Field(..., description="Discriminator for job type")
+
+
+class StoryJob(Job):
+    job_type: Literal["story"] = "story"
+    story_uuid: UUID
+
+
+class PageJob(Job):
+    job_type: Literal["page"] = "page"
+    page_uuid: UUID
+
+
 class ChatRequest(BaseModel):
-    message: str
+    conversation_uuid: UUID | None = None
+    message: str | None = None
+    artifact_uuids: list[UUID] | None = None
+
+
+class TaskPayload(BaseModel):
+    """Standard payload format for all AI tasks."""
+    user: User
+    chat_request: ChatRequest
+    job: Annotated[StoryJob | PageJob, Field(discriminator="job_type")] | None = None
 
 
 class ChatResponse(BaseModel):

@@ -4,9 +4,11 @@ from celery import Task, current_app
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.utils import timezone
-from pydantic import BaseModel
 
 from apps.ai.models import Job
+from apps.ai.types import ChatRequest
+from apps.ai.types import Job as JobType
+from apps.ai.types import User as UserType
 
 User = get_user_model()
 
@@ -44,31 +46,46 @@ def ensure_task_exists(name: str):
         raise ValueError(f"Unknown workflow '{name}'")
 
 
-def enqueue_job(user: User, workflow: str, payload: BaseModel | dict) -> Job:
+def enqueue_job(user: User, workflow: str, chat_request: ChatRequest, job: JobType | None = None) -> Job:
     """
-    Enqueue a job with Pydantic model or dict payload.
+    Enqueue a job with ChatRequest and optional Job.
 
-    The payload will be passed directly to the task - celery-typed handles
-    serialization of Pydantic models automatically.
+    Args:
+        user: Django User instance
+        workflow: Task workflow name
+        chat_request: ChatRequest with conversation/message data
+        job: Optional job with story_uuid or page_uuid
     """
     ensure_task_exists(workflow)
 
-    # Store serialized version for audit/replay
-    audit_payload = payload.model_dump(mode="json") if isinstance(payload, BaseModel) else payload
+    # Create combined payload for task
+    from apps.ai.types import TaskPayload
+    task_payload = TaskPayload(
+        user=UserType(user_id=user.id),
+        chat_request=chat_request,
+        job=job
+    )
 
-    job = Job.objects.create(
+    # Store serialized version for audit/replay
+    audit_payload = {
+        "user_id": user.id,
+        "chat_request": chat_request.model_dump(mode="json"),
+        "job": job.model_dump(mode="json") if job else None
+    }
+
+    job_record = Job.objects.create(
         user=user,
         workflow=workflow,
         status=Job.Status.QUEUED,
-        payload_json=audit_payload,  # audit/replay: we store serialized version
+        payload_json=audit_payload,
     )
 
     def _publish():
-        # Pass payload directly - celery-typed handles Pydantic serialization
-        Job.objects.filter(uuid=job.uuid).update(celery_task_id=job.uuid)
+        Job.objects.filter(uuid=job_record.uuid).update(celery_task_id=job_record.uuid)
         task = current_app.tasks[workflow]
-        task.apply_async(kwargs={"payload": payload}, task_id=str(job.uuid))
-        Job.objects.filter(uuid=job.uuid).update(dispatched_at=timezone.now())
+        # Serialize to dict to preserve discriminated union through Celery
+        task.apply_async(kwargs={"payload": task_payload.model_dump(mode="json")}, task_id=str(job_record.uuid))
+        Job.objects.filter(uuid=job_record.uuid).update(dispatched_at=timezone.now())
 
     transaction.on_commit(_publish)
-    return job
+    return job_record

@@ -117,6 +117,25 @@ This project uses a `Makefile` for convenience.
 - **Frontend**: The UI is built with Django templates and `django-cotton` components. Interactivity is added via HTMX for server communication and Alpine.js for client-side behaviors. Follow the patterns in `docs/development/htmx_patterns.md`.
 - **AI Agents**: Agent execution is handled asynchronously by Celery. Agents interact with the application via a secure API layer, not by accessing the database directly. Refer to `docs/architecture/ai_workflow_design.md` for the "Signal, Stream, Swap" pattern.
 
+### 3.4. Python Standards
+
+Follow these Python coding standards to maintain consistency across the codebase:
+
+- **Code Style**: Use `ruff` for linting and formatting. Run `uv run ruff check --fix` and `uv run ruff format` before committing.
+- **Type Hints**: Use type hints for all function parameters and return values. Import types from `typing` or use built-in generics (Python 3.9+).
+- **Imports**: Follow PEP 8 import ordering. Use `from __future__ import annotations` for forward references when needed. NEVER import inside classes or functions unless absolutely necessary.
+- **Logging**: NEVER use `print()` for logging. Always use the `logger` module for output and debugging.
+- **Error Handling**: Use specific exception types only. NEVER use bare exception handlers. Only catch exceptions you have a very specific reason to handle. Prefer `raise ... from e` for exception chaining.
+- **Code Efficiency**: Strive to be effective with minimal code. Deliver concise, focused solutions with very few lines.
+- **Scope**: ALWAYS stay on task and within scope of the parent response. If you notice other issues, mention them in chat, not code.
+- **Fallback Logic**: AVOID fallback logic unless specifically requested by the user.
+- **Multi-line Strings**: Use `textwrap.dedent()` for long multi-line strings (prompts, instructions, etc.) to maintain clean indentation. Always use triple quotes with backslash `"""\` and close with `""")` on new line.
+- **Docstrings**: Use Google-style docstrings for public functions, classes, and modules.
+- **Constants**: Use `UPPER_CASE` for module-level constants. Define them at the top of files after imports.
+- **Class Design**: Follow single responsibility principle. Use dataclasses or Pydantic models for data structures.
+- **Async Code**: Use `async`/`await` consistently. Don't mix blocking and non-blocking code in async functions.
+- **Django Patterns**: Follow Django best practices. Use model managers for complex queries, validators for data validation, and signals sparingly.
+
 ## 4. Task Management
 
 When working on complex features, use a structured task list with status indicators to track progress.

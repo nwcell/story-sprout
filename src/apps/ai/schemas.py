@@ -1,3 +1,4 @@
+import warnings
 from typing import Literal
 from uuid import UUID
 
@@ -10,11 +11,29 @@ class JobStatus(BaseModel):
 
 
 class StoryJob(BaseModel):
+    """DEPRECATED: Use apps.ai.types.StoryJob instead."""
     story_uuid: UUID
+
+    def __init__(self, **data):
+        warnings.warn(
+            "StoryJob from schemas.py is deprecated. Use apps.ai.types.StoryJob instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        super().__init__(**data)
 
 
 class PageJob(BaseModel):
+    """DEPRECATED: Use apps.ai.types.PageJob instead."""
     page_uuid: UUID
+
+    def __init__(self, **data):
+        warnings.warn(
+            "PageJob from schemas.py is deprecated. Use apps.ai.types.PageJob instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        super().__init__(**data)
 
 
 class RequestSchema(BaseModel):

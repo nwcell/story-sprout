@@ -109,6 +109,19 @@ class ConversationService:
         # Send chips update event
         self._send_chips_event(chat_response.chips)
 
+    def sync_chat_display(self) -> None:
+        """
+        Sync the AI panel with the current conversation's chat display.
+
+        This fetches the conversation's current chat_display and sends it via SSE
+        to update the AI panel with the latest message and chips.
+        """
+        conversation = Conversation.objects.get(uuid=self.uuid)
+        chat_display = conversation.chat_display
+
+        logger.info(f"Syncing chat display for conversation {self.uuid}")
+        self.send_chat_response(chat_display)
+
     def _send_message_event(self, message: str) -> None:
         """Send SSE event to update the prompt row with new message."""
         channel_name = f"conversation-{self.uuid}"

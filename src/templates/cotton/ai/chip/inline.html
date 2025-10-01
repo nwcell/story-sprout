@@ -1,0 +1,14 @@
+<c-vars name="ai-chip" emoji="🖋" color="neutral" url vals target />
+
+<c-ai.chip name="{{ name }}"
+            emoji="{{ emoji }}"
+            color="{{ color }}"
+            hx-post="{{ url }}"
+            hx-ext='json-enc'
+            hx-vals="{{ vals }}"
+            type="button"
+            x-data="{ target: '{{ target }}', disabled: false }"
+            x-bind:disabled="disabled"
+            x-on:click="$el.parentElement.querySelector(target)?.setAttribute('aria-busy', 'true'); disabled = true"
+            x-on:htmx:after-swap.window="disabled = false"
+            x-on:htmx:response-error.window="disabled = false">{{ slot }}</c-ai.chip>

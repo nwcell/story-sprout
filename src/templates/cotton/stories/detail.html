@@ -9,14 +9,12 @@
     <div class="flex items-center space-x-2">
       {% comment %} <c-button id="revise-story" icon="wand-magic-sparkles" class="hover:text-purple-600" /> {% endcomment %}
       <c-htmx.sse hx-get="{% url 'api-1:get_story_title' story_uuid=story.uuid %}" event="get_story_title" />
-      <c-stories.title :story=story class="slide-it" />
-      <c-ai.chip name="ai-chip"
-                 type="button"
-                 emoji="✍️"
-                 color="purple"
-                 hx-post="{% url 'api-1:ai_story_title' %}"
-                 hx-ext='json-enc'
-                 hx-vals='{"story_uuid": "{{ story.uuid }}"}'>Suggest</c-ai.chip>
+      <c-stories.title :story=story />
+      <c-ai.chip.inline emoji="✍️"
+                        color="purple"
+                        url="{% url 'api-1:ai_story_title' %}"
+                        vals='{"story_uuid": "{{ story.uuid }}"}'
+                        target="#story-title">Suggest</c-ai.chip.inline>
     </div>
 
     <c-button icon="arrow-left"
@@ -31,24 +29,21 @@
         <h4 class="font-medium text-black mb-1">Story Outline</h4>
         <c-htmx.sse hx-get="{% url 'api-1:get_story_description' story_uuid=story.uuid %}" event="get_story_description" />
         <c-stories.description :story=story />
-        <c-ai.chip name="ai-chip"
-                   type="button"
-                   emoji="✍️"
-                   color="purple"
-                   hx-post="{% url 'api-1:ai_story_description' %}"
-                   hx-ext='json-enc'
-                   hx-vals='{"story_uuid": "{{ story.uuid }}"}'>Suggest</c-ai.chip>
+        <c-ai.chip.inline emoji="✍️"
+                          color="purple"
+                          url="{% url 'api-1:ai_story_description' %}"
+                          vals='{"story_uuid": "{{ story.uuid }}"}'
+                          target="#story-description">Suggest</c-ai.chip.inline>
       </div>
     </div>
   </div>
 
-  <c-ai.chip name="ai-chip"
-            type="button"
-            emoji="🧠"
-            color="lime"
-            hx-post="{% url 'api-1:ai_story_brainstorm' %}"
-            hx-ext='json-enc'
-            hx-vals='{"story_uuid": "{{ story.uuid }}"}'>Brainstorm</c-ai.chip>
+
+  <c-ai.chip.inline emoji="🧠"
+                    color="lime"
+                    url="{% url 'api-1:ai_story_brainstorm' %}"
+                    vals='{"story_uuid": "{{ story.uuid }}"}'
+                    target="#story-description">Brainstorm</c-ai.chip.inline>
 
   <div class="mt-8">
     <div class="flex items-center justify-between">

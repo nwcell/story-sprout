@@ -1,7 +1,7 @@
 <c-vars hx-get event key="" hx-target="next" hx-swap="outerHTML" />
 
 <div hx-get="{{ hx_get }}"
-     hx-trigger="sse:{{ event }}{% if key %}#{{ key }}{% endif %}"
-     hx-target="{{ hx_target }}"
-     hx-swap="{{ hx_swap }} transition:true"
-     class="hidden"></div>
+  hx-trigger="sse:{{ event }}{% if key %}#{{ key }}{% endif %}"
+  hx-target="{{ hx_target }}"
+  hx-swap="{{ hx_swap }} swap:.5s settle:.5s"
+  class="hidden"></div>

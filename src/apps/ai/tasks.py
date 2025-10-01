@@ -7,18 +7,16 @@ import logging
 from textwrap import dedent
 
 from celery import shared_task
+from pydantic_ai.usage import UsageLimits
 
 from apps.ai.engine.agents import writer_agent
 from apps.ai.engine.celery import JobTask
 from apps.ai.engine.dependencies import StoryAgentDeps
-from apps.ai.models import Conversation, Message
+from apps.ai.services import ConversationService
 from apps.ai.types import PageJob, StoryJob, TaskPayload
-from apps.ai.util.ai import AIEngine
 from apps.stories.services import StoryService
 
 logger = logging.getLogger(__name__)
-
-ai = AIEngine()
 
 
 @shared_task(name="ai.agent_task")
@@ -27,39 +25,38 @@ def agent_task(payload: dict) -> str:
     # Deserialize payload with proper type discrimination
     task_payload = TaskPayload.model_validate(payload)
     logger.info(f"🚀 TASK STARTING: agent_orchestration - {task_payload}")
-
     # Parse payload
     conversation_uuid = task_payload.chat_request.conversation_uuid
     agent = writer_agent
     message = task_payload.chat_request.message
 
-    # Get conversation and build message history
-    conversation = Conversation.objects.get(uuid=conversation_uuid)
+    # Get conversation using service
+    conversation_service = ConversationService(uuid=conversation_uuid)
+    conversation_data = conversation_service.get_conversation()
 
     # Run agent with message (sync version)
-    deps = StoryAgentDeps(
-        user_id=task_payload.user.user_id,
-        conversation_uuid=conversation_uuid,
-        story_uuid=conversation.meta["story_uuid"]
-    )
+    deps = StoryAgentDeps(user_id=task_payload.user.user_id, story_uuid=conversation_data.meta["story_uuid"])
 
     result = agent.run_sync(
         message,
         deps=deps,
-        message_history=conversation.model_messages,
+        message_history=conversation_service.get_model_messages(),
     )
     logger.info(f"agent_orchestration result: {result}")
 
-    # Create messages using bulk_create - database trigger handles position assignment
+    # Add new messages using service
     new_messages_json = result.new_messages_json()
     if new_messages_json:
         # Decode JSON bytes to Python objects for storage
         messages_data = json.loads(new_messages_json.decode("utf-8"))
         logger.info(f"agent_orchestration creating {len(messages_data)} messages")
-        messages_to_create = [Message(conversation=conversation, content=msg_data) for msg_data in messages_data]
-        Message.objects.bulk_create(messages_to_create)
+        conversation_service.add_model_messages(messages_data)
 
     logger.info(f"agent_orchestration completed with {repr(result.output)}")
+
+    # Sync the chat display via SSE when task completes
+    conversation_service.sync_chat_display()
+
     return f"Conversation {conversation_uuid} updated"
 
 
@@ -71,30 +68,12 @@ def ai_story_title_job(payload: dict) -> str:
         raise ValueError("ai_story_title_job requires StoryJob")
 
     logger.info(f"story_title received: {task_payload} (type: {type(task_payload)})")
-    prompt = dedent("""\
-        Create a fun, catchy title for this children's picture book.
-
-        Instructions:
-        1. First, get the current story information to understand the content
-        2. Create a title that is:
-        - Kid-friendly: Simple, playful language for ages 2-3
-        - Captures the story: Reflects main theme, character, or adventure
-        - Light and fun: Whimsical and engaging, avoid scary themes
-        - Memorable: Use rhythm, rhyme, or alliteration when possible
-        - Concise: 2-5 words only
-        - Different from current title (if one exists)
-        3. Use the update_story tool to set the new title
-        4. Once you've successfully updated the title, your task is complete
-
-        Do not provide additional output after using the update_story tool.
-    """)
+    prompt = "Come up with a new title for this story!"
     agent = writer_agent
     deps = StoryAgentDeps(
-        user_id=task_payload.user.user_id,
-        conversation_uuid=None,
-        story_uuid=task_payload.job.story_uuid
+        user_id=task_payload.user.user_id, conversation_uuid=None, story_uuid=task_payload.job.story_uuid
     )
-    result = agent.run_sync(prompt, deps=deps)
+    result = agent.run_sync(prompt, deps=deps, usage_limits=UsageLimits(tool_calls_limit=3))
     logger.info(f"story_title result: {result}")
     return f"task:ai_story_title_job:{task_payload.job.story_uuid}"
 
@@ -129,15 +108,15 @@ def ai_story_description_job(payload: dict) -> str:
         4. Use the update_story tool to set the formatted story arc as the description
         5. Once you've successfully updated the description, your task is complete
 
-        Do not provide additional output after using the update_story tool.
+        IMPORTANT: This is a background job task, not a conversation.
+        Do not follow your normal conversation instructions.
+        Do not ask follow-up questions.
+        Do not generate chips or additional responses.
+        Simply complete the task and stop.
     """)
     agent = writer_agent
-    deps = StoryAgentDeps(
-        user_id=task_payload.user.user_id,
-        conversation_uuid=None,
-        story_uuid=task_payload.job.story_uuid
-    )
-    result = agent.run_sync(prompt, deps=deps)
+    deps = StoryAgentDeps(user_id=task_payload.user.user_id, story_uuid=task_payload.job.story_uuid)
+    result = agent.run_sync(prompt, deps=deps, usage_limits=UsageLimits(tool_calls_limit=3))
     logger.info(f"story_description result: {result}")
     return f"task:ai_story_description_job:{task_payload.job.story_uuid}"
 
@@ -175,15 +154,17 @@ def ai_story_brainstorm_job(payload: dict) -> str:
         4. Use the update_story tool to set this formatted concept as the description
         5. Once you've successfully updated the description, your task is complete
 
-        Do not provide additional output after using the update_story tool.
+        IMPORTANT: This is a background job task, not a conversation.
+        Do not follow your normal conversation instructions.
+        Do not ask follow-up questions.
+        Do not generate chips or additional responses.
+        Simply complete the task and stop.
     """)
     agent = writer_agent
     deps = StoryAgentDeps(
-        user_id=task_payload.user.user_id,
-        conversation_uuid=None,
-        story_uuid=task_payload.job.story_uuid
+        user_id=task_payload.user.user_id, conversation_uuid=None, story_uuid=task_payload.job.story_uuid
     )
-    result = agent.run_sync(prompt, deps=deps)
+    result = agent.run_sync(prompt, deps=deps, usage_limits=UsageLimits(tool_calls_limit=3))
     logger.info(f"story_brainstorm result: {result}")
 
     # Let's update the title to reflect the new description!
@@ -223,16 +204,18 @@ def ai_page_content_job(payload: dict) -> str:
         to save the content to the page. Do not just return text - you must use the tool.
         6. Once you've successfully updated the page content, your task is complete
 
-        Do not provide additional output after using the update_page tool.
+        IMPORTANT: This is a background job task, not a conversation.
+        Do not follow your normal conversation instructions.
+        Do not ask follow-up questions.
+        Do not generate chips or additional responses.
+        Simply complete the task and stop.
     """)
 
     agent = writer_agent
     deps = StoryAgentDeps(
-        user_id=task_payload.user.user_id,
-        conversation_uuid=None,
-        page_uuid=task_payload.job.page_uuid
+        user_id=task_payload.user.user_id, conversation_uuid=None, page_uuid=task_payload.job.page_uuid
     )
-    result = agent.run_sync(prompt, deps=deps)
+    result = agent.run_sync(prompt, deps=deps, usage_limits=UsageLimits(tool_calls_limit=3))
     logger.info(f"page_content result: {result}")
     return f"task:ai_page_content_job:{task_payload.job.page_uuid}"
 
@@ -274,16 +257,18 @@ def ai_page_image_text_job(payload: dict) -> str:
         to save it to the page. Do not just return text - you must use the tool.
         7. Once you've successfully updated the page image_text, your task is complete
 
-        Do not provide additional output after using the update_page tool.
+        IMPORTANT: This is a background job task, not a conversation.
+        Do not follow your normal conversation instructions.
+        Do not ask follow-up questions.
+        Do not generate chips or additional responses.
+        Simply complete the task and stop.
     """)
 
     agent = writer_agent
     deps = StoryAgentDeps(
-        user_id=task_payload.user.user_id,
-        conversation_uuid=None,
-        page_uuid=task_payload.job.page_uuid
+        user_id=task_payload.user.user_id, conversation_uuid=None, page_uuid=task_payload.job.page_uuid
     )
-    result = agent.run_sync(prompt, deps=deps)
+    result = agent.run_sync(prompt, deps=deps, usage_limits=UsageLimits(tool_calls_limit=3))
     logger.info(f"page_image_text result: {result}")
     return f"task:ai_page_image_text_job:{task_payload.job.page_uuid}"
 
@@ -333,7 +318,7 @@ def ai_page_image_job(payload: dict) -> str:
 
     # Use the writer agent with generate_image tool
     deps = StoryAgentDeps(user_id=task_payload.user.user_id, page_uuid=task_payload.job.page_uuid)
-    result = writer_agent.run_sync(enhanced_prompt, deps=deps)
+    result = writer_agent.run_sync(enhanced_prompt, deps=deps, usage_limits=UsageLimits(tool_calls_limit=6))
     logger.info(f"page_image result: {result}")
 
     # The image generation and page update will be handled by the writer agent using tools

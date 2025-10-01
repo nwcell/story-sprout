@@ -1,7 +1,8 @@
-from typing import Literal, Annotated
+from typing import Annotated, Any, Literal
 from uuid import UUID
 
-from pydantic import BaseModel, TypeAdapter, Field, Discriminator
+from pydantic import BaseModel, Field, TypeAdapter
+from pydantic_ai.messages import ToolReturn
 from pydantic_core import core_schema
 
 
@@ -78,6 +79,7 @@ class User(BaseModel):
 
 class Job(BaseModel):
     """Base job type for AI tasks."""
+
     job_type: str = Field(..., description="Discriminator for job type")
 
 
@@ -99,6 +101,7 @@ class ChatRequest(BaseModel):
 
 class TaskPayload(BaseModel):
     """Standard payload format for all AI tasks."""
+
     user: User
     chat_request: ChatRequest
     job: Annotated[StoryJob | PageJob, Field(discriminator="job_type")] | None = None
@@ -110,3 +113,20 @@ class ChatResponse(BaseModel):
 
 
 chat_response_adapter = TypeAdapter(ChatResponse)
+
+
+class ToolReturnValue(BaseModel):
+    """Base model for tool return values."""
+
+    success: bool
+    value: Any
+
+
+def tool_return(
+    value: Any,
+    success: bool = True,
+    content: list[Any] | None = None,
+    metadata: Any | None = None,
+) -> ToolReturn:
+    return_value = ToolReturnValue(success=success, value=value)
+    return ToolReturn(return_value=return_value, content=content, metadata=metadata)

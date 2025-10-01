@@ -87,6 +87,16 @@ class ConversationService:
         conversation = Conversation.objects.get(uuid=self.uuid)
         return ConversationDetailSchema.model_validate(conversation, from_attributes=True)
 
+    def get_model_messages(self):
+        """Get model messages for this conversation."""
+        conversation = Conversation.objects.get(uuid=self.uuid)
+        return conversation.model_messages
+
+    def add_model_messages(self, messages):
+        """Add model messages to this conversation."""
+        conversation = Conversation.objects.get(uuid=self.uuid)
+        conversation.insert_model_messages(messages)
+
     def send_chat_response(self, chat_response: ChatResponse) -> None:
         """
         Send ChatResponse via SSE events to update the AI panel.

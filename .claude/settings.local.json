@@ -9,7 +9,8 @@
       "Bash(cat:*)",
       "Bash(uv run ruff:*)",
       "Bash(uv run:*)",
-      "WebFetch(domain:microsoft.github.io)"
+      "WebFetch(domain:microsoft.github.io)",
+      "Bash(DJANGO_SETTINGS_MODULE=config.settings uv run python -c \"\nimport django\ndjango.setup()\nfrom config.api import api\nprint(''API URLs:'')\nfor pattern in api.urls.urlpatterns:\n    print(f''  {pattern}'')\n\")"
     ],
     "deny": [],
     "ask": []

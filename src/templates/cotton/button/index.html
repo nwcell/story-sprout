@@ -1,9 +1,9 @@
-<c-vars id icon class />
+<c-vars id icon class type />
 
 {% comment %} TODO: Add support for solid buttons {% endcomment %}
 
 <button {% if id %}id="{{ id }}"{% endif %}
-        type="button"
+        type="{{ type|default:'button' }}"
         class="transition-colors transition-all duration-200 hover:text-blue-600 {{ class }}"
         {{ attrs }}>
   {% if icon %}<i class="fa-solid fa-{{ icon }}"></i> {% endif %}{{ slot }}

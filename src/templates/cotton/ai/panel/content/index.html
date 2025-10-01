@@ -50,28 +50,38 @@
       <c-ai.panel.content.chip_row :chips=chips />
     </div>
 
-    <div id="ai-panel-input"
-         class="w-full p-1 rounded-xl resize-none bg-white shadow overflow-hidden border border-light-gray">
-      <div class="relative">
-        <c-fields.textarea id="ai-panel-text"
-                           type="text"
-                           name="ai-panel-text"
-                           placeholder="{{ input_placeholder|default:"Enter your text here" }}"
-                           hide_border
-                           class="focus:outline-none focus:ring-0"
-                           x-model="messageText" />
-      <div id="ai-panel-submit" class="p-2 flex items-center justify-between">
+    <form id="ai-panel-form"
+          hx-post="{% url 'api-1:send_chat' %}"
+          hx-encoding="multipart/form-data"
+          x-on:submit="setTimeout(() => { messageText = ''; queuedImages = []; }, 100)">
+      <input type="hidden" name="conversation_uuid" value="{{ conversation.uuid }}" />
+
+      <div id="ai-panel-input"
+           class="w-full p-1 rounded-xl resize-none bg-white shadow overflow-hidden border border-light-gray">
+        <div class="relative">
+          <c-fields.textarea id="ai-panel-text"
+                             type="text"
+                             name="message"
+                             placeholder="{{ input_placeholder|default:"Enter your text here" }}"
+                             hide_border
+                             class="focus:outline-none focus:ring-0"
+                             x-model="messageText"
+                             x-on:keydown.enter.prevent="if (messageText.trim().length > 0) $el.closest('form').requestSubmit()" />
+        <div id="ai-panel-submit" class="p-2 flex items-center justify-between">
         <input type="file"
+               name="files"
                x-ref="fileInput"
                class="hidden"
                accept=".jpg,.jpeg,.png,.webp"
                multiple
                x-on:change="queueFiles($event.target.files, $dispatch); $event.target.value = ''" />
         <c-button icon="image"
+                  type="button"
                   class="w-10 h-10 rounded-lg flex items-center justify-center bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors duration-150"
                   title="Add image"
                   x-on:click="$refs.fileInput.click()" />
         <c-button icon="paper-plane"
+                  type="submit"
                   class="w-10 h-10 rounded-lg flex items-center justify-center bg-slate-200 text-slate-500 transition-colors duration-150"
                   x-bind:disabled="messageText.trim().length === 0"
                   x-bind:class="{
@@ -99,5 +109,6 @@
         </div>
       </div>
     </div>
+    </form>
   </div>
 </div>

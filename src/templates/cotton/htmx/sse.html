@@ -3,5 +3,5 @@
 <div hx-get="{{ hx_get }}"
      hx-trigger="sse:{{ event }}{% if key %}#{{ key }}{% endif %}"
      hx-target="{{ hx_target }}"
-     hx-swap="{{ hx_swap }}"
+     hx-swap="{{ hx_swap }} transition:true"
      class="hidden"></div>

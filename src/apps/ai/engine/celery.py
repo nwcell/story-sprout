@@ -60,17 +60,14 @@ def enqueue_job(user: User, workflow: str, chat_request: ChatRequest, job: JobTy
 
     # Create combined payload for task
     from apps.ai.types import TaskPayload
-    task_payload = TaskPayload(
-        user=UserType(user_id=user.id),
-        chat_request=chat_request,
-        job=job
-    )
+
+    task_payload = TaskPayload(user=UserType(user_id=user.id), chat_request=chat_request, job=job)
 
     # Store serialized version for audit/replay
     audit_payload = {
         "user_id": user.id,
         "chat_request": chat_request.model_dump(mode="json"),
-        "job": job.model_dump(mode="json") if job else None
+        "job": job.model_dump(mode="json") if job else None,
     }
 
     job_record = Job.objects.create(

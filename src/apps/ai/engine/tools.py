@@ -1,11 +1,14 @@
 import logging
+from textwrap import dedent
 
 from pydantic_ai import RunContext
 from pydantic_ai.messages import ImageUrl, ToolReturn
 from pydantic_ai.toolsets import FunctionToolset
 
 from apps.ai.engine.dependencies import StoryAgentDeps
-from apps.stories.services import PageSchema, StorySchema
+from apps.ai.engine.toolsets import EnhancedToolset
+from apps.ai.types import tool_return
+from apps.stories.services import PageSchema
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 # TODO: Add flag to get_story to include page images
-def get_story(ctx: RunContext[StoryAgentDeps]) -> StorySchema:
+def get_story(ctx: RunContext[StoryAgentDeps]) -> ToolReturn:
     """Get comprehensive story information including title, description, and all pages.
 
     This tool retrieves the complete story data for the current conversation context,
@@ -33,8 +36,7 @@ def get_story(ctx: RunContext[StoryAgentDeps]) -> StorySchema:
     logger.info("tool.get_story()")
     story_service = ctx.deps.story_service
     story = story_service.get_story()
-    logger.info(f"tool.get_story retrieved story: title='{story.title}', page_count={story.page_count}")
-    return story
+    return tool_return(story)
 
 
 # TODO: Add flag to get_story to include page images
@@ -58,8 +60,7 @@ def get_page(ctx: RunContext[StoryAgentDeps], page_num: int) -> PageSchema:
     logger.info(f"tool.get_page({page_num})")
     story_service = ctx.deps.story_service
     page = story_service.get_page(page_num)
-    logger.info(f"tool.get_page retrieved page: {page}")
-    return page
+    return tool_return(page)
 
 
 def get_page_image(ctx: RunContext[StoryAgentDeps], page_num: int) -> ToolReturn:
@@ -81,9 +82,9 @@ def get_page_image(ctx: RunContext[StoryAgentDeps], page_num: int) -> ToolReturn
     story_service = ctx.deps.story_service
     page = story_service.get_page(page_num)
     if not page.image:
-        return ToolReturn(return_value=f"No image found for page {page_num}")
-    return ToolReturn(
-        return_value=f"Found image for page {page_num}",
+        return tool_return("No image found for page {page_num}")
+    return tool_return(
+        f"Found image for page {page_num}",
         content=[
             # BinaryContent(data=image_binary, media_type=media_type),
             ImageUrl(url=page.image.url, force_download=True),
@@ -136,7 +137,7 @@ def create_page(
         out["image_url"] = image_url
 
     logger.info(f"tool.create_page created page {new_page_num}: {out}")
-    return out
+    return tool_return(out)
 
 
 # Tools that have side effects
@@ -174,7 +175,7 @@ def update_story(ctx: RunContext[StoryAgentDeps], title: str | None = None, desc
         out["description"] = description
     out = {"action": "updated_story", **out}
     logger.info(f"tool.update_story updated story: {out}")
-    return out
+    return tool_return(out)
 
 
 def update_page(
@@ -223,7 +224,7 @@ def update_page(
         out["image_url"] = image_url
     out = {"action": "updated_page", **out}
     logger.info(f"tool.update_page updated page {page_num}: {out}")
-    return out
+    return tool_return(out)
 
 
 # Reorganize operations - change structure
@@ -264,7 +265,7 @@ def move_page(ctx: RunContext[StoryAgentDeps], page_num: int, target: str | int)
 
     out = {"action": "moved_page", "original_position": original_pos, "target": target}
     logger.info(f"tool.move_page moved page from {original_pos} to {target}: {out}")
-    return out
+    return tool_return(out)
 
 
 # Destructive operations - remove content (use carefully)
@@ -295,7 +296,7 @@ def delete_page(ctx: RunContext[StoryAgentDeps], page_num: int):
 
     out = {"action": "deleted_page", "page_num": page_num}
     logger.info(f"tool.delete_page deleted page {page_num}: {out}")
-    return out
+    return tool_return(out)
 
 
 # Artist Tools
@@ -325,11 +326,25 @@ def artist_request(ctx: RunContext[StoryAgentDeps], prompt: str) -> ToolReturn:
 
     # Use story service to prepare properly formatted story context with images
     story_service = ctx.deps.story_service
+
+    instructions = dedent(f"""\
+        # INSTRUCTIONS
+        ## ROLE:
+        You are a talented children's book illustrator creating artwork for this story.
+
+        ## SYSTEM_INSTRUCTION:
+        * Always include the story text in the generated image.
+        * Ensure the text is readable & consistent with other images.
+        * Text should be thoroughly proofread.
+
+        ## PROMPT:
+        {prompt}
+        ------
+    """)
+
     contents = [
-        "SYSTEM_INSTRUCTION: You are a talented children's book illustrator creating artwork for this story.",
-        "PROMPT:",
-        prompt,
-        "STORY_CONTEXT:",
+        instructions,
+        "## STORY_CONTEXT:",
         *story_service.gemini_parts(),
     ]
 
@@ -352,14 +367,14 @@ def artist_request(ctx: RunContext[StoryAgentDeps], prompt: str) -> ToolReturn:
     if image_urls:
         return_msg = f"Artist created {len(image_urls)} illustration(s): {', '.join(image_urls)}"
         content_blocks.append(return_msg)
-        return ToolReturn(return_value="Artifacts saved", content=content_blocks)
+        return tool_return("Artifacts saved", content=content_blocks)
     else:
         content_blocks.append("Artist request completed but no images were generated")
-        return ToolReturn(return_value="No artifacts", content=content_blocks)
+        return tool_return("No artifacts", content=content_blocks)
 
 
 # Create toolsets
-book_toolset = FunctionToolset(
+_book_function_toolset = FunctionToolset(
     [
         # Read operations - inspect existing content
         get_story,
@@ -378,4 +393,8 @@ book_toolset = FunctionToolset(
         artist_request,
     ]
 )
-image_toolset = FunctionToolset([artist_request])
+_image_function_toolset = FunctionToolset([artist_request])
+
+# Wrap toolsets with enhanced functionality
+book_toolset = EnhancedToolset(_book_function_toolset)
+image_toolset = EnhancedToolset(_image_function_toolset)

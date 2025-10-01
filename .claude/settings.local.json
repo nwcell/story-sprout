@@ -11,7 +11,8 @@
       "Bash(uv run:*)",
       "WebFetch(domain:microsoft.github.io)",
       "WebFetch(domain:htmx.org)",
-      "WebFetch(domain:developer.chrome.com)"
+      "WebFetch(domain:developer.chrome.com)",
+      "WebFetch(domain:django-cotton.com)"
     ],
     "deny": [],
     "ask": []

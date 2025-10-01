@@ -6,24 +6,35 @@
          isDragging: false,
          isHovering: false,
          hasImage: {% if image %}true{% else %}false{% endif %},
-         isUploading: false
+         isUploading: false,
+         isBusy: false
        }"
-       class="bg-white mt-1 w-full relative text-gray-400 rounded-md shadow-sm cursor-pointer aspect-square {% if not image %}border-2 border-gray-200 border-dashed {% endif %}"
+       x-init="
+         const parent = $el.closest('.image-upload');
+         isBusy = parent.getAttribute('aria-busy') === 'true';
+         new MutationObserver(() => {
+           isBusy = parent.getAttribute('aria-busy') === 'true';
+         }).observe(parent, { attributes: true, attributeFilter: ['aria-busy'] });
+       "
+       class="bg-white mt-1 w-full relative text-gray-400 rounded-md shadow-sm aspect-square {% if not image %}border-2 border-gray-200 border-dashed {% endif %}"
+       :class="{ 'cursor-pointer': !isBusy, 'cursor-not-allowed opacity-50': isBusy }"
        {% if image %}style="background-image: url('{{ image.url }}'); background-size: cover; background-position: center;"{% endif %}
-       @mouseenter="handleMouseEnter($el, $data)"
-       @mouseleave="handleMouseLeave($el, $data)">
+       @mouseenter="!isBusy && handleMouseEnter($el, $data)"
+       @mouseleave="!isBusy && handleMouseLeave($el, $data)">
     <div x-ref="container"
-         class="relative cursor-pointer h-full rounded-md"
-         @click="$refs.fileInput.click()"
-         @dragover="handleDragOver($el, $data, $event)"
+         class="relative h-full rounded-md"
+         :class="{ 'cursor-pointer': !isBusy, 'cursor-not-allowed': isBusy }"
+         @click="!isBusy && $refs.fileInput.click()"
+         @dragover="!isBusy && handleDragOver($el, $data, $event)"
          @dragleave="handleDragEnd($el, $data, $event)"
-         @drop="handleFileDrop($el, $data, $event)">
+         @drop="!isBusy && handleFileDrop($el, $data, $event)">
         <input accept=".jpg,.jpeg,.png,.webp"
                type="file"
                name="file"
                class="sr-only"
                x-ref="fileInput"
                @change="handleFileSelected($el, $data)"
+               :disabled="isBusy"
                hx-post="{{ upload_url }}"
                hx-encoding="multipart/form-data"
                hx-trigger="change"
@@ -31,11 +42,13 @@
                hx-swap="outerHTML"
                hx-indicator=".upload-indicator"
         />
-        <div class="h-full px-4 flex flex-col items-center justify-center text-center cursor-pointer"
+        <div class="h-full px-4 flex flex-col items-center justify-center text-center"
              :class="{
                 'opacity-100 text-white': hasImage && (isDragging || isHovering),
                 'opacity-0 text-white': hasImage && !isDragging && !isHovering,
-                'text-black': !hasImage
+                'text-black': !hasImage,
+                'cursor-pointer': !isBusy,
+                'cursor-not-allowed': isBusy
              }">
             <i class="fa-solid fa-cloud-upload text-2xl"></i>
             <p class="text-sm"><span class="font-semibold">Click to upload</span> or drag and drop</p>
@@ -58,7 +71,7 @@
         {% if image %}
           <!-- Save/Download button -->
           <button type="button"
-                  class="absolute top-2 right-22 bg-black bg-opacity-50 rounded-full p-2 transition-all duration-200 z-[60] opacity-0 group-hover:opacity-100 text-white hover:text-green-500"
+                  class="absolute top-2 left-2 bg-black bg-opacity-50 rounded-full p-2 transition-all duration-200 z-[60] opacity-0 group-hover:opacity-100 text-white hover:text-green-500"
                   @click.stop="downloadImage('{{ image.url }}', '{{ image.name|default:'image' }}')"
                   title="Download image">
               <i class="fa-solid fa-download text-sm"></i>
@@ -66,7 +79,7 @@
 
           <!-- Copy image button -->
           <button type="button"
-                  class="absolute top-2 right-12 bg-black bg-opacity-50 rounded-full p-2 transition-all duration-200 z-[60] opacity-0 group-hover:opacity-100 text-white hover:text-blue-500"
+                  class="absolute top-2 left-12 bg-black bg-opacity-50 rounded-full p-2 transition-all duration-200 z-[60] opacity-0 group-hover:opacity-100 text-white hover:text-blue-500"
                   @click.stop="copyImageToClipboard('{{ image.url }}')"
                   title="Copy image to clipboard">
               <i class="fa-solid fa-clipboard text-sm"></i>
@@ -75,6 +88,7 @@
           {% if delete_url %}
             <!-- Delete button -->
             <button type="button"
+                    x-show="!isBusy"
                     class="absolute top-2 right-2 bg-black bg-opacity-50 rounded-full p-2 transition-all duration-200 z-[60] opacity-0 group-hover:opacity-100 text-white hover:text-red-500"
                     @click.stop
                     hx-delete="{{ delete_url }}"

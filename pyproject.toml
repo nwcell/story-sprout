@@ -26,7 +26,7 @@ dependencies = [
     "celery>=5.5.3",
     "django-celery-results>=2.6.0",
     # AI & LLM Integration
-    "pydantic-ai>=1.0.1",
+    "pydantic-ai>=1.0.12",
     "litellm>=1.74.3",
     # Database & Storage
     "psycopg[binary]>=3.2.9",

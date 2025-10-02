@@ -13,13 +13,31 @@ This file tracks high-level tasks and future development goals for the Story Spr
 ## High Priority
 
 - [ ] Visual effects for element swaps
+    - [ ] SSE for "working on" state
+    - [ ] Service hooks in tools (Tie to agents)
 - [ ] Track costs
-- [ ] Track costs on a run
-- [ ] Associate costs w/ a user
-- [ ] Make reports for user costs in admin
-- [ ] Set up monthly budget for user
-- [ ] Scaffolding to request more credits
-- [ ]
+    - [ ] Track costs on a run
+    - [ ] Associate costs w/ a user
+    - [ ] Make reports for user costs in admin
+    - [ ] Set up monthly budget for user
+    - [ ] Scaffolding to request more credits
+- [ ] Chat
+    - [ ] Stream thoughts
+    - [ ] Visual effect for in-progress
+    - [ ] Disable submit during chat
+    - [ ] Upload images in chat
+- [ ] Soft Launch
+    - [ ] Domain
+    - [ ] DB (Postgres + Redis)
+    - [ ] S3
+    - [ ] Server
+    - [ ] DevOps Pipeline
+- [ ] Hard Launch
+    - [ ] Marketing Site
+    - [ ] Validate Sign Up Workflow
+    - [ ] Coupon Shortcode
+    - [ ] Profile
+    - [ ] Settings
 
 ## Medium Priority
 

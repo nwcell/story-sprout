@@ -1,10 +1,3 @@
-"""
-Pydantic-AI agents for Story Sprout.
-
-Following pydantic-ai best practices, agents are defined as module globals
-and can be reused throughout the application.
-"""
-
 import logging
 from datetime import date
 from textwrap import dedent
@@ -12,7 +5,7 @@ from textwrap import dedent
 from pydantic_ai import Agent, RunContext
 
 from apps.ai.engine.dependencies import StoryAgentDeps
-from apps.ai.engine.tools import book_toolset
+from apps.ai.engine.toolsets import book_toolset
 from apps.ai.types import ChatResponse
 
 logger = logging.getLogger(__name__)
@@ -76,21 +69,3 @@ def add_story_schema(ctx: RunContext[str]) -> str:
     """)
     logger.info("instructions.add_story_schema")
     return story_schema
-
-
-# Registry for accessing agents by name (type-safe)
-AGENTS: dict[str, Agent[StoryAgentDeps, str]] = {
-    "writer": writer_agent,
-}
-
-
-def get_agent(agent_type: str) -> Agent[StoryAgentDeps, str]:
-    """Get an agent by type name."""
-    if agent_type not in AGENTS:
-        raise ValueError(f"Unknown agent type: {agent_type}. Available: {list(AGENTS.keys())}")
-    return AGENTS[agent_type]
-
-
-def list_agent_types() -> list[str]:
-    """List all available agent types."""
-    return list(AGENTS.keys())

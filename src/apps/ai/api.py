@@ -7,7 +7,6 @@ from django.shortcuts import get_object_or_404
 from ninja import File, Form, Query, Router, UploadedFile
 from pydantic import BaseModel
 
-from apps.ai.engine.agents import list_agent_types
 from apps.ai.engine.celery import enqueue_job
 from apps.ai.models import Artifacts, Conversation
 from apps.ai.schemas import JobStatus
@@ -25,12 +24,12 @@ class CreateConversationSchema(BaseModel):
     meta: dict | None = None
 
 
-@router.get("/agents", tags=["Agents"])
-def agents(request) -> list[str]:
-    _user = request.user
-    logger.info(f"API: agents endpoint called by user {_user}")
-    logger.debug("API: Getting agent types list")
-    return list_agent_types()
+# @router.get("/agents", tags=["Agents"])
+# def agents(request) -> list[str]:
+#     _user = request.user
+#     logger.info(f"API: agents endpoint called by user {_user}")
+#     logger.debug("API: Getting agent types list")
+#     return list_agent_types()
 
 
 @router.get("/conversations", response=list[ConversationSchema], tags=["Conversations"])
@@ -109,8 +108,6 @@ def send_chat(
     enqueue_job(user=user, workflow="ai.agent_task", chat_request=chat_request)
 
     return HttpResponse(status=204)
-
-
 
 
 # TODO: Add Auth

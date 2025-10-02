@@ -9,7 +9,7 @@ from textwrap import dedent
 from celery import shared_task
 from pydantic_ai.usage import UsageLimits
 
-from apps.ai.engine.agents import writer_agent
+from apps.ai.engine.agents.writer import writer_agent
 from apps.ai.engine.celery import JobTask
 from apps.ai.engine.dependencies import StoryAgentDeps
 from apps.ai.services import ConversationService
